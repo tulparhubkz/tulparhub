@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
     try {
       let query = db
         .from('parts')
-        .select('*, part_stock(*)', { count: 'exact' })
+        .select('id,oem,name,brand,type,category,fits,price,price_b2b,vat,eta,img,specs,cross,rating,reviews,part_stock(city,qty)', { count: 'exact' })
         .lte('price', priceMax)
 
       if (system)  query = query.eq('category', system)
