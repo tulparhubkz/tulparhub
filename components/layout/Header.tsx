@@ -167,10 +167,10 @@ export function Header() {
               <span className="hdr-iconlbl">Корзина</span>
               {cartCount > 0 && <span className="hdr-iconcount on">{cartCount}</span>}
             </Link>
-            <button type="button" className="hdr-iconbtn">
+            <Link href="/auth" className="hdr-iconbtn" style={{ textDecoration: 'none', flexDirection: 'column' }}>
               <Ico name="user" size={18} />
               <span className="hdr-iconlbl">Войти</span>
-            </button>
+            </Link>
           </div>
         </div>
 
