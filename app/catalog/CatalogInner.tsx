@@ -17,43 +17,44 @@ function PartCard({ part, b2b }: { part: any; b2b: boolean }) {
   const isOEM = (part.type || '').toUpperCase() === 'OEM'
 
   return (
-    <div className="pc2" onClick={() => router.push(`/catalog/${part.id}`)} style={{ cursor: 'pointer' }}>
-      <div className="pc2-img">
-        <div className="pc2-brand-label">{part.brand}</div>
-        <div className="pc2-img-placeholder">
-          <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="20" stroke="#d0d5dd" strokeWidth="2"/><circle cx="24" cy="24" r="10" stroke="#d0d5dd" strokeWidth="2"/><line x1="4" y1="24" x2="44" y2="24" stroke="#d0d5dd" strokeWidth="2"/></svg>
-        </div>
-        <button className="pc2-wish" onClick={(e) => { e.stopPropagation() }}>
-          <Ico name="heart" size={16} />
+    <div className="card" onClick={() => router.push(`/catalog/${part.id}`)} style={{ cursor: 'pointer' }}>
+      <div className="card-img">
+        <svg className="card-glyph" width="54" height="54" viewBox="0 0 54 54" fill="none" style={{ color: '#c2ccdb' }}>
+          <rect x="4" y="14" width="46" height="28" rx="4" stroke="currentColor" strokeWidth="2"/>
+          <path d="M4 22h46M14 14v28M40 14v28" stroke="currentColor" strokeWidth="1.5"/>
+        </svg>
+        <span className="brandchip" style={{ fontFamily: 'var(--font-jetbrains), monospace' }}>{part.brand}</span>
+        <button className="fav" onClick={(e) => e.stopPropagation()}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 21s-7.5-5-9.5-9.5C1 8 3 4.5 6.5 4.5c2 0 3.5 1.5 5.5 3.5 2-2 3.5-3.5 5.5-3.5C21 4.5 23 8 21.5 11.5 19.5 16 12 21 12 21Z"/></svg>
         </button>
       </div>
-      <div className="pc2-body">
-        <div className="pc2-badges">
-          <span className={`pc2-badge ${isOEM ? 'oem' : 'aft'}`}>{isOEM ? 'OEM' : 'Аналог'}</span>
+      <div className="card-body">
+        <div className="card-badges">
+          <span className={`badge ${isOEM ? 'oem' : 'analog'}`}>{isOEM ? 'OEM' : 'Аналог'}</span>
           {totalQty > 0
-            ? <span className="pc2-badge stock-ok"><Ico name="check" size={10} /> В наличии</span>
-            : <span className="pc2-badge stock-no">Под заказ</span>
+            ? <span className="badge stock">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                В наличии
+              </span>
+            : <span className="badge" style={{ background: 'var(--surf-2)', color: 'var(--ink-3)' }}>Под заказ</span>
           }
         </div>
-        <div className="pc2-oem">{part.oem}</div>
-        <div className="pc2-name">{part.name}</div>
-        <div className="pc2-mfr">{part.brand}</div>
-        {part.fits?.length > 0 && (
-          <div className="pc2-fits">{(part.fits as string[]).slice(0, 2).join(' · ')}</div>
-        )}
-        <div className="pc2-bottom">
-          <div className="pc2-price">
-            <b>{fmtKZT(price)}</b>
-            <span>с НДС · за шт</span>
+        <div className="card-art">{part.oem}</div>
+        <div className="card-name">{part.name}</div>
+        <div className="card-brand">{part.brand}</div>
+        <div className="card-foot">
+          <div className="card-price">
+            <span className="now">{fmtKZT(price)}</span>
+            <span className="unit">с НДС · за шт</span>
           </div>
           <button
-            className={`pc2-cart-btn ${inCart ? 'in' : ''}`}
+            className="buy"
             onClick={(e) => {
               e.stopPropagation()
               addItem({ ...part, stock: stockMap }, 1)
             }}
           >
-            <Ico name="cart" size={14} />
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
             {inCart ? 'В корзине' : 'В корзину'}
           </button>
         </div>
