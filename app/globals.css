@@ -922,3 +922,127 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
   .part-row { flex-wrap: wrap; }
   .prow-specs, .prow-stock { display: none; }
 }
+
+/* ── Catalog v2 cards ─────────────────────────────────── */
+.plp-grid2 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+@media (max-width: 1200px) { .plp-grid2 { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 900px)  { .plp-grid2 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px)  { .plp-grid2 { grid-template-columns: 1fr; } }
+
+.pc2 {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow .15s, transform .15s;
+}
+.pc2:hover { box-shadow: 0 4px 20px rgba(0,0,0,.10); transform: translateY(-2px); }
+
+.pc2-img {
+  position: relative;
+  background: #f8f9fb;
+  height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pc2-brand-label {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-3);
+  background: #fff;
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: .3px;
+}
+.pc2-img-placeholder { opacity: .3; }
+.pc2-wish {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--ink-3);
+  transition: color .15s;
+}
+.pc2-wish:hover { color: #e53e3e; }
+
+.pc2-body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 4px;
+}
+.pc2-badges {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.pc2-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.pc2-badge.oem  { background: #e8f0fb; color: var(--accent); }
+.pc2-badge.aft  { background: #f0f0f0; color: #555; }
+.pc2-badge.stock-ok { background: #e8f5e9; color: #2e7d32; }
+.pc2-badge.stock-no { background: #fff3e0; color: #e65100; }
+
+.pc2-oem  { font-size: 11px; color: var(--ink-3); font-family: var(--font-mono, monospace); }
+.pc2-name { font-size: 13px; font-weight: 600; color: var(--ink); line-height: 1.35; margin: 2px 0; }
+.pc2-mfr  { font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .3px; }
+.pc2-fits { font-size: 11px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+
+.pc2-bottom {
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+}
+.pc2-price b { font-size: 18px; font-weight: 700; color: var(--ink); display: block; }
+.pc2-price span { font-size: 11px; color: var(--ink-3); }
+
+.pc2-cart-btn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  transition: background .15s;
+  flex-shrink: 0;
+}
+.pc2-cart-btn:hover { background: #1a4fa8; }
+.pc2-cart-btn.in    { background: #2e7d32; }
