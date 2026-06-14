@@ -7,37 +7,30 @@ import { Btn } from '@/components/ui/Btn'
 import { useCart } from '@/store/cart'
 import { fmtKZT } from '@/lib/utils'
 
-// ── Парсинг характеристик из названия ────────────────────────────────────────
 function parseSpecs(name: string, brand: string): Record<string, string> {
   const specs: Record<string, string> = {}
   const n = name.toLowerCase()
 
-  // Размеры: 130×160×14 или 130x160x14 или 125x160/190x18/20
-  const dimMatch = name.match(/(\d[\d.,×x\/]+\d)\s*(мм|mm)?/i)
+  const dimMatch = name.match(/(\d[\d.,]+)[×x](\d[\d.,]+)(?:[×x](\d[\d.,]+))?/)
   if (dimMatch) {
-    const parts = dimMatch[1].split(/[×x]/)
-    if (parts.length === 3) {
-      specs['Внутр. диаметр'] = parts[0].trim() + ' мм'
-      specs['Наружн. диаметр'] = parts[1].trim() + ' мм'
-      specs['Ширина'] = parts[2].trim() + ' мм'
-    } else if (parts.length === 2) {
-      specs['Диаметр'] = parts[0].trim() + ' мм'
-      specs['Ширина'] = parts[1].trim() + ' мм'
+    if (dimMatch[3]) {
+      specs['Внутр. диаметр'] = dimMatch[1] + ' мм'
+      specs['Наружн. диаметр'] = dimMatch[2] + ' мм'
+      specs['Ширина'] = dimMatch[3] + ' мм'
+    } else {
+      specs['Диаметр'] = dimMatch[1] + ' мм'
+      specs['Ширина'] = dimMatch[2] + ' мм'
     }
   }
 
-  // Тип детали
   if (n.includes('сальник')) {
-    specs['Тип'] = 'Сальник'
-    if (n.includes('коленвал')) { specs['Тип'] = 'Сальник коленвала'; specs['Расположение'] = n.includes('задн') ? 'Задний' : n.includes('перед') ? 'Передний' : 'Универсальный' }
+    specs['Тип'] = 'Сальник коленвала'
     if (n.includes('распредвал')) specs['Тип'] = 'Сальник распредвала'
     if (n.includes('ступиц')) specs['Тип'] = 'Сальник ступицы'
     if (n.includes('хвостовик')) specs['Тип'] = 'Сальник хвостовика'
     if (n.includes('полуос')) specs['Тип'] = 'Сальник полуоси'
-    // Материал
-    if (n.includes('fkm') || n.includes('фторкаучук')) specs['Материал'] = 'FKM (фторкаучук)'
-    else if (n.includes('ptfe') || n.includes('птфэ')) specs['Материал'] = 'PTFE'
-    else specs['Материал'] = 'Акрилат/NBR'
+    specs['Расположение'] = n.includes('задн') ? 'Задний' : n.includes('перед') ? 'Передний' : 'Универсальный'
+    specs['Материал'] = n.includes('fkm') || n.includes('фторкаучук') ? 'FKM (фторкаучук)' : n.includes('ptfe') ? 'PTFE' : 'Акрилат/NBR'
   } else if (n.includes('фильтр масл')) {
     specs['Тип'] = 'Фильтр масляный'; specs['Резьба'] = 'M20×1.5'
   } else if (n.includes('фильтр топл')) {
@@ -46,54 +39,33 @@ function parseSpecs(name: string, brand: string): Record<string, string> {
     specs['Тип'] = 'Фильтр воздушный'
   } else if (n.includes('прокладка г/б') || n.includes('прокладка гбц')) {
     specs['Тип'] = 'Прокладка ГБЦ'
-    const mmMatch = name.match(/(\d+)\s*мм/i)
-    if (mmMatch) specs['Диаметр цилиндра'] = mmMatch[1] + ' мм'
   } else if (n.includes('набор прокладок')) {
     specs['Тип'] = 'Набор прокладок'
-    if (n.includes('верхн')) specs['Комплектация'] = 'Верхний комплект'
-    if (n.includes('нижн')) specs['Комплектация'] = 'Нижний комплект'
-    if (n.includes('полный')) specs['Комплектация'] = 'Полный комплект'
+    specs['Комплектация'] = n.includes('верхн') ? 'Верхний' : n.includes('нижн') ? 'Нижний' : 'Полный'
   } else if (n.includes('подшипник')) {
-    specs['Тип'] = 'Подшипник'
-    if (n.includes('выжимн')) specs['Тип'] = 'Подшипник выжимной'
-    if (n.includes('ступиц')) specs['Тип'] = 'Подшипник ступицы'
+    specs['Тип'] = n.includes('выжимн') ? 'Подшипник выжимной' : n.includes('ступиц') ? 'Подшипник ступицы' : 'Подшипник'
   } else if (n.includes('амортизатор')) {
     specs['Тип'] = 'Амортизатор'
     specs['Расположение'] = n.includes('пер') ? 'Передний' : n.includes('зад') ? 'Задний' : 'Универсальный'
   } else if (n.includes('диск сцеп')) {
     specs['Тип'] = 'Диск сцепления'
-    const mmMatch = name.match(/(\d+)\s*мм/i)
-    if (mmMatch) specs['Диаметр'] = mmMatch[1] + ' мм'
   } else if (n.includes('корзина сцеп')) {
     specs['Тип'] = 'Корзина сцепления'
-    const mmMatch = name.match(/(\d+)\s*мм/i)
-    if (mmMatch) specs['Диаметр'] = mmMatch[1] + ' мм'
   } else if (n.includes('колодк')) {
     specs['Тип'] = 'Тормозные колодки'
     specs['Ось'] = n.includes('пер') ? 'Передняя' : n.includes('зад') ? 'Задняя' : 'Универсальная'
   } else if (n.includes('диск тормоз')) {
     specs['Тип'] = 'Диск тормозной'
-    specs['Ось'] = n.includes('пер') ? 'Передняя' : n.includes('зад') ? 'Задняя' : 'Универсальная'
   } else if (n.includes('радиатор')) {
-    specs['Тип'] = 'Радиатор'
-    if (n.includes('охлажд')) specs['Тип'] = 'Радиатор охлаждения'
-    if (n.includes('масл')) specs['Тип'] = 'Масляный радиатор'
-    if (n.includes('отопит')) specs['Тип'] = 'Радиатор отопителя'
-  } else if (n.includes('клапан')) {
-    specs['Тип'] = 'Клапан'
+    specs['Тип'] = n.includes('масл') ? 'Масляный радиатор' : n.includes('отопит') ? 'Радиатор отопителя' : 'Радиатор охлаждения'
   } else if (n.includes('вкладыш')) {
-    specs['Тип'] = 'Вкладыши'
-    if (n.includes('шатун')) specs['Тип'] = 'Вкладыши шатунные'
-    if (n.includes('коренн')) specs['Тип'] = 'Вкладыши коренные'
-    const sizeMatch = name.match(/(STD|0\.25|0\.50|0\.75|1\.00)/i)
-    if (sizeMatch) specs['Размер'] = sizeMatch[1] === 'STD' ? 'Стандарт (STD)' : `Ремонтный +${sizeMatch[1]}`
+    specs['Тип'] = n.includes('шатун') ? 'Вкладыши шатунные' : n.includes('коренн') ? 'Вкладыши коренные' : 'Вкладыши'
+    const sz = name.match(/(STD|0\.25|0\.50|0\.75|1\.00)/i)
+    if (sz) specs['Размер'] = sz[1] === 'STD' ? 'Стандарт (STD)' : `Ремонтный +${sz[1]}`
   } else if (n.includes('поршень')) {
     specs['Тип'] = 'Поршень'
-    const mmMatch = name.match(/(\d+[,.]\d+)\s*мм/i)
-    if (mmMatch) specs['Диаметр'] = mmMatch[1] + ' мм'
   }
 
-  // Страна производства по бренду
   const countryMap: Record<string, string> = {
     'ELRING': 'Германия', 'MANN-FILTER': 'Германия', 'BOSCH': 'Германия',
     'FEBI': 'Германия', 'SACHS': 'Германия', 'LUK': 'Германия',
@@ -105,20 +77,14 @@ function parseSpecs(name: string, brand: string): Record<string, string> {
   }
   if (countryMap[brand]) specs['Страна'] = countryMap[brand]
 
-  // Сегмент по бренду
-  const premiumBrands = ['ELRING', 'MANN-FILTER', 'BOSCH', 'SACHS', 'LUK', 'WABCO', 'VICTOR REINZ', 'MAHLE', 'GLYCO', 'HELLA', 'FEBI', 'CORTECO']
-  const midBrands = ['DT', 'NRF', 'SAMPA', 'VADEN', 'CEI', 'AUGER', 'FEBI']
-  if (premiumBrands.includes(brand)) specs['Сегмент'] = 'Премиум'
-  else if (midBrands.includes(brand)) specs['Сегмент'] = 'Средний'
-  else specs['Сегмент'] = 'Бюджет'
-
+  const premiumBrands = ['ELRING','MANN-FILTER','BOSCH','SACHS','LUK','WABCO','VICTOR REINZ','MAHLE','GLYCO','HELLA','FEBI','CORTECO']
+  const midBrands = ['DT','NRF','SAMPA','VADEN','CEI','AUGER']
+  specs['Сегмент'] = premiumBrands.includes(brand) ? 'Премиум' : midBrands.includes(brand) ? 'Средний' : 'Бюджет'
   specs['Производитель'] = brand
   specs['Гарантия'] = '12 месяцев'
-
   return specs
 }
 
-// Доставка по складу
 function deliveryDays(city: string): string {
   const map: Record<string, string> = {
     'Алматы': 'сегодня', 'Астана': '1–2 дня',
@@ -134,6 +100,18 @@ function stockColor(qty: number): string {
   return '#c62828'
 }
 
+function segmentLabel(seg: string): string {
+  if (seg === 'Премиум') return 'ПРЕМИУМ'
+  if (seg === 'Средний') return 'СРЕДНИЙ'
+  return 'БЮДЖЕТ'
+}
+
+function segmentColor(seg: string): string {
+  if (seg === 'Премиум') return '#1a56db'
+  if (seg === 'Средний') return '#0e7490'
+  return '#6b7280'
+}
+
 export default function PDPPage() {
   const { id } = useParams<{ id: string }>()
   const router  = useRouter()
@@ -141,7 +119,6 @@ export default function PDPPage() {
   const [analogs, setAnalogs] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [qty, setQty]         = useState(1)
-  const [tab, setTab]         = useState('specs')
   const [b2b, setB2b]         = useState(false)
   const { items, addItem }    = useCart()
 
@@ -156,10 +133,10 @@ export default function PDPPage() {
         }
         setPart(data)
 
-        // Загрузить аналоги — тот же тип детали, другие бренды
-        const keywords = data.name?.split(' ').slice(0, 3).join(' ')
-        if (keywords) {
-          const res = await fetch(`/api/parts?q=${encodeURIComponent(keywords)}&limit=8`)
+        // Загрузить аналоги: ищем по первому слову названия + та же категория
+        if (data.name && data.category) {
+          const firstWord = data.name.split(' ')[0]
+          const res = await fetch(`/api/parts?q=${encodeURIComponent(firstWord)}&system=${data.category}`)
           const rd  = await res.json()
           const others = (rd.items || [])
             .filter((p: any) => p.id !== id && p.brand !== data.brand)
@@ -193,7 +170,7 @@ export default function PDPPage() {
   )
 
   const price     = b2b ? (part.price_b2b || part.price) : part.price
-  const priceB2b  = part.price_b2b || Math.round(part.price * 0.8)
+  const priceB2b  = part.price_b2b || Math.round(part.price * 0.82)
   const stock     = part.stock as Record<string, number> ?? {}
   const totalQty  = Object.values(stock).reduce((a: number, b: number) => a + b, 0)
   const inCart    = items.some(i => i.id === part.id)
@@ -205,17 +182,23 @@ export default function PDPPage() {
     .filter(([, q]) => (q as number) > 0)
     .sort(([a], [b]) => (a === 'Алматы' ? -1 : b === 'Алматы' ? 1 : 0))
 
+  const specPairs = Object.entries(specs)
+  const halfLen   = Math.ceil(specPairs.length / 2)
+
   return (
     <main className="pdp">
       <div className="container">
         {/* Breadcrumbs */}
         <div className="crumbs" style={{ marginBottom: 20 }}>
-          <Link href="/">Главная</Link> / <Link href="/catalog">Каталог</Link>
-          {part.category && <> / <Link href={`/catalog?system=${part.category}`}>{specs['Тип'] || 'Запчасти'}</Link></>}
-          / {part.name.split(' ').slice(0, 4).join(' ')}
+          <Link href="/">Главная</Link> /&nbsp;
+          <Link href="/catalog">Каталог</Link>
+          {specs['Тип'] && <> /&nbsp;<Link href={`/catalog?system=${part.category}`}>{specs['Тип']}</Link></>}
+          &nbsp;/&nbsp;{part.name.split(' ').slice(0, 5).join(' ')}
         </div>
 
+        {/* Top: gallery + info + side */}
         <div className="pdp-top">
+
           {/* Gallery */}
           <div className="pdp-gallery">
             <div className="pdp2-main-img">
@@ -229,13 +212,13 @@ export default function PDPPage() {
                 </svg>
               </div>
             </div>
-            <div className="pdp-thumbs" style={{ marginTop: 12, display: 'flex', gap: 8 }}>
+            <div className="pdp-thumbs">
               {[0,1,2].map(i => (
                 <div key={i} className={`pdp2-thumb ${i===0?'on':''}`}>
-                  <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                    <circle cx="16" cy="16" r="12" stroke="#d0d5dd" strokeWidth="2"/>
-                    {i===1 && <circle cx="16" cy="16" r="6" stroke="#d0d5dd" strokeWidth="2"/>}
-                    {i===2 && <rect x="8" y="8" width="16" height="16" stroke="#d0d5dd" strokeWidth="2"/>}
+                  <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                    <circle cx="14" cy="14" r="10" stroke="#d0d5dd" strokeWidth="2"/>
+                    {i===1 && <circle cx="14" cy="14" r="5" stroke="#d0d5dd" strokeWidth="2"/>}
+                    {i===2 && <rect x="7" y="7" width="14" height="14" stroke="#d0d5dd" strokeWidth="2"/>}
                   </svg>
                 </div>
               ))}
@@ -244,27 +227,28 @@ export default function PDPPage() {
 
           {/* Info */}
           <div className="pdp-info">
+            {/* Badges */}
             <div className="pdp2-top-badges">
-              <span className={`pc2-badge ${isOEM ? 'oem' : 'aft'}`} style={{ fontSize: 13, padding: '4px 12px' }}>
+              <span className={`pc2-badge ${isOEM ? 'oem' : 'aft'}`} style={{ fontSize: 13, padding: '5px 14px' }}>
                 {isOEM ? 'OEM · ОРИГИНАЛ' : 'Аналог'}
               </span>
               {totalQty > 0
-                ? <span className="pc2-badge stock-ok" style={{ fontSize: 13, padding: '4px 12px' }}>
-                    <Ico name="check" size={12} /> В наличии на {stockEntries.length} складах
+                ? <span className="pc2-badge stock-ok" style={{ fontSize: 13, padding: '5px 14px' }}>
+                    ✓ В наличии на {stockEntries.length} складах
                   </span>
-                : <span className="pc2-badge stock-no" style={{ fontSize: 13, padding: '4px 12px' }}>Под заказ</span>
+                : <span className="pc2-badge stock-no" style={{ fontSize: 13, padding: '5px 14px' }}>Под заказ</span>
               }
             </div>
 
-            <h1 className="pdp-name" style={{ marginTop: 12, fontSize: 24, lineHeight: 1.3 }}>{part.name}</h1>
+            <h1 className="pdp-name" style={{ marginTop: 14, marginBottom: 0 }}>{part.name}</h1>
 
             <div className="pdp2-meta">
-              <span>Артикул: <b>{part.oem}</b></span>
-              <span>·</span>
-              <span>Бренд: <b>{part.brand}</b></span>
-              <span>·</span>
-              <span style={{ color: '#f5a623' }}>★★★★★</span>
-              <span style={{ color: 'var(--ink-3)', fontSize: 13 }}>4.8 · {Math.floor(Math.random() * 200 + 50)} отзывов</span>
+              <span>Артикул:&nbsp;<b>{part.oem}</b></span>
+              <span className="pdp2-dot">·</span>
+              <span>Бренд:&nbsp;<b>{part.brand}</b></span>
+              <span className="pdp2-dot">·</span>
+              <span style={{ color: '#f5a623', letterSpacing: 1 }}>★★★★★</span>
+              <span>4.9 · {Math.floor(Math.abs(parseInt(part.id?.replace(/\D/g,'').slice(-4)||'0')) % 300 + 50)} отзывов</span>
             </div>
 
             {/* Price block */}
@@ -274,27 +258,24 @@ export default function PDPPage() {
                 <div className="pdp2-price-sub">
                   с НДС · за шт
                   {!b2b && priceB2b < part.price && (
-                    <span> · <b style={{ color: 'var(--accent)' }}>опт от 10 шт — {fmtKZT(priceB2b)}</b></span>
+                    <> · <b style={{ color: 'var(--accent)' }}>опт от 10 шт — {fmtKZT(priceB2b)}</b></>
                   )}
                 </div>
               </div>
-              <div className="cart-mode-switch">
+              <div className="cart-mode-switch" style={{ flexShrink: 0 }}>
                 <button className={!b2b ? 'on' : ''} onClick={() => setB2b(false)}>Физ. лицо</button>
                 <button className={b2b ? 'on' : ''} onClick={() => setB2b(true)}>Юр. лицо</button>
               </div>
             </div>
 
-            {/* Buy block */}
+            {/* Buy */}
             <div className="pdp2-buy">
               <div className="pdp-qty">
-                <button onClick={() => setQty(Math.max(1, qty-1))}><Ico name="minus" size={14}/></button>
+                <button onClick={() => setQty(Math.max(1, qty-1))}>−</button>
                 <input value={qty} onChange={e => setQty(Math.max(1, parseInt(e.target.value)||1))} />
-                <button onClick={() => setQty(qty+1)}><Ico name="plus" size={14}/></button>
+                <button onClick={() => setQty(qty+1)}>+</button>
               </div>
-              <button
-                className="pdp2-cart-btn"
-                onClick={() => addItem({ ...part, stock }, qty)}
-              >
+              <button className="pdp2-cart-btn" onClick={() => addItem({ ...part, stock }, qty)}>
                 <Ico name="cart" size={16} />
                 {inCart ? `В корзине (${cartQty})` : 'В корзину'}
               </button>
@@ -304,15 +285,15 @@ export default function PDPPage() {
               </button>
             </div>
 
-            {/* Stock by warehouse */}
+            {/* Stock table */}
             {stockEntries.length > 0 && (
               <div className="pdp2-stock">
                 <div className="pdp2-stock-title">Наличие по складам</div>
-                {stockEntries.map(([city, qty]) => (
+                {stockEntries.map(([city, q]) => (
                   <div key={city} className="pdp2-stock-row">
                     <Ico name="pin" size={14} />
                     <span className="pdp2-stock-city">{city === 'Алматы' ? 'Алматы · центральный' : city}</span>
-                    <b style={{ color: stockColor(qty as number), marginLeft: 'auto' }}>{qty} шт</b>
+                    <b style={{ color: stockColor(q as number), minWidth: 60, textAlign: 'right' }}>{q} шт</b>
                     <span className="pdp2-stock-eta">{deliveryDays(city)}</span>
                   </div>
                 ))}
@@ -340,110 +321,114 @@ export default function PDPPage() {
           </aside>
         </div>
 
-        {/* Tabs */}
-        <div className="pdp-tabs" style={{ marginTop: 40 }}>
-          {[['specs','Характеристики'],['cross','Кросс-номера'],['compat','Применяемость']].map(([k,l]) => (
-            <button key={k} className={tab===k?'on':''} onClick={() => setTab(k)}>{l}</button>
-          ))}
-        </div>
-
-        <div className="pdp-tab-body">
-          {tab === 'specs' && (
-            <div className="pdp2-specs">
-              <h3>Характеристики</h3>
-              <div className="pdp2-specs-grid">
-                {Object.entries(specs).map(([k, v]) => (
-                  <div key={k} className="pdp2-spec-row">
-                    <span className="pdp2-spec-key">{k}</span>
-                    <span className="pdp2-spec-val">{v}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {tab === 'cross' && (
-            <div className="pdp-cross-tab">
-              <h3>Кросс-номера и аналоги по артикулу</h3>
-              {part.cross?.length > 0 ? (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 16 }}>
-                  {(part.cross as string[]).map((c: string) => (
-                    <button
-                      key={c}
-                      className="cross-chip"
-                      onClick={() => router.push(`/catalog?q=${encodeURIComponent(c)}`)}
-                    >
-                      {c}
-                    </button>
-                  ))}
+        {/* ── Characteristics ──────────────────────────────── */}
+        <section className="pdp2-section">
+          <h2 className="pdp2-section-title">Характеристики</h2>
+          <div className="pdp2-specs-grid2">
+            <div className="pdp2-specs-col">
+              {specPairs.slice(0, halfLen).map(([k, v]) => (
+                <div key={k} className="pdp2-spec-row">
+                  <span className="pdp2-spec-key">{k}</span>
+                  <span className="pdp2-spec-val">{v}</span>
                 </div>
-              ) : <p style={{ color: 'var(--ink-3)', marginTop: 12 }}>Кросс-номера не указаны</p>}
+              ))}
             </div>
-          )}
-
-          {tab === 'compat' && (
-            <div className="pdp-compat">
-              <h3>Применяемость</h3>
-              {part.fits?.length > 0 ? (
-                <div className="pdp2-compat-grid">
-                  {(part.fits as string[]).map((f: string) => (
-                    <Link key={f} href={`/catalog?q=${encodeURIComponent(f)}`} className="pdp2-compat-card">
-                      <Ico name="truck" size={20} />
-                      <div>
-                        <div className="pdp2-compat-name">{f}</div>
-                        <div className="pdp2-compat-sub">Смотреть все запчасти →</div>
-                      </div>
-                    </Link>
-                  ))}
+            <div className="pdp2-specs-col">
+              {specPairs.slice(halfLen).map(([k, v]) => (
+                <div key={k} className="pdp2-spec-row">
+                  <span className="pdp2-spec-key">{k}</span>
+                  <span className="pdp2-spec-val">{v}</span>
                 </div>
-              ) : <p style={{ color: 'var(--ink-3)', marginTop: 12 }}>Информация уточняется</p>}
+              ))}
             </div>
-          )}
-        </div>
+          </div>
+        </section>
 
-        {/* Analogs */}
-        {analogs.length > 0 && (
-          <section className="pdp2-analogs">
-            <h3>Аналоги — подбор по бюджету</h3>
-            <div className="pdp2-analogs-grid">
-              {/* Current */}
-              <div className="pdp2-analog-card current">
-                <div className="pdp2-analog-tag">● Текущий товар</div>
-                <div className="pdp2-analog-name">{part.name.split(' ').slice(0, 4).join(' ')}, {part.brand}</div>
-                <div className="pdp2-analog-sub">{part.brand} · {specs['Сегмент'] || 'OEM'}</div>
-                <div className="pdp2-analog-price">{fmtKZT(b2b ? priceB2b : part.price)}</div>
-                <button className="pdp2-analog-cart" onClick={() => addItem({ ...part, stock }, 1)}>
-                  <Ico name="cart" size={14} />
+        {/* ── Cross numbers ─────────────────────────────────── */}
+        {(part.cross?.length > 0 || part.oem) && (
+          <section className="pdp2-section">
+            <h2 className="pdp2-section-title">Кросс-номера и аналоги по артикулу</h2>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 16 }}>
+              {/* Show OEM as first chip */}
+              {part.oem && (
+                <button className="cross-chip" onClick={() => router.push(`/catalog?q=${encodeURIComponent(part.oem)}`)}>
+                  {part.oem}
                 </button>
-              </div>
-
-              {/* Analogs */}
-              {analogs.map((a) => {
-                const aSpecs = parseSpecs(a.name, a.brand)
-                const aPrice = b2b ? (a.price_b2b || Math.round(a.price * 0.8)) : a.price
-                const aStock = Object.values(a.stock || {}).reduce((s: number, q: any) => s + q, 0)
-                return (
-                  <div
-                    key={a.id}
-                    className="pdp2-analog-card"
-                    onClick={() => router.push(`/catalog/${a.id}`)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <div className="pdp2-analog-tag" style={{ color: aSpecs['Сегмент'] === 'Премиум' ? '#1a56db' : aSpecs['Сегмент'] === 'Средний' ? '#0e7490' : '#6b7280' }}>
-                      {aSpecs['Сегмент']?.toUpperCase() || 'АНАЛОГ'}
-                    </div>
-                    <div className="pdp2-analog-name">{a.name.split(' ').slice(0, 4).join(' ')}, {a.brand}</div>
-                    <div className="pdp2-analog-sub">{a.brand} · аналог{aStock > 0 ? '' : ' · под заказ'}</div>
-                    <div className="pdp2-analog-price">{fmtKZT(aPrice)}</div>
-                    <button className="pdp2-analog-cart" onClick={(e) => { e.stopPropagation(); addItem({ ...a, stock: a.stock }, 1) }}>
-                      <Ico name="cart" size={14} />
-                    </button>
-                  </div>
-                )
-              })}
+              )}
+              {(part.cross as string[] || []).filter((c: string) => c !== part.oem).map((c: string) => (
+                <button key={c} className="cross-chip" onClick={() => router.push(`/catalog?q=${encodeURIComponent(c)}`)}>
+                  {c}
+                </button>
+              ))}
             </div>
           </section>
         )}
+
+        {/* ── Compatibility ─────────────────────────────────── */}
+        {part.fits?.length > 0 && (
+          <section className="pdp2-section">
+            <h2 className="pdp2-section-title">Применяемость</h2>
+            <div className="pdp2-compat-grid">
+              {(part.fits as string[]).map((f: string) => (
+                <Link key={f} href={`/catalog?q=${encodeURIComponent(f)}`} className="pdp2-compat-card">
+                  <div className="pdp2-compat-icon"><Ico name="truck" size={18} /></div>
+                  <div>
+                    <div className="pdp2-compat-name">{f}</div>
+                    <div className="pdp2-compat-sub">Смотреть все запчасти →</div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ── Analogs ───────────────────────────────────────── */}
+        <section className="pdp2-section pdp2-analogs">
+          <h2 className="pdp2-section-title">Аналоги — подбор по бюджету</h2>
+          <div className="pdp2-analogs-grid">
+            {/* Current item */}
+            <div className="pdp2-analog-card current">
+              <div className="pdp2-analog-tag" style={{ color: 'var(--accent)' }}>● Текущий товар</div>
+              <div className="pdp2-analog-name">{part.name.split(' ').slice(0, 5).join(' ')}, {part.brand}</div>
+              <div className="pdp2-analog-sub">{part.brand} · {specs['Сегмент'] || 'Оригинал'}</div>
+              <div className="pdp2-analog-price">{fmtKZT(b2b ? priceB2b : part.price)}</div>
+              <button className="pdp2-analog-cart" onClick={() => addItem({ ...part, stock }, 1)}>
+                <Ico name="cart" size={14} />
+              </button>
+            </div>
+
+            {/* Analogs from DB */}
+            {analogs.map((a) => {
+              const aSpecs  = parseSpecs(a.name, a.brand)
+              const aPrice  = b2b ? (a.price_b2b || Math.round(a.price * 0.82)) : a.price
+              const aStk    = Object.values(a.stock || {}).reduce((s: number, q: any) => s + q, 0)
+              return (
+                <div key={a.id} className="pdp2-analog-card" onClick={() => router.push(`/catalog/${a.id}`)} style={{ cursor: 'pointer' }}>
+                  <div className="pdp2-analog-tag" style={{ color: segmentColor(aSpecs['Сегмент'] || '') }}>
+                    {segmentLabel(aSpecs['Сегмент'] || 'Бюджет')}
+                  </div>
+                  <div className="pdp2-analog-name">{a.name.split(' ').slice(0, 5).join(' ')}, {a.brand}</div>
+                  <div className="pdp2-analog-sub">{a.brand} · аналог{aStk > 0 ? '' : ' · под заказ'}</div>
+                  <div className="pdp2-analog-price">{fmtKZT(aPrice)}</div>
+                  <button className="pdp2-analog-cart" onClick={e => { e.stopPropagation(); addItem({ ...a, stock: a.stock }, 1) }}>
+                    <Ico name="cart" size={14} />
+                  </button>
+                </div>
+              )
+            })}
+
+            {/* Placeholders if < 3 analogs */}
+            {analogs.length === 0 && (
+              <div className="pdp2-analog-card" style={{ opacity: 0.4, pointerEvents: 'none' }}>
+                <div className="pdp2-analog-tag">ЗАГРУЗКА...</div>
+                <div className="pdp2-analog-name">Поиск аналогов</div>
+                <div className="pdp2-analog-sub">–</div>
+                <div className="pdp2-analog-price">–</div>
+              </div>
+            )}
+          </div>
+        </section>
+
       </div>
     </main>
   )
