@@ -1,34 +1,56 @@
 'use client'
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Ico } from '@/components/ui/Ico'
-import { Placeholder } from '@/components/ui/Placeholder'
 import { useCart, useCartCount } from '@/store/cart'
-import { parts } from '@/lib/data'
 import { fmtKZT } from '@/lib/utils'
 import { CityModal } from './CityModal'
 
+interface SearchResults {
+  parts: Array<{ id: string; name: string; oem: string; price: number }>
+  systems: Array<{ id: string; label: string; href: string }>
+  brands: Array<{ id: string; label: string; href: string }>
+}
+
 export function Header() {
   const router = useRouter()
-  const [search, setSearch] = useState('')
+  const [search, setSearch]       = useState('')
+  const [results, setResults]     = useState<SearchResults | null>(null)
   const [showResults, setShowResults] = useState(false)
-  const [showCity, setShowCity] = useState(false)
+  const [showCity, setShowCity]   = useState(false)
   const [searchTab, setSearchTab] = useState<'Артикул' | 'VIN' | 'Модель'>('Артикул')
-  const { city, lang, setLang } = useCart()
-  const cartCount = useCartCount()
+  const { city, lang, setLang }   = useCart()
+  const cartCount                 = useCartCount()
+  const debounceRef               = useRef<ReturnType<typeof setTimeout>>()
 
-  const matches = useMemo(() => {
-    if (!search.trim()) return null
-    const q = search.toLowerCase()
-    const partHits = parts.filter((p) =>
-      p.oem.toLowerCase().includes(q) ||
-      p.name.toLowerCase().includes(q) ||
-      p.brand.toLowerCase().includes(q) ||
-      p.cross.some((c) => c.toLowerCase().includes(q))
-    ).slice(0, 5)
-    return { partHits }
+  useEffect(() => {
+    const q = search.trim()
+    if (q.length < 2) { setResults(null); return }
+    clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`)
+        const data = await res.json()
+        setResults(data)
+      } catch {}
+    }, 300)
+    return () => clearTimeout(debounceRef.current)
   }, [search])
+
+  const handleSearch = () => {
+    if (!search.trim()) return
+    setShowResults(false)
+    if (searchTab === 'VIN') {
+      router.push(`/catalog?vin=${encodeURIComponent(search)}`)
+    } else {
+      router.push(`/catalog?q=${encodeURIComponent(search)}`)
+    }
+  }
+
+  const hasResults = results && (
+    results.parts.length > 0 || results.systems.length > 0 || results.brands.length > 0
+  )
 
   return (
     <>
@@ -76,7 +98,8 @@ export function Header() {
               value={search}
               onChange={(e) => { setSearch(e.target.value); setShowResults(true) }}
               onFocus={() => setShowResults(true)}
-              onBlur={() => setTimeout(() => setShowResults(false), 180)}
+              onBlur={() => setTimeout(() => setShowResults(false), 200)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               placeholder="OEM-номер, VIN, модель техники..."
             />
             <div className="search-tabs">
@@ -84,31 +107,47 @@ export function Header() {
                 <button key={t} type="button" className={searchTab === t ? 'on' : ''} onClick={() => setSearchTab(t)}>{t}</button>
               ))}
             </div>
-            <button
-              type="button"
-              className="search-go"
-              onClick={() => { if (search.trim()) router.push(`/catalog?q=${encodeURIComponent(search)}`) }}
-            >
-              Найти
-            </button>
+            <button type="button" className="search-go" onClick={handleSearch}>Найти</button>
 
-            {showResults && matches && matches.partHits.length > 0 && (
+            {showResults && hasResults && (
               <div className="search-results">
-                <div className="sr-group">
-                  <div className="sr-head">ЗАПЧАСТИ</div>
-                  {matches.partHits.map((p) => (
-                    <button key={p.id} className="sr-row" onMouseDown={() => router.push(`/catalog/${p.id}`)}>
-                      <div className="sr-thumb"><Placeholder label={p.img} ratio="1" /></div>
-                      <div className="sr-meta">
-                        <div className="sr-name">{p.name}</div>
-                        <div className="sr-oem">{p.oem} · {p.brand}</div>
-                      </div>
-                      <div className="sr-price">{fmtKZT(p.price)}</div>
-                    </button>
-                  ))}
-                </div>
+                {results!.parts.length > 0 && (
+                  <div className="sr-group">
+                    <div className="sr-head">ЗАПЧАСТИ</div>
+                    {results!.parts.map((p) => (
+                      <button key={p.id} className="sr-row" onMouseDown={() => { setShowResults(false); router.push(`/catalog/${p.id}`) }}>
+                        <div className="sr-thumb" style={{ width: 36, height: 36, background: '#f0f2f5', borderRadius: 4, flexShrink: 0 }} />
+                        <div className="sr-meta">
+                          <div className="sr-name">{p.name}</div>
+                          <div className="sr-oem">{p.oem}</div>
+                        </div>
+                        <div className="sr-price">{fmtKZT(p.price)}</div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {results!.systems.length > 0 && (
+                  <div className="sr-group">
+                    <div className="sr-head">КАТЕГОРИИ</div>
+                    {results!.systems.map((s) => (
+                      <button key={s.id} className="sr-row" onMouseDown={() => { setShowResults(false); router.push(s.href) }}>
+                        <div className="sr-meta"><div className="sr-name">{s.label}</div></div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {results!.brands.length > 0 && (
+                  <div className="sr-group">
+                    <div className="sr-head">БРЕНДЫ</div>
+                    {results!.brands.map((b) => (
+                      <button key={b.id} className="sr-row" onMouseDown={() => { setShowResults(false); router.push(b.href) }}>
+                        <div className="sr-meta"><div className="sr-name">{b.label}</div></div>
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <div className="sr-foot">
-                  <span>Нажмите Enter для поиска</span>
+                  <button onMouseDown={handleSearch}>Показать все результаты →</button>
                 </div>
               </div>
             )}

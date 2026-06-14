@@ -16,10 +16,13 @@ export async function GET(req: NextRequest) {
       const { data } = await db
         .from('parts')
         .select('id, name, oem, price')
-        .or(`name.ilike.%${q}%,oem.ilike.%${q}%`)
-        .limit(6)
+        .or(`name.ilike.%${q}%,oem.ilike.%${q}%,cross.cs.{${q}}`)
+        .gt('price', 0)
+        .limit(8)
       partResults = data ?? []
-    } catch {}
+    } catch {
+      // fallback to mock
+    }
   }
 
   if (!partResults.length) {
