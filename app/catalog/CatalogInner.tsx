@@ -75,6 +75,12 @@ export default function CatalogInner() {
     q: qParam,
   })
 
+  // Sync search param from URL when user clicks "Найти"
+  useEffect(() => {
+    setFilters(f => ({ ...f, q: qParam, system: systemParam }))
+    setPage(1)
+  }, [qParam, systemParam])
+
   const brandObj = brands.find((b) => b.id === brandParam)
   const modelObj = (models[brandParam] ?? []).find((m) => m.id === modelParam)
 
