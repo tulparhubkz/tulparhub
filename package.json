@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "seed": "npx tsx scripts/seed.ts"
+    "seed": "npx tsx scripts/seed.ts",
+    "import-csv": "npx tsx scripts/import-csv.ts"
   },
   "dependencies": {
     "next": "14.2.29",
