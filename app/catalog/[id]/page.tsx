@@ -2,8 +2,10 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useCart } from '@/store/cart'
 import { fmtKZT } from '@/lib/utils'
+import { getPartImage } from '@/lib/partImage'
 
 function parseSpecs(name: string, brand: string): Record<string, string> {
   const specs: Record<string, string> = {}
@@ -306,9 +308,16 @@ export default function PDPPage() {
 
           {/* ── Gallery ── */}
           <div className="gallery">
-            <div className="gal-main">
-              <span className="brandchip">{part.brand}</span>
-              <GlyphSvg size={120} />
+            <div className="gal-main" style={{ overflow: 'hidden' }}>
+              <Image
+                src={getPartImage(part.name)}
+                alt={part.name}
+                fill
+                sizes="440px"
+                style={{ objectFit: 'cover' }}
+                priority
+              />
+              <span className="brandchip" style={{ position: 'relative', zIndex: 1 }}>{part.brand}</span>
             </div>
             <div className="gal-thumbs">
               {[0, 1, 2].map(i => (
@@ -316,8 +325,15 @@ export default function PDPPage() {
                   key={i}
                   className={`th${activeThumb === i ? ' on' : ''}`}
                   onClick={() => setActiveThumb(i)}
+                  style={{ overflow: 'hidden', position: 'relative' }}
                 >
-                  <GlyphSvg size={28} />
+                  <Image
+                    src={getPartImage(part.name)}
+                    alt={part.name}
+                    fill
+                    sizes="74px"
+                    style={{ objectFit: 'cover', opacity: i === 0 ? 1 : 0.6 }}
+                  />
                 </div>
               ))}
             </div>

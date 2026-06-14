@@ -938,7 +938,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 
 .card { background: var(--surf); border: 1px solid var(--line); border-radius: var(--radius-lg); display: flex; flex-direction: column; overflow: hidden; transition: .15s; position: relative; }
 .card:hover { border-color: var(--line-2); box-shadow: var(--shadow-md); transform: translateY(-2px); }
-.card-img { aspect-ratio: 4/3; background: linear-gradient(140deg,#f6f8fb,#eef2f7); position: relative; display: grid; place-items: center; border-bottom: 1px solid var(--line); }
+.card-img { aspect-ratio: 4/3; background: linear-gradient(140deg,#f6f8fb,#eef2f7); position: relative; display: grid; place-items: center; border-bottom: 1px solid var(--line); overflow: hidden; }
+.card-img img { transition: transform .3s ease; }
+.card:hover .card-img img { transform: scale(1.04); }
 .card-img .card-glyph { width: 54px; height: 54px; color: #c2ccdb; }
 .card-img .brandchip { position: absolute; top: 10px; left: 10px; background: rgba(255,255,255,.9); backdrop-filter: blur(4px); border: 1px solid var(--line); font-size: 10px; font-weight: 600; color: var(--ink-2); padding: 3px 8px; border-radius: 6px; letter-spacing: .02em; }
 .fav { position: absolute; top: 9px; right: 9px; width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,.85); display: grid; place-items: center; color: var(--ink-3); opacity: 0; transition: .15s; border: none; cursor: pointer; }

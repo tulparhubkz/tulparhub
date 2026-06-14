@@ -2,10 +2,12 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Ico } from '@/components/ui/Ico'
 import { systems, brands, models } from '@/lib/data'
 import { fmtKZT } from '@/lib/utils'
 import { useCart } from '@/store/cart'
+import { getPartImage } from '@/lib/partImage'
 
 function PartCard({ part, b2b }: { part: any; b2b: boolean }) {
   const router = useRouter()
@@ -19,12 +21,16 @@ function PartCard({ part, b2b }: { part: any; b2b: boolean }) {
   return (
     <div className="card" onClick={() => router.push(`/catalog/${part.id}`)} style={{ cursor: 'pointer' }}>
       <div className="card-img">
-        <svg className="card-glyph" width="54" height="54" viewBox="0 0 54 54" fill="none" style={{ color: '#c2ccdb' }}>
-          <rect x="4" y="14" width="46" height="28" rx="4" stroke="currentColor" strokeWidth="2"/>
-          <path d="M4 22h46M14 14v28M40 14v28" stroke="currentColor" strokeWidth="1.5"/>
-        </svg>
-        <span className="brandchip" style={{ fontFamily: 'var(--font-jetbrains), monospace' }}>{part.brand}</span>
-        <button className="fav" onClick={(e) => e.stopPropagation()}>
+        <Image
+          src={getPartImage(part.name)}
+          alt={part.name}
+          fill
+          sizes="(max-width: 600px) 100vw, 25vw"
+          style={{ objectFit: 'cover' }}
+          unoptimized={false}
+        />
+        <span className="brandchip" style={{ fontFamily: 'var(--font-jetbrains), monospace', position: 'relative', zIndex: 1 }}>{part.brand}</span>
+        <button className="fav" style={{ position: 'relative', zIndex: 1 }} onClick={(e) => e.stopPropagation()}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 21s-7.5-5-9.5-9.5C1 8 3 4.5 6.5 4.5c2 0 3.5 1.5 5.5 3.5 2-2 3.5-3.5 5.5-3.5C21 4.5 23 8 21.5 11.5 19.5 16 12 21 12 21Z"/></svg>
         </button>
       </div>
