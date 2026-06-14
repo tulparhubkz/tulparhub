@@ -1,0 +1,208 @@
+import type { Brand, City, EquipmentType, Model, Part, RentalUnit, System } from '@/types'
+
+export const equipmentTypes: EquipmentType[] = [
+  { id: 'truck',     ru: 'Грузовики',          en: 'Trucks',       count: 12480 },
+  { id: 'excavator', ru: 'Экскаваторы',         en: 'Excavators',   count: 5210  },
+  { id: 'loader',    ru: 'Погрузчики',          en: 'Loaders',      count: 3140  },
+  { id: 'dozer',     ru: 'Бульдозеры',          en: 'Bulldozers',   count: 1820  },
+  { id: 'crane',     ru: 'Краны',               en: 'Cranes',       count: 980   },
+  { id: 'mixer',     ru: 'Бетоносмесители',     en: 'Mixers',       count: 410   },
+  { id: 'dump',      ru: 'Самосвалы',           en: 'Dump trucks',  count: 2360  },
+  { id: 'grader',    ru: 'Грейдеры',            en: 'Graders',      count: 320   },
+  { id: 'roller',    ru: 'Катки',               en: 'Rollers',      count: 290   },
+]
+
+export const brands: Brand[] = [
+  { id: 'kamaz',   name: 'KAMAZ',    country: 'RU', models: 24 },
+  { id: 'maz',     name: 'MAZ',      country: 'BY', models: 18 },
+  { id: 'cat',     name: 'CAT',      country: 'US', models: 32 },
+  { id: 'komatsu', name: 'Komatsu',  country: 'JP', models: 28 },
+  { id: 'hitachi', name: 'Hitachi',  country: 'JP', models: 19 },
+  { id: 'volvo',   name: 'Volvo',    country: 'SE', models: 21 },
+  { id: 'shacman', name: 'Shacman',  country: 'CN', models: 14 },
+  { id: 'xcmg',    name: 'XCMG',     country: 'CN', models: 16 },
+  { id: 'sany',    name: 'SANY',     country: 'CN', models: 12 },
+  { id: 'howo',    name: 'Howo',     country: 'CN', models: 11 },
+  { id: 'jcb',     name: 'JCB',      country: 'UK', models: 17 },
+  { id: 'sdlg',    name: 'SDLG',     country: 'CN', models: 9  },
+]
+
+export const models: Record<string, Model[]> = {
+  kamaz: [
+    { id: '6520',  brand_id: 'kamaz', name: '6520',  years: '2015–2024', cls: 'Самосвал 20т' },
+    { id: '65115', brand_id: 'kamaz', name: '65115', years: '2012–2024', cls: 'Самосвал 15т' },
+    { id: '43118', brand_id: 'kamaz', name: '43118', years: '2014–2024', cls: 'Бортовой 6×6' },
+    { id: '5490',  brand_id: 'kamaz', name: '5490',  years: '2017–2024', cls: 'Тягач' },
+  ],
+  cat: [
+    { id: '320',   brand_id: 'cat', name: '320',    years: '2018–2024', cls: 'Гусеничный экскаватор' },
+    { id: '336',   brand_id: 'cat', name: '336',    years: '2019–2024', cls: 'Гусеничный экскаватор' },
+    { id: '950',   brand_id: 'cat', name: '950 GC', years: '2017–2024', cls: 'Фронтальный погрузчик' },
+  ],
+  komatsu: [
+    { id: 'pc200', brand_id: 'komatsu', name: 'PC200-8', years: '2014–2022', cls: 'Гусеничный экскаватор' },
+    { id: 'pc300', brand_id: 'komatsu', name: 'PC300-8', years: '2014–2022', cls: 'Гусеничный экскаватор' },
+  ],
+  shacman: [
+    { id: 'f3000', brand_id: 'shacman', name: 'F3000', years: '2016–2024', cls: 'Самосвал 8×4' },
+    { id: 'x3000', brand_id: 'shacman', name: 'X3000', years: '2018–2024', cls: 'Тягач' },
+  ],
+}
+
+export const systems: System[] = [
+  { id: 'engine',  ru: 'Двигатель',          icon: 'engine',  count: 412 },
+  { id: 'trans',   ru: 'Трансмиссия',        icon: 'gear',    count: 286 },
+  { id: 'hydro',   ru: 'Гидравлика',         icon: 'hydro',   count: 198 },
+  { id: 'chassis', ru: 'Ходовая и подвеска', icon: 'chassis', count: 314 },
+  { id: 'brakes',  ru: 'Тормозная система',  icon: 'brakes',  count: 167 },
+  { id: 'elec',    ru: 'Электрика',          icon: 'elec',    count: 245 },
+  { id: 'cab',     ru: 'Кабина и кузов',     icon: 'cab',     count: 178 },
+  { id: 'cool',    ru: 'Система охлаждения', icon: 'cool',    count: 92  },
+  { id: 'fuel',    ru: 'Топливная система',  icon: 'fuel',    count: 134 },
+  { id: 'steer',   ru: 'Рулевое управление', icon: 'steer',   count: 88  },
+  { id: 'filter',  ru: 'Фильтры',            icon: 'filter',  count: 211 },
+  { id: 'under',   ru: 'Ходовая (гусеницы)', icon: 'tracks',  count: 156 },
+]
+
+export const subAssemblies: Record<string, string[]> = {
+  engine: ['Турбокомпрессор', 'Форсунки', 'Комплект прокладок', 'Масляный насос', 'Гильзы цилиндров', 'Поршневые кольца', 'Водяной насос', 'Ремни и натяжители'],
+}
+
+export const parts: Part[] = [
+  {
+    id: 'p-740-1118', oem: '740.1118010-02', name: 'Турбокомпрессор ТКР-7Н1',
+    brand: 'БЗА', type: 'OEM', category: 'engine',
+    fits: ['KAMAZ 6520', 'KAMAZ 65115', 'KAMAZ 43118'],
+    price: 285000, priceUSD: 590, vat: 12,
+    stock: { 'Алматы': 4, 'Астана': 2, 'Ташкент': 0, 'Москва': 12 },
+    eta: 'В наличии · Алматы', img: 'turbo',
+    specs: { 'Производительность': '0,42 кг/с', 'Степень сжатия': '2,4', 'Макс. частота': '95 000 об/мин', 'Тип подшипника': 'Скольжения', 'Масса': '11,2 кг' },
+    cross: ['740.30-1118010', '740.11-1118010', 'TKR-7N1'],
+    rating: 4.8, reviews: 42,
+  },
+  {
+    id: 'p-mann-w962', oem: 'W 962', name: 'Фильтр масляный',
+    brand: 'MANN-FILTER', type: 'Aftermarket', category: 'filter',
+    fits: ['KAMAZ 6520', 'KAMAZ 65115', 'MAZ 6430', 'Shacman F3000'],
+    price: 4200, priceUSD: 9, vat: 12,
+    stock: { 'Алматы': 124, 'Астана': 58, 'Ташкент': 31, 'Москва': 200 },
+    eta: 'В наличии · все склады', img: 'filter',
+    specs: { 'Высота': '142 мм', 'Внешний Ø': '93 мм', 'Резьба': '3/4-16 UNF', 'Производитель': 'MANN-FILTER (Германия)' },
+    cross: ['LF3349', '7421561278', 'WK 950/19'],
+    rating: 4.9, reviews: 318,
+  },
+  {
+    id: 'p-bosch-0445120', oem: '0 445 120 153', name: 'Форсунка топливная Common Rail',
+    brand: 'Bosch', type: 'OEM', category: 'fuel',
+    fits: ['KAMAZ 6520 (Cummins ISL)', 'KAMAZ 65115', 'CAT 320'],
+    price: 78500, priceUSD: 165, vat: 12,
+    stock: { 'Алматы': 6, 'Астана': 3, 'Ташкент': 1, 'Москва': 24 },
+    eta: 'В наличии · Алматы', img: 'injector',
+    specs: { 'Давление впрыска': '1800 бар', 'Тип распылителя': 'DLLA 152 P 1832', 'Электромагнитный клапан': 'Bosch' },
+    cross: ['0445120152', '5263262', '4940640'],
+    rating: 4.7, reviews: 91,
+  },
+  {
+    id: 'p-clutch-182', oem: '182.1601090', name: 'Корзина сцепления Ø430',
+    brand: 'КАМАЗ', type: 'OEM', category: 'trans',
+    fits: ['KAMAZ 6520', 'KAMAZ 65115', 'KAMAZ 5490'],
+    price: 64200, priceUSD: 135, vat: 12,
+    stock: { 'Алматы': 2, 'Астана': 0, 'Ташкент': 0, 'Москва': 8 },
+    eta: 'Под заказ · 3–5 дней', img: 'clutch',
+    specs: { 'Диаметр': '430 мм', 'Число шлицов': '10', 'Масса': '38 кг' },
+    cross: ['182.1601090-10'],
+    rating: 4.6, reviews: 23,
+  },
+  {
+    id: 'p-pump-740', oem: '740.1307010', name: 'Насос водяной (помпа)',
+    brand: 'ТЯЖМАШ', type: 'Aftermarket', category: 'cool',
+    fits: ['KAMAZ 6520', 'KAMAZ 65115'],
+    price: 18900, priceUSD: 40, vat: 12,
+    stock: { 'Алматы': 14, 'Астана': 9, 'Ташкент': 4, 'Москва': 30 },
+    eta: 'В наличии · Алматы', img: 'pump',
+    specs: { 'Производительность': '320 л/мин', 'Масса': '6,4 кг' },
+    cross: ['740.1307010-04'],
+    rating: 4.4, reviews: 67,
+  },
+  {
+    id: 'p-brake-100', oem: '100.3501090', name: 'Тормозная камера тип 30',
+    brand: 'WABCO', type: 'OEM', category: 'brakes',
+    fits: ['KAMAZ 6520', 'MAZ 6430', 'Shacman F3000'],
+    price: 12400, priceUSD: 26, vat: 12,
+    stock: { 'Алматы': 28, 'Астана': 12, 'Ташкент': 6, 'Москва': 40 },
+    eta: 'В наличии · все склады', img: 'brake',
+    specs: { 'Тип': '30/30', 'Ход штока': '64 мм' },
+    cross: ['9253011000'],
+    rating: 4.7, reviews: 154,
+  },
+  {
+    id: 'p-belt-740', oem: '740.1308020', name: 'Ремень ручейковый 8PK 1395',
+    brand: 'Gates', type: 'Aftermarket', category: 'engine',
+    fits: ['KAMAZ 6520', 'KAMAZ 65115', 'KAMAZ 43118'],
+    price: 5800, priceUSD: 12, vat: 12,
+    stock: { 'Алматы': 52, 'Астана': 24, 'Ташкент': 11, 'Москва': 90 },
+    eta: 'В наличии · все склады', img: 'belt',
+    specs: { 'Длина': '1395 мм', 'Ширина': '28,6 мм', 'Число ручьёв': '8' },
+    cross: ['8PK1395', '740.1308020-10'],
+    rating: 4.8, reviews: 88,
+  },
+  {
+    id: 'p-shock-65115', oem: '65115-2905006', name: 'Амортизатор передней подвески',
+    brand: 'ТЯЖМАШ', type: 'OEM', category: 'chassis',
+    fits: ['KAMAZ 65115', 'KAMAZ 43118'],
+    price: 9600, priceUSD: 20, vat: 12,
+    stock: { 'Алматы': 18, 'Астана': 4, 'Ташкент': 0, 'Москва': 22 },
+    eta: 'В наличии · Алматы', img: 'shock',
+    specs: { 'Ход': '230 мм', 'Длина сж.': '420 мм', 'Длина раст.': '650 мм' },
+    cross: ['65115-2905006-30'],
+    rating: 4.5, reviews: 41,
+  },
+]
+
+export const rental: RentalUnit[] = [
+  {
+    id: 'r-pc200', name: 'Экскаватор гусеничный PC200', brand: 'Komatsu', year: 2021, type: 'excavator', img: 'excavator',
+    specs: { 'Масса': '20,5 т', 'Объём ковша': '1,0 м³', 'Глубина': '6,6 м', 'Мощность': '110 кВт' },
+    rates: { shift: 75000, day: 95000, week: 580000, month: 1800000 },
+    city: 'Алматы', operator: true, delivery: 'В черте города — бесплатно', available: 'Сегодня', condition: 'Отличное', hours: 4820,
+  },
+  {
+    id: 'r-cat320', name: 'Экскаватор CAT 320', brand: 'CAT', year: 2022, type: 'excavator', img: 'excavator',
+    specs: { 'Масса': '20,2 т', 'Объём ковша': '1,19 м³', 'Глубина': '6,7 м', 'Мощность': '121 кВт' },
+    rates: { shift: 85000, day: 110000, week: 660000, month: 2100000 },
+    city: 'Алматы', operator: true, delivery: 'В черте города — бесплатно', available: 'с 27 мая', condition: 'Отличное', hours: 2140,
+  },
+  {
+    id: 'r-sdlg956', name: 'Фронтальный погрузчик SDLG L956', brand: 'SDLG', year: 2020, type: 'loader', img: 'loader',
+    specs: { 'Грузоподъёмность': '5 т', 'Объём ковша': '3,0 м³', 'Мощность': '162 кВт' },
+    rates: { shift: 55000, day: 70000, week: 420000, month: 1350000 },
+    city: 'Астана', operator: false, delivery: 'Тралом — расчёт по запросу', available: 'Сегодня', condition: 'Хорошее', hours: 6800,
+  },
+  {
+    id: 'r-shacman', name: 'Самосвал Shacman F3000 8×4', brand: 'Shacman', year: 2022, type: 'dump', img: 'dump',
+    specs: { 'Грузоподъёмность': '30 т', 'Объём кузова': '20 м³', 'Мощность': '280 кВт' },
+    rates: { shift: 48000, day: 62000, week: 380000, month: 1200000 },
+    city: 'Алматы', operator: true, delivery: 'Под объект — бесплатно по городу', available: 'Сегодня', condition: 'Отличное', hours: 1980,
+  },
+  {
+    id: 'r-crane25', name: 'Автокран 25 т (КС-55713)', brand: 'Галичанин', year: 2019, type: 'crane', img: 'crane',
+    specs: { 'Грузоподъёмность': '25 т', 'Вылет стрелы': '21,7 м', 'Высота подъёма': '21 м' },
+    rates: { shift: 95000, day: 125000, week: 750000, month: 2400000 },
+    city: 'Алматы', operator: true, delivery: 'По адресу — бесплатно', available: 'с 28 мая', condition: 'Хорошее', hours: 9200,
+  },
+  {
+    id: 'r-roller', name: 'Каток дорожный 12 т', brand: 'XCMG', year: 2021, type: 'roller', img: 'roller',
+    specs: { 'Масса': '12 т', 'Ширина вальца': '2,13 м', 'Мощность': '92 кВт' },
+    rates: { shift: 38000, day: 50000, week: 300000, month: 950000 },
+    city: 'Алматы', operator: true, delivery: 'Трал — 35 000 ₸ по городу', available: 'Сегодня', condition: 'Отличное', hours: 3140,
+  },
+]
+
+export const cities: City[] = [
+  { id: 'almaty',    name: 'Алматы',   country: 'KZ', currency: 'KZT', symbol: '₸' },
+  { id: 'astana',    name: 'Астана',   country: 'KZ', currency: 'KZT', symbol: '₸' },
+  { id: 'shymkent',  name: 'Шымкент',  country: 'KZ', currency: 'KZT', symbol: '₸' },
+  { id: 'tashkent',  name: 'Ташкент',  country: 'UZ', currency: 'UZS', symbol: 'сум' },
+  { id: 'bishkek',   name: 'Бишкек',   country: 'KG', currency: 'KGS', symbol: 'сом' },
+  { id: 'moscow',    name: 'Москва',   country: 'RU', currency: 'RUB', symbol: '₽' },
+]
