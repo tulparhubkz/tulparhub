@@ -379,11 +379,6 @@ export default function PDPPage() {
               <span className="art">{part.oem}</span>
               <span className="dot" />
               <span>{part.brand}</span>
-              <span className="dot" />
-              <span className="stars">★★★★★</span>
-              <span style={{ color: 'var(--ink-3)', fontSize: 13 }}>
-                {Math.floor(Math.abs(parseInt(part.id?.replace(/\D/g, '').slice(-4) || '0')) % 300 + 50)} отзывов
-              </span>
             </div>
 
             {/* Buybox */}

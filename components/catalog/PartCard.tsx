@@ -34,9 +34,6 @@ export function PartCard({ part }: { part: Part }) {
         </div>
         <div className="part-meta">
           <span className="part-brand">{part.brand}</span>
-          <span className="part-rating">
-            <Ico name="star" size={12} /> {part.rating} · {part.reviews}
-          </span>
         </div>
         <div className="part-foot">
           <Price value={part.price} vat={part.vat} />
