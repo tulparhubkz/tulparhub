@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server'
 import imageMap from '@/lib/partImageMap.json'
+import oemMap from '@/lib/oemImageMap.json'
+
+type OemMap = Record<string, string>
+const oems = oemMap as OemMap
 
 type ImageMap = Record<string, string[]>
 const map = imageMap as ImageMap
@@ -77,6 +81,12 @@ export async function GET(req: Request) {
   const oem  = (searchParams.get('oem')  ?? '').trim()
   const name = (searchParams.get('name') ?? '').trim()
 
+  // 1. Check per-OEM map first (most accurate — real product photo)
+  if (oem && oems[oem]) {
+    return NextResponse.json({ url: oems[oem] })
+  }
+
+  // 2. Fall back to category-based map
   const category = classify(name, oem)
   const imgs = category ? map[category] : null
 
