@@ -7,6 +7,7 @@ import { Ico } from '@/components/ui/Ico'
 import { systems, brands, models } from '@/lib/data'
 import { fmtKZT } from '@/lib/utils'
 import { useCart } from '@/store/cart'
+import { useWishlist } from '@/store/wishlist'
 
 // Client-side image URL cache to avoid repeated API calls
 const imgCache = new Map<string, string | null>()
@@ -40,6 +41,8 @@ function usePartImage(oem: string, name: string) {
 function PartCard({ part, b2b }: { part: any; b2b: boolean }) {
   const router = useRouter()
   const { items, addItem } = useCart()
+  const toggle = useWishlist(s => s.toggle)
+  const inWish = useWishlist(s => s.items.some(i => i.id === part.id))
   const inCart = items.some((i) => i.id === part.id)
   const price = b2b ? (part.price_b2b || part.price) : part.price
   const stockMap: Record<string, number> = part.stock ?? {}
@@ -71,8 +74,8 @@ function PartCard({ part, b2b }: { part: any; b2b: boolean }) {
           </div>
         )}
         <span className="brandchip" style={{ fontFamily: 'var(--font-jetbrains), monospace' }}>{part.brand}</span>
-        <button className="fav" onClick={(e) => e.stopPropagation()}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 21s-7.5-5-9.5-9.5C1 8 3 4.5 6.5 4.5c2 0 3.5 1.5 5.5 3.5 2-2 3.5-3.5 5.5-3.5C21 4.5 23 8 21.5 11.5 19.5 16 12 21 12 21Z"/></svg>
+        <button className="fav" onClick={(e) => { e.stopPropagation(); toggle({ ...part, stock: stockMap }) }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill={inWish ? '#e53e3e' : 'none'} stroke={inWish ? '#e53e3e' : 'currentColor'} strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         </button>
       </div>
       <div className="card-body">
