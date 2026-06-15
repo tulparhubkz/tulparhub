@@ -115,6 +115,7 @@ export default function CatalogInner() {
   const systemParam = params.get('system') ?? ''
   const brandParam  = params.get('brand') ?? ''
   const modelParam  = params.get('model') ?? ''
+  const vinParam    = params.get('vin') ?? ''
   const qParam      = params.get('q') ?? ''
 
   const [parts, setParts]     = useState<any[]>([])
@@ -138,6 +139,7 @@ export default function CatalogInner() {
 
   const title = modelObj
     ? `Запчасти на ${brandObj?.name} ${modelObj.name}`
+    : vinParam && !filters.q ? `Запчасти по VIN: ${vinParam.toUpperCase()}`
     : filters.q ? `Поиск: ${filters.q}`
     : filters.system ? `${systems.find((s) => s.id === filters.system)?.ru} — все запчасти`
     : 'Каталог запчастей'
@@ -148,6 +150,7 @@ export default function CatalogInner() {
       const sp = new URLSearchParams()
       if (filters.system)  sp.set('system', filters.system)
       if (filters.q)       sp.set('q', filters.q)
+      if (vinParam && !filters.q) sp.set('vin', vinParam)
       if (filters.oemOnly) sp.set('oemOnly', '1')
       if (filters.inStock) sp.set('inStock', '1')
       if (brandParam)      sp.set('brand', brandParam)

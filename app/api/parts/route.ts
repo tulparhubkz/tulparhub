@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAnonClient } from '@/lib/supabase-server'
 import { parts as mockParts } from '@/lib/data'
+import { decodeVin, isValidVin } from '@/lib/vinDecoder'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl
   const system   = searchParams.get('system') ?? ''
   const brand    = searchParams.get('brand') ?? ''
   const model    = searchParams.get('model') ?? ''
-  const q        = searchParams.get('q') ?? ''
+  const vinParam = searchParams.get('vin') ?? ''
+  // if vin param provided, decode to search query
+  let q = searchParams.get('q') ?? ''
+  if (!q && vinParam && isValidVin(vinParam)) {
+    const decoded = decodeVin(vinParam)
+    if (decoded) q = decoded.searchQuery
+  }
   const oemOnly  = searchParams.get('oemOnly') === '1'
   const inStock  = searchParams.get('inStock') === '1'
   const priceMax = Number(searchParams.get('priceMax') ?? 999_999_999)
@@ -27,7 +34,18 @@ export async function GET(req: NextRequest) {
       if (system)  query = query.eq('category', system)
       if (brand)   query = query.ilike('brand', `%${brand}%`)
       if (oemOnly) query = query.eq('type', 'OEM')
-      if (q)       query = query.or(`name.ilike.%${q}%,oem.ilike.%${q}%`)
+      if (q) {
+        // search by name, oem, and fits array (cast to text for ilike)
+        const words = q.trim().split(/\s+/).filter(Boolean)
+        if (words.length > 1) {
+          // multi-word: each word must appear somewhere in name
+          for (const w of words) {
+            query = query.ilike('name', `%${w}%`)
+          }
+        } else {
+          query = query.or(`name.ilike.%${q}%,oem.ilike.%${q}%`)
+        }
+      }
 
       if (sort === 'price-asc')  query = query.order('price', { ascending: true })
       else if (sort === 'price-desc') query = query.order('price', { ascending: false })
