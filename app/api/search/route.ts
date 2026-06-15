@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAnonClient } from '@/lib/supabase-server'
 import { parts as mockParts, systems, brands } from '@/lib/data'
+import { decodeVin, isValidVin } from '@/lib/vinDecoder'
 
 export async function GET(req: NextRequest) {
-  const q = (req.nextUrl.searchParams.get('q') ?? '').trim()
+  let q = (req.nextUrl.searchParams.get('q') ?? '').trim()
   if (q.length < 2) return NextResponse.json({ parts: [], systems: [], brands: [] })
+  // auto-detect VIN
+  if (isValidVin(q)) {
+    const decoded = decodeVin(q)
+    if (decoded) q = decoded.searchQuery
+  }
 
   const lower = q.toLowerCase()
   const db = createAnonClient()

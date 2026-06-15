@@ -9,10 +9,11 @@ export async function GET(req: NextRequest) {
   const brand    = searchParams.get('brand') ?? ''
   const model    = searchParams.get('model') ?? ''
   const vinParam = searchParams.get('vin') ?? ''
-  // if vin param provided, decode to search query
   let q = searchParams.get('q') ?? ''
-  if (!q && vinParam && isValidVin(vinParam)) {
-    const decoded = decodeVin(vinParam)
+  // auto-detect VIN in q (17-char alphanumeric) or explicit vin param
+  const vinCandidate = vinParam || (isValidVin(q) ? q : '')
+  if (vinCandidate) {
+    const decoded = decodeVin(vinCandidate)
     if (decoded) q = decoded.searchQuery
   }
   const oemOnly  = searchParams.get('oemOnly') === '1'
