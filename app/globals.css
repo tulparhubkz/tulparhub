@@ -156,6 +156,8 @@ body {
   cursor: pointer;
 }
 .callback:hover { background: var(--accent-deep); }
+.hdr-phone { display: flex; align-items: center; gap: 5px; color: rgba(255,255,255,0.85); text-decoration: none; font-size: 12px; }
+.hdr-phone:hover { color: #fff; }
 
 .hdr-main { display: flex; align-items: center; gap: 20px; padding-top: 6px; padding-bottom: 6px; }
 .logo { display: flex; align-items: center; gap: 10px; background: none; border: none; cursor: pointer; flex-shrink: 0; }
@@ -242,6 +244,8 @@ body {
 .nav-grow { flex: 1; }
 .nav-promo { color: var(--accent) !important; }
 .nav-promo:hover { background: rgba(31,95,191,0.06) !important; }
+.nav-help-btn { background: var(--accent) !important; color: #fff !important; border-radius: var(--radius) !important; padding: 5px 14px !important; font-weight: 600 !important; font-size: 13px !important; }
+.nav-help-btn:hover { background: var(--accent-deep) !important; }
 
 /* ── Hero ── */
 .hero { background: var(--ink); color: #fff; padding: 60px 0 0; }

@@ -65,12 +65,6 @@ export function Header() {
                 <span>{city}</span>
                 <Ico name="chevDown" size={12} />
               </button>
-              <span className="hdr-sep">·</span>
-              <span className="hdr-link">Доставка по Казахстану и СНГ</span>
-              <span className="hdr-sep">·</span>
-              <a href="#" className="hdr-link">Оптовикам</a>
-              <a href="#" className="hdr-link">Для СТО</a>
-              <a href="#" className="hdr-link">1С-интеграция</a>
             </div>
             <div className="hdr-actions">
               <div className="lang">
@@ -78,9 +72,9 @@ export function Header() {
                   <button key={l} type="button" className={lang === l ? 'on' : ''} onClick={() => setLang(l)}>{l}</button>
                 ))}
               </div>
-              <span className="hdr-sep">·</span>
-              <a href="tel:+77000000000" className="hdr-link">
-                <Ico name="phone" size={13} /> +7 (700) 000-00-00
+              <a href="tel:+77000000000" className="hdr-phone">
+                <Ico name="phone" size={13} />
+                <span>+7 (700) 000-00-00</span>
               </a>
               <button type="button" className="callback">Заказать звонок</button>
             </div>
@@ -190,6 +184,7 @@ export function Header() {
             <a href="#">О компании</a>
             <a href="#">Контакты</a>
             <span className="nav-grow" />
+            <Link href="/vin" className="nav-help-btn">Помощь в подборе</Link>
             <a href="#" className="nav-promo"><Ico name="bolt" size={14} /> Акция KAMAZ, HOWO, Shacman</a>
           </div>
         </nav>
