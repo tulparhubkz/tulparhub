@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useCart } from '@/store/cart'
+import { useWishlist } from '@/store/wishlist'
 import { fmtKZT } from '@/lib/utils'
 
 function parseSpecs(name: string, brand: string): Record<string, string> {
@@ -147,6 +148,7 @@ export default function PDPPage() {
   const [activeThumb, setActiveThumb] = useState(0)
   const [imgUrl, setImgUrl]   = useState<string | null>(null)
   const { items, addItem }    = useCart()
+  const { toggle: wlToggle, has: wlHas } = useWishlist()
 
   useEffect(() => {
     fetch(`/api/parts/${id}`)
@@ -204,6 +206,7 @@ export default function PDPPage() {
   const stock    = part.stock as Record<string, number> ?? {}
   const totalQty = Object.values(stock).reduce((a: number, b: number) => a + b, 0)
   const inCart   = items.some(i => i.id === part.id)
+  const inWish   = wlHas(part.id)
   const specs    = parseSpecs(part.name, part.brand)
   const isOEM    = (part.type || '').toUpperCase() === 'OEM'
 
@@ -413,9 +416,13 @@ export default function PDPPage() {
                   <CartIcon />
                   {inCart ? 'Добавить ещё' : 'В корзину'}
                 </button>
-                <button className="btn-ghost">
-                  <BookmarkIcon />
-                  В запрос
+                <button
+                  className="btn-ghost"
+                  style={inWish ? { color: '#e53e3e', borderColor: '#e53e3e' } : {}}
+                  onClick={() => wlToggle({ ...part, stock })}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill={inWish ? '#e53e3e' : 'none'} stroke={inWish ? '#e53e3e' : 'currentColor'} strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                  {inWish ? 'В избранном' : 'В избранное'}
                 </button>
               </div>
 
