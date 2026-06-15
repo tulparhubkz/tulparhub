@@ -74,7 +74,7 @@ function PartCard({ part, b2b }: { part: any; b2b: boolean }) {
           </div>
         )}
         <span className="brandchip" style={{ fontFamily: 'var(--font-jetbrains), monospace' }}>{part.brand}</span>
-        <button className="fav" onClick={(e) => { e.stopPropagation(); toggle({ ...part, stock: stockMap }) }}>
+        <button className={`fav${inWish ? ' active' : ''}`} onClick={(e) => { e.stopPropagation(); toggle({ ...part, stock: stockMap }) }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill={inWish ? '#e53e3e' : 'none'} stroke={inWish ? '#e53e3e' : 'currentColor'} strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         </button>
       </div>

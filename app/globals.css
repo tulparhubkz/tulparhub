@@ -952,9 +952,10 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .card:hover .card-img img { transform: scale(1.04); }
 .card-img .card-glyph { width: 54px; height: 54px; color: #c2ccdb; }
 .card-img .brandchip { position: absolute; top: 10px; left: 10px; background: rgba(255,255,255,.9); backdrop-filter: blur(4px); border: 1px solid var(--line); font-size: 10px; font-weight: 600; color: var(--ink-2); padding: 3px 8px; border-radius: 6px; letter-spacing: .02em; }
-.fav { position: absolute; top: 9px; right: 9px; width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,.85); display: grid; place-items: center; color: var(--ink-3); opacity: 0; transition: .15s; border: none; cursor: pointer; }
+.fav { position: absolute; top: 9px; right: 9px; width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,.85); display: grid; place-items: center; color: var(--ink-3); opacity: 0; transition: .15s; border: none; cursor: pointer; z-index: 2; }
 .card:hover .fav { opacity: 1; }
-.fav:hover { color: var(--accent); }
+.fav:hover { color: #e53e3e; }
+.fav.active { opacity: 1; color: #e53e3e; }
 .card-body { padding: 14px 15px 15px; display: flex; flex-direction: column; flex: 1; }
 .card-badges { display: flex; gap: 6px; margin-bottom: 9px; }
 .badge.stock { background: var(--ok-soft); color: var(--ok); border: none; border-radius: 5px; padding: 3px 8px; }
