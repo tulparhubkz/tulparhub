@@ -157,7 +157,7 @@ body {
 }
 .callback:hover { background: var(--accent-deep); }
 
-.hdr-main { display: flex; align-items: center; gap: 20px; padding-top: 12px; padding-bottom: 12px; }
+.hdr-main { display: flex; align-items: center; gap: 20px; padding-top: 6px; padding-bottom: 6px; }
 .logo { display: flex; align-items: center; gap: 10px; background: none; border: none; cursor: pointer; flex-shrink: 0; }
 .logo-text { font-size: 22px; font-weight: 800; color: var(--ink); letter-spacing: -0.5px; }
 .logo-text span { color: var(--gold); }
