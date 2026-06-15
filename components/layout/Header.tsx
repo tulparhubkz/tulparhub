@@ -5,8 +5,10 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Ico } from '@/components/ui/Ico'
 import { useCart, useCartCount } from '@/store/cart'
+import { useGarage } from '@/store/garage'
 import { fmtKZT } from '@/lib/utils'
 import { CityModal } from './CityModal'
+import { GaragePanel } from '@/components/garage/GaragePanel'
 
 interface SearchResults {
   parts: Array<{ id: string; name: string; oem: string; price: number }>
@@ -19,9 +21,11 @@ export function Header() {
   const [search, setSearch]       = useState('')
   const [results, setResults]     = useState<SearchResults | null>(null)
   const [showResults, setShowResults] = useState(false)
-  const [showCity, setShowCity]   = useState(false)
-  const [searchTab, setSearchTab] = useState<'Артикул' | 'VIN' | 'Модель'>('Артикул')
-  const { city, lang, setLang }   = useCart()
+  const [showCity, setShowCity]     = useState(false)
+  const [showGarage, setShowGarage] = useState(false)
+  const [searchTab, setSearchTab]   = useState<'Артикул' | 'VIN' | 'Модель'>('Артикул')
+  const { city, lang, setLang }     = useCart()
+  const { vehicles }                = useGarage()
   const cartCount                 = useCartCount()
   const debounceRef               = useRef<ReturnType<typeof setTimeout>>()
 
@@ -157,6 +161,13 @@ export function Header() {
               <Ico name="list" size={18} />
               <span className="hdr-iconlbl">Запросы</span>
             </button>
+            <button type="button" className="hdr-iconbtn" onClick={() => setShowGarage(true)} style={{ position: 'relative' }}>
+              <Ico name="truck" size={18} />
+              <span className="hdr-iconlbl">Гараж</span>
+              {vehicles.length > 0 && (
+                <span className="hdr-iconcount on" style={{ position: 'absolute', top: 2, right: 6 }}>{vehicles.length}</span>
+              )}
+            </button>
             <Link href="/cart" className="hdr-iconbtn" style={{ textDecoration: 'none', flexDirection: 'column' }}>
               <Ico name="cart" size={18} />
               <span className="hdr-iconlbl">Корзина</span>
@@ -191,6 +202,7 @@ export function Header() {
       </header>
 
       {showCity && <CityModal onClose={() => setShowCity(false)} />}
+      {showGarage && <GaragePanel onClose={() => setShowGarage(false)} />}
     </>
   )
 }
