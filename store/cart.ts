@@ -2,6 +2,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { CartItem, Part } from '@/types'
+import { useCartPopup } from './cartPopup'
 
 interface CartStore {
   items: CartItem[]
@@ -21,14 +22,24 @@ export const useCart = create<CartStore>()(
       items: [],
       city: 'Алматы',
       lang: 'RU',
-      addItem: (part, qty = 1) =>
+      addItem: (part, qty = 1) => {
         set((s) => {
           const existing = s.items.find((i) => i.id === part.id)
           if (existing) {
             return { items: s.items.map((i) => i.id === part.id ? { ...i, qty: i.qty + qty } : i) }
           }
           return { items: [...s.items, { ...part, qty }] }
-        }),
+        })
+        useCartPopup.getState().show({
+          id: part.id,
+          name: part.name,
+          oem: part.oem,
+          brand: part.brand,
+          price: part.price,
+          qty,
+          img: part.img ?? undefined,
+        })
+      },
       removeItem: (id) =>
         set((s) => ({ items: s.items.filter((i) => i.id !== id) })),
       setQty: (id, qty) =>

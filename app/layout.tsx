@@ -3,6 +3,7 @@ import { Golos_Text, JetBrains_Mono } from 'next/font/google'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { FloatingChat } from '@/components/layout/FloatingChat'
+import { CartAddedPopup } from '@/components/cart/CartAddedPopup'
 import './globals.css'
 
 const golos = Golos_Text({
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <Footer />
         <FloatingChat />
+        <CartAddedPopup />
       </body>
     </html>
   )

@@ -1297,3 +1297,30 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .gp-modal-car { display: flex; align-items: center; gap: 12px; background: var(--surf-2); border-radius: var(--radius-lg); padding: 14px; margin-bottom: 20px; }
 .gp-del-btn { margin-left: auto; background: none; border: none; cursor: pointer; color: var(--ink-3); display: flex; padding: 4px; border-radius: 6px; }
 .gp-del-btn:hover { color: #e53e3e; background: #fff5f5; }
+
+/* ── Cart Added Popup ── */
+.cap-backdrop { position: fixed; inset: 0; background: rgba(10,36,71,.35); z-index: 300; }
+.cap-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 301; background: var(--surf); border-radius: var(--radius-lg); box-shadow: 0 20px 60px rgba(0,0,0,.18); width: 560px; max-width: calc(100vw - 32px); padding: 28px; }
+.cap-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.cap-title { font-size: 20px; font-weight: 700; color: var(--ink); margin: 0; }
+.cap-close { background: none; border: none; cursor: pointer; color: var(--ink-3); display: flex; padding: 4px; border-radius: 6px; }
+.cap-close:hover { background: var(--surf-2); color: var(--ink); }
+.cap-item { display: flex; align-items: flex-start; gap: 16px; padding: 16px; background: var(--surf-2); border-radius: var(--radius-lg); margin-bottom: 20px; }
+.cap-img { width: 72px; height: 72px; flex-shrink: 0; background: #fff; border-radius: var(--radius); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.cap-img-placeholder { width: 72px; height: 72px; display: flex; align-items: center; justify-content: center; }
+.cap-meta { flex: 1; min-width: 0; }
+.cap-brand { font-size: 11px; font-weight: 700; color: var(--ink-2); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+.cap-name { font-size: 14px; font-weight: 600; color: var(--ink); line-height: 1.35; margin-bottom: 4px; }
+.cap-oem { font-size: 12px; color: var(--ink-3); font-family: monospace; }
+.cap-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+.cap-qty-row { display: flex; align-items: center; gap: 4px; border: 1.5px solid var(--line-2); border-radius: var(--radius); overflow: hidden; }
+.cap-qty-btn { width: 32px; height: 32px; border: none; background: none; cursor: pointer; font-size: 18px; color: var(--ink); display: flex; align-items: center; justify-content: center; }
+.cap-qty-btn:hover { background: var(--surf-2); }
+.cap-qty { width: 36px; text-align: center; font-weight: 700; font-size: 15px; color: var(--ink); }
+.cap-price { font-size: 18px; font-weight: 800; color: var(--ink); }
+.cap-price-unit { font-size: 11px; color: var(--ink-3); }
+.cap-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.cap-continue { background: none; border: 1.5px solid var(--line-2); border-radius: var(--radius); padding: 11px 20px; font-size: 14px; font-weight: 600; color: var(--ink); cursor: pointer; }
+.cap-continue:hover { border-color: var(--accent); color: var(--accent); }
+.cap-go-cart { padding: 11px 24px; background: var(--accent); color: #fff; border-radius: var(--radius); text-decoration: none; font-size: 14px; font-weight: 700; }
+.cap-go-cart:hover { background: var(--accent-deep); }
