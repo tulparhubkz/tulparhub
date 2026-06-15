@@ -7,7 +7,35 @@ import { Ico } from '@/components/ui/Ico'
 import { systems, brands, models } from '@/lib/data'
 import { fmtKZT } from '@/lib/utils'
 import { useCart } from '@/store/cart'
-import { getPartImage } from '@/lib/partImage'
+
+// Client-side image URL cache to avoid repeated API calls
+const imgCache = new Map<string, string | null>()
+
+function usePartImage(oem: string, name: string) {
+  const key = oem || name
+  const [url, setUrl] = useState<string | null>(imgCache.has(key) ? imgCache.get(key)! : null)
+
+  useEffect(() => {
+    if (imgCache.has(key)) {
+      setUrl(imgCache.get(key) ?? null)
+      return
+    }
+    const params = new URLSearchParams()
+    if (oem) params.set('oem', oem)
+    if (name) params.set('name', name)
+    fetch(`/api/part-image?${params}`)
+      .then(r => r.json())
+      .then(d => {
+        imgCache.set(key, d.url ?? null)
+        setUrl(d.url ?? null)
+      })
+      .catch(() => {
+        imgCache.set(key, null)
+      })
+  }, [key, oem, name])
+
+  return url
+}
 
 function PartCard({ part, b2b }: { part: any; b2b: boolean }) {
   const router = useRouter()
@@ -17,18 +45,31 @@ function PartCard({ part, b2b }: { part: any; b2b: boolean }) {
   const stockMap: Record<string, number> = part.stock ?? {}
   const totalQty = Object.values(stockMap).reduce((a: number, b: number) => a + b, 0)
   const isOEM = (part.type || '').toUpperCase() === 'OEM'
+  const imgUrl = usePartImage(part.oem ?? '', part.name ?? '')
 
   return (
     <div className="card" onClick={() => router.push(`/catalog/${part.id}`)} style={{ cursor: 'pointer' }}>
       <div className="card-img">
-        <Image
-          src={getPartImage(part.name)}
-          alt={part.name}
-          fill
-          sizes="(max-width: 600px) 100vw, 25vw"
-          style={{ objectFit: 'cover' }}
-          unoptimized={false}
-        />
+        {imgUrl ? (
+          <Image
+            src={imgUrl}
+            alt={part.name}
+            fill
+            sizes="(max-width: 600px) 100vw, 25vw"
+            style={{ objectFit: 'contain', padding: '8px' }}
+            unoptimized
+          />
+        ) : (
+          <div style={{
+            position: 'absolute', inset: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'linear-gradient(135deg, var(--surf-2) 0%, #e8edf5 100%)',
+          }}>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" strokeWidth="1.2">
+              <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+            </svg>
+          </div>
+        )}
         <span className="brandchip" style={{ fontFamily: 'var(--font-jetbrains), monospace', position: 'relative', zIndex: 1 }}>{part.brand}</span>
         <button className="fav" style={{ position: 'relative', zIndex: 1 }} onClick={(e) => e.stopPropagation()}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 21s-7.5-5-9.5-9.5C1 8 3 4.5 6.5 4.5c2 0 3.5 1.5 5.5 3.5 2-2 3.5-3.5 5.5-3.5C21 4.5 23 8 21.5 11.5 19.5 16 12 21 12 21Z"/></svg>

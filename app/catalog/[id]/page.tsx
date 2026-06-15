@@ -5,7 +5,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useCart } from '@/store/cart'
 import { fmtKZT } from '@/lib/utils'
-import { getPartImage } from '@/lib/partImage'
 
 function parseSpecs(name: string, brand: string): Record<string, string> {
   const specs: Record<string, string> = {}
@@ -146,6 +145,7 @@ export default function PDPPage() {
   const [qty, setQty]         = useState(1)
   const [b2b, setB2b]         = useState(false)
   const [activeThumb, setActiveThumb] = useState(0)
+  const [imgUrl, setImgUrl]   = useState<string | null>(null)
   const { items, addItem }    = useCart()
 
   useEffect(() => {
@@ -158,6 +158,15 @@ export default function PDPPage() {
           )
         }
         setPart(data)
+
+        // Fetch real product image
+        const imgParams = new URLSearchParams()
+        if (data.oem) imgParams.set('oem', data.oem)
+        else if (data.name) imgParams.set('name', data.name)
+        fetch(`/api/part-image?${imgParams}`)
+          .then(r => r.json())
+          .then(d => { if (d.url) setImgUrl(d.url) })
+          .catch(() => {})
 
         if (data.name && data.category) {
           const firstWord = data.name.split(' ')[0]
@@ -308,15 +317,20 @@ export default function PDPPage() {
 
           {/* ── Gallery ── */}
           <div className="gallery">
-            <div className="gal-main" style={{ overflow: 'hidden' }}>
-              <Image
-                src={getPartImage(part.name)}
-                alt={part.name}
-                fill
-                sizes="440px"
-                style={{ objectFit: 'cover' }}
-                priority
-              />
+            <div className="gal-main" style={{ overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surf-2)' }}>
+              {imgUrl ? (
+                <Image
+                  src={imgUrl}
+                  alt={part.name}
+                  fill
+                  sizes="440px"
+                  style={{ objectFit: 'contain', padding: '12px' }}
+                  priority
+                  unoptimized
+                />
+              ) : (
+                <GlyphSvg size={120} />
+              )}
               <span className="brandchip" style={{ position: 'relative', zIndex: 1 }}>{part.brand}</span>
             </div>
             <div className="gal-thumbs">
@@ -325,15 +339,18 @@ export default function PDPPage() {
                   key={i}
                   className={`th${activeThumb === i ? ' on' : ''}`}
                   onClick={() => setActiveThumb(i)}
-                  style={{ overflow: 'hidden', position: 'relative' }}
+                  style={{ overflow: 'hidden', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surf-2)' }}
                 >
-                  <Image
-                    src={getPartImage(part.name)}
-                    alt={part.name}
-                    fill
-                    sizes="74px"
-                    style={{ objectFit: 'cover', opacity: i === 0 ? 1 : 0.6 }}
-                  />
+                  {imgUrl ? (
+                    <Image
+                      src={imgUrl}
+                      alt={part.name}
+                      fill
+                      sizes="74px"
+                      style={{ objectFit: 'contain', padding: '4px', opacity: i === 0 ? 1 : 0.6 }}
+                      unoptimized
+                    />
+                  ) : <GlyphSvg size={40} />}
                 </div>
               ))}
             </div>
