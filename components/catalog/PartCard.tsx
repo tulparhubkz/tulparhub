@@ -11,9 +11,9 @@ import type { Part } from '@/types'
 
 export function PartCard({ part }: { part: Part }) {
   const { items, addItem } = useCart()
-  const { toggle, has } = useWishlist()
+  const toggle = useWishlist(s => s.toggle)
+  const inWish = useWishlist(s => s.items.some(i => i.id === part.id))
   const inCart = items.some((i) => i.id === part.id)
-  const inWish = has(part.id)
   const cityStock = part.stock['Алматы'] ?? 0
 
   return (
