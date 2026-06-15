@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
 const TRUCK_BRANDS = [
@@ -14,10 +14,20 @@ const YEARS = Array.from({ length: 35 }, (_, i) => String(2025 - i))
 export default function VinPage() {
   const [tab, setTab] = useState<'vin' | 'params'>('vin')
   const [vinForm, setVinForm] = useState({ vin: '', parts: '' })
+  const [vinDecoded, setVinDecoded] = useState<{ brand: string; model: string; year?: number } | null>(null)
   const [paramsForm, setParamsForm] = useState({
     year: '', brand: '', model: '', engine: '', gearbox: 'Механика', parts: '',
   })
   const [sent, setSent] = useState(false)
+
+  useEffect(() => {
+    const v = vinForm.vin.trim()
+    if (v.length < 11) { setVinDecoded(null); return }
+    fetch(`/api/vin-decode?vin=${encodeURIComponent(v)}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => setVinDecoded(d))
+      .catch(() => setVinDecoded(null))
+  }, [vinForm.vin])
 
   function submitVin(e: React.FormEvent) {
     e.preventDefault()
@@ -118,6 +128,12 @@ export default function VinPage() {
                   onChange={e => setVinForm(f => ({ ...f, vin: e.target.value.toUpperCase() }))}
                   required
                 />
+                {vinDecoded && (
+                  <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:8, padding:'10px 14px', background:'#f0faf4', border:'1px solid #68d391', borderRadius:'var(--radius)', fontSize:13 }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38a169" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span><b>{vinDecoded.brand} {vinDecoded.model}</b>{vinDecoded.year ? ` · ${vinDecoded.year} г.` : ''}</span>
+                  </div>
+                )}
               </div>
               <div className="vin-field">
                 <label className="vin-label">Какие детали подобрать?</label>

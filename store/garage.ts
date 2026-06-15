@@ -7,13 +7,14 @@ export interface GarageVehicle {
   vin: string
   name: string
   note: string
+  searchQuery: string
   addedAt: string
 }
 
 interface GarageStore {
   vehicles: GarageVehicle[]
-  addVehicle: (vin: string, name?: string, note?: string) => GarageVehicle
-  updateVehicle: (id: string, data: Partial<Pick<GarageVehicle, 'name' | 'note'>>) => void
+  addVehicle: (vin: string, name?: string, searchQuery?: string) => GarageVehicle
+  updateVehicle: (id: string, data: Partial<Pick<GarageVehicle, 'name' | 'note' | 'searchQuery'>>) => void
   removeVehicle: (id: string) => void
 }
 
@@ -22,12 +23,13 @@ export const useGarage = create<GarageStore>()(
     (set) => ({
       vehicles: [],
 
-      addVehicle: (vin, name = '', note = '') => {
+      addVehicle: (vin, name = '', searchQuery = '') => {
         const vehicle: GarageVehicle = {
           id: crypto.randomUUID(),
           vin: vin.trim().toUpperCase(),
           name: name || vin.trim().toUpperCase(),
-          note,
+          note: '',
+          searchQuery: searchQuery || vin.trim().toUpperCase(),
           addedAt: new Date().toISOString(),
         }
         set((s) => ({ vehicles: [vehicle, ...s.vehicles] }))
