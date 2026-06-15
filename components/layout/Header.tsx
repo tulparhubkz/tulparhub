@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Ico } from '@/components/ui/Ico'
 import { useCart, useCartCount } from '@/store/cart'
+import { useWishlist } from '@/store/wishlist'
 import { useGarage } from '@/store/garage'
 import { fmtKZT } from '@/lib/utils'
 import { CityModal } from './CityModal'
@@ -25,6 +26,7 @@ export function Header() {
   const [showGarage, setShowGarage] = useState(false)
   const [searchTab, setSearchTab]   = useState<'Артикул' | 'VIN' | 'Модель'>('Артикул')
   const { city, lang, setLang }     = useCart()
+  const wishCount                   = useWishlist(s => s.items.length)
   const { vehicles }                = useGarage()
   const cartCount                 = useCartCount()
   const debounceRef               = useRef<ReturnType<typeof setTimeout>>()
@@ -153,14 +155,11 @@ export function Header() {
           </div>
 
           <div className="hdr-user">
-            <button type="button" className="hdr-iconbtn">
+            <Link href="/wishlist" className="hdr-iconbtn" style={{ textDecoration: 'none', flexDirection: 'column', position: 'relative' }}>
               <Ico name="heart" size={18} />
               <span className="hdr-iconlbl">Избранное</span>
-            </button>
-            <button type="button" className="hdr-iconbtn">
-              <Ico name="list" size={18} />
-              <span className="hdr-iconlbl">Запросы</span>
-            </button>
+              {wishCount > 0 && <span className="hdr-iconcount on">{wishCount}</span>}
+            </Link>
             <button type="button" className="hdr-iconbtn" onClick={() => setShowGarage(true)} style={{ position: 'relative' }}>
               <Ico name="truck" size={18} />
               <span className="hdr-iconlbl">Гараж</span>
