@@ -70,8 +70,8 @@ function PartCard({ part, b2b }: { part: any; b2b: boolean }) {
             </svg>
           </div>
         )}
-        <span className="brandchip" style={{ fontFamily: 'var(--font-jetbrains), monospace', position: 'relative', zIndex: 1 }}>{part.brand}</span>
-        <button className="fav" style={{ position: 'relative', zIndex: 1 }} onClick={(e) => e.stopPropagation()}>
+        <span className="brandchip" style={{ fontFamily: 'var(--font-jetbrains), monospace' }}>{part.brand}</span>
+        <button className="fav" onClick={(e) => e.stopPropagation()}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 21s-7.5-5-9.5-9.5C1 8 3 4.5 6.5 4.5c2 0 3.5 1.5 5.5 3.5 2-2 3.5-3.5 5.5-3.5C21 4.5 23 8 21.5 11.5 19.5 16 12 21 12 21Z"/></svg>
         </button>
       </div>

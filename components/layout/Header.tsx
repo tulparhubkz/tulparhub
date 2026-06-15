@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Ico } from '@/components/ui/Ico'
 import { useCart, useCartCount } from '@/store/cart'
@@ -89,6 +90,7 @@ export function Header() {
         {/* Main bar */}
         <div className="hdr-main container">
           <Link href="/" className="logo">
+            <Image src="/logo.png" alt="TulparHub" width={48} height={48} style={{ objectFit: 'contain' }} priority />
             <span className="logo-text">TULPAR<span>HUB</span></span>
           </Link>
 

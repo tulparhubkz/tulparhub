@@ -162,7 +162,7 @@ body {
 .logo-text { font-size: 22px; font-weight: 800; color: var(--ink); letter-spacing: -0.5px; }
 .logo-text span { color: var(--gold); }
 
-.search { position: relative; flex: 1; max-width: 620px; display: flex; align-items: center; background: var(--surf-2); border: 1.5px solid var(--line-2); border-radius: var(--radius-lg); }
+.search { position: relative; flex: 1; display: flex; align-items: center; background: var(--surf-2); border: 1.5px solid var(--line-2); border-radius: var(--radius-lg); }
 .search:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(31,95,191,0.12); }
 .search-prefix { padding: 0 10px; color: var(--ink-3); display: flex; }
 .search input {
@@ -207,7 +207,7 @@ body {
 .sr-arrow { color: var(--ink-3); }
 .sr-foot { padding: 8px 16px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-3); }
 
-.hdr-user { display: flex; align-items: center; gap: 4px; }
+.hdr-user { display: flex; align-items: center; gap: 4px; margin-left: auto; flex-shrink: 0; }
 .hdr-iconbtn { display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: none; cursor: pointer; padding: 6px 10px; border-radius: var(--radius-lg); color: var(--ink-2); position: relative; }
 .hdr-iconbtn:hover { background: var(--surf-2); color: var(--accent); }
 .hdr-iconlbl { font-size: 10px; font-weight: 500; }
