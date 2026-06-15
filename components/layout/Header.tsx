@@ -90,8 +90,7 @@ export function Header() {
         {/* Main bar */}
         <div className="hdr-main container">
           <Link href="/" className="logo">
-            <Image src="/logo.png" alt="TulparHub" width={48} height={48} style={{ objectFit: 'contain' }} priority />
-            <span className="logo-text">TULPAR<span>HUB</span></span>
+            <Image src="/logo.png" alt="TulparHub" width={140} height={56} style={{ objectFit: 'contain' }} priority />
           </Link>
 
           <div className="search">
