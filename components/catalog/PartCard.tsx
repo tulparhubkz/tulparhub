@@ -14,7 +14,8 @@ export function PartCard({ part }: { part: Part }) {
   const toggle = useWishlist(s => s.toggle)
   const inWish = useWishlist(s => s.items.some(i => i.id === part.id))
   const inCart = items.some((i) => i.id === part.id)
-  const cityStock = part.stock['Алматы'] ?? 0
+  const cityStock = part.stock?.['Алматы'] ?? 0
+  const fits = part.fits ?? []
 
   return (
     <div className="part-card">
@@ -38,8 +39,8 @@ export function PartCard({ part }: { part: Part }) {
         <div className="part-oem">{part.oem}</div>
         <Link href={`/catalog/${part.id}`} className="part-name">{part.name}</Link>
         <div className="part-fits">
-          Подходит: {part.fits.slice(0, 2).join(', ')}
-          {part.fits.length > 2 ? ` +${part.fits.length - 2}` : ''}
+          Подходит: {fits.slice(0, 2).join(', ')}
+          {fits.length > 2 ? ` +${fits.length - 2}` : ''}
         </div>
         <div className="part-meta">
           <span className="part-brand">{part.brand}</span>

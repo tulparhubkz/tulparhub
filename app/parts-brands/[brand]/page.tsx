@@ -1,12 +1,13 @@
 'use client'
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect } from 'react'
+import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { getBrandInfo } from '@/lib/brandInfo'
 import { PartCard } from '@/components/catalog/PartCard'
 
-export default function BrandPage({ params }: { params: Promise<{ brand: string }> }) {
-  const { brand: brandParam } = use(params)
-  const brand = decodeURIComponent(brandParam)
+export default function BrandPage() {
+  const { brand: brandParam } = useParams<{ brand: string }>()
+  const brand = decodeURIComponent(brandParam ?? '')
   const info = getBrandInfo(brand)
 
   const [parts, setParts] = useState<any[]>([])
