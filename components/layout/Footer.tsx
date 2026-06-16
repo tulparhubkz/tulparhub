@@ -10,11 +10,9 @@ export function Footer() {
               TULPAR<span style={{ color: 'var(--gold)' }}>HUB</span>
             </span>
           </div>
-          <p className="foot-tag">Грузовые запчасти и аренда спецтехники · с 2024 года.</p>
+          <p className="foot-tag">Грузовые запчасти и аренда спецтехники · с 2026 года.</p>
           <div className="foot-trust">
-            <div><b>84 200+</b><span>SKU на складах</span></div>
-            <div><b>6</b><span>складов</span></div>
-            <div><b>11 лет</b><span>на рынке</span></div>
+            <div><b>20 000+</b><span>SKU на складах</span></div>
           </div>
         </div>
         <div className="foot-col">
