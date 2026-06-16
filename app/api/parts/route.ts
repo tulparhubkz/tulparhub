@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
         .lte('price', priceMax)
 
       if (system)  query = query.eq('category', system)
-      if (brand)   query = query.ilike('brand', `%${brand}%`)
+      if (brand)   query = query.eq('brand', brand)
       if (oemOnly) query = query.eq('type', 'OEM')
       if (q) {
         // search by name, oem, and fits array (cast to text for ilike)

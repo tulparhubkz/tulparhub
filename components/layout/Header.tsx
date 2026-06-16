@@ -188,7 +188,7 @@ export function Header() {
             </Link>
             <Link href="/catalog">Запчасти</Link>
             <Link href="/rental">Аренда техники</Link>
-            <a href="#">Бренды</a>
+            <Link href="/parts-brands">Бренды</Link>
             <a href="#">Оптовикам</a>
             <a href="#">Доставка</a>
             <a href="#">О компании</a>
