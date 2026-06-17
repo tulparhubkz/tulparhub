@@ -36,10 +36,13 @@ export async function GET(req: NextRequest) {
       if (brand)   query = query.eq('brand', brand)
       if (oemOnly) query = query.eq('type', 'OEM')
       if (q) {
-        // search by name, oem, and fits array (cast to text for ilike)
         const words = q.trim().split(/\s+/).filter(Boolean)
-        if (words.length > 1) {
-          // multi-word: each word must appear somewhere in name
+        if (words.length > 3) {
+          // Many words = OR search (e.g. list of brands for equipment type filter)
+          const orClauses = words.map(w => `name.ilike.%${w}%`).join(',')
+          query = query.or(orClauses)
+        } else if (words.length > 1) {
+          // 2-3 words: AND search (phrase match)
           for (const w of words) {
             query = query.ilike('name', `%${w}%`)
           }

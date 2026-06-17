@@ -9,6 +9,19 @@ import { PartCard } from '@/components/catalog/PartCard'
 import { equipmentTypes, systems, brands } from '@/lib/data'
 import { useCart } from '@/store/cart'
 
+// Маппинг типа техники → поисковый запрос по маркам в fits
+const TYPE_QUERY: Record<string, string> = {
+  truck:     'Volvo Scania MAN DAF Mercedes КАМАЗ МАЗ HOWO Shacman FAW Renault Iveco',
+  excavator: 'CAT Komatsu Hitachi Hyundai Volvo Doosan XCMG SANY JCB Liebherr',
+  loader:    'CAT Komatsu Volvo XCMG SDLG JCB Liebherr Case Manitou',
+  dozer:     'CAT Komatsu Liebherr Shantui John Deere Case',
+  crane:     'Liebherr Manitowoc Grove Tadano Terex Palfinger',
+  mixer:     'Stetter Liebherr ZF КАМАЗ МАЗ',
+  dump:      'КАМАЗ HOWO Shacman FAW Volvo CAT Komatsu Belaz',
+  grader:    'CAT Komatsu John Deere Volvo XCMG',
+  roller:    'Dynapac Bomag Hamm Ammann CAT Volvo',
+}
+
 // Rental slideshow images (SVG placeholders styled as real equipment)
 const RENTAL_SLIDES = [
   { label: 'Экскаватор CAT 320', emoji: '🏗️', color: '#f0b429' },
@@ -265,7 +278,7 @@ export default function HomePage() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '4px 0' }}>
               {equipmentTypes.slice(0, 4).map(t => (
-                <Link key={t.id} href={`/catalog?type=${t.id}`} style={{
+                <Link key={t.id} href={`/catalog?q=${encodeURIComponent(TYPE_QUERY[t.id] ?? t.ru)}`} style={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
@@ -342,7 +355,7 @@ export default function HomePage() {
           </div>
           <div className="type-tiles">
             {equipmentTypes.map((t) => (
-              <Link key={t.id} href={`/catalog?type=${t.id}`} className="type-tile" style={{ textDecoration: 'none' }}>
+              <Link key={t.id} href={`/catalog?q=${encodeURIComponent(TYPE_QUERY[t.id] ?? t.ru)}`} className="type-tile" style={{ textDecoration: 'none' }}>
                 <div className="type-tile-icon"><EquipIcon kind={t.id} size={48} /></div>
                 <div className="type-tile-meta">
                   <div className="type-tile-name">{t.ru}</div>
