@@ -27,7 +27,7 @@ export function Footer() {
         <div className="foot-col">
           <h4>Сервис</h4>
           <a href="#">Доставка и оплата</a>
-          <a href="#">Гарантия и возврат</a>
+          <Link href="/warranty">Гарантия и возврат</Link>
           <a href="#">Оптовикам</a>
           <a href="#">Для СТО</a>
           <a href="#">1С-интеграция</a>
