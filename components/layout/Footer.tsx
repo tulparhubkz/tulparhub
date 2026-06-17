@@ -35,7 +35,7 @@ export function Footer() {
         </div>
         <div className="foot-col">
           <h4>Компания</h4>
-          <a href="#">О нас</a>
+          <Link href="/about">О нас</Link>
           <a href="#">Карьера</a>
           <a href="#">Партнёрам</a>
           <a href="#">Новости</a>

@@ -191,7 +191,7 @@ export function Header() {
             <Link href="/parts-brands">Бренды</Link>
             <a href="#">Оптовикам</a>
             <a href="#">Доставка</a>
-            <a href="#">О компании</a>
+            <Link href="/about">О компании</Link>
             <a href="#">Контакты</a>
             <span className="nav-grow" />
             <Link href="/vin" className="nav-help-btn">Помощь в подборе</Link>
