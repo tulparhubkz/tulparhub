@@ -1,6 +1,7 @@
 // VIN decoder based on WMI (World Manufacturer Identifier) — first 3 chars
 // + VDS positions 4-8 for model detection
 // Focused on heavy trucks sold in Kazakhstan/CIS
+import { lookupWMI } from './wmiDatabase'
 
 export interface VinResult {
   brand: string        // e.g. "MAN"
@@ -110,7 +111,21 @@ export function decodeVin(vin: string): VinResult | null {
   const vds = v.slice(3, 9)
   const vis = v.slice(9, 17)
 
-  const entry = WMI_MAP[wmi]
+  let entry = WMI_MAP[wmi]
+
+  // Fallback: look up in full WMI database (436+ entries)
+  if (!entry) {
+    const mfrName = lookupWMI(wmi)
+    if (mfrName) {
+      // Extract clean brand name (remove country/detail suffixes)
+      const brand = mfrName
+        .replace(/\s*\([^)]*\)/g, '')  // remove "(trucks)", "(Germany)" etc
+        .replace(/\s*(China|India|Brazil|Turkey|Russia|Spain|France|Netherlands|Australia|USA|Canada|UK|South Africa)$/i, '')
+        .trim()
+      entry = { brand, country: '', default: brand }
+    }
+  }
+
   if (!entry) return null
 
   // Try to find model from VDS first char
