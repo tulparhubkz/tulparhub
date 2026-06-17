@@ -149,6 +149,7 @@ export default function PDPPage() {
   const [imgUrl, setImgUrl]   = useState<string | null>(null)
   const { items, addItem }    = useCart()
   const wlToggle = useWishlist(s => s.toggle)
+  const inWish   = useWishlist(s => s.items.some(i => i.id === id))
 
   useEffect(() => {
     fetch(`/api/parts/${id}`)
@@ -206,7 +207,6 @@ export default function PDPPage() {
   const stock    = part.stock as Record<string, number> ?? {}
   const totalQty = Object.values(stock).reduce((a: number, b: number) => a + b, 0)
   const inCart   = items.some(i => i.id === part.id)
-  const inWish   = useWishlist(s => s.items.some(i => i.id === part.id))
   const specs    = parseSpecs(part.name, part.brand)
   const isOEM    = (part.type || '').toUpperCase() === 'OEM'
 
