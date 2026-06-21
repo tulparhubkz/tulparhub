@@ -6,18 +6,18 @@ import { Ico } from '@/components/ui/Ico'
 import { Btn } from '@/components/ui/Btn'
 import { Crumbs } from '@/components/ui/Crumbs'
 import { SysGlyph } from '@/components/ui/SysGlyph'
-import { equipmentTypes, brands, models, systems, subAssemblies } from '@/lib/data'
+import { brands, models, systems, subAssemblies } from '@/lib/data'
 
 export default function PodborPage() {
   const router = useRouter()
   const [pick, setPick] = useState<{
-    type: string | null; brand: string | null; model: string | null
+    brand: string | null; model: string | null
     year: string | null; system: string | null
-  }>({ type: null, brand: null, model: null, year: null, system: null })
+  }>({ brand: null, model: null, year: null, system: null })
 
-  const step = !pick.type ? 0 : !pick.brand ? 1 : !pick.model ? 2 : !pick.year ? 3 : !pick.system ? 4 : 5
+  const step = !pick.brand ? 0 : !pick.model ? 1 : !pick.year ? 2 : !pick.system ? 3 : 4
 
-  const steps = ['Тип грузовика', 'Производитель', 'Модель', 'Год выпуска', 'Система', 'Подузел']
+  const steps = ['Производитель', 'Модель', 'Год выпуска', 'Система', 'Подузел']
   const brandObj = brands.find((b) => b.id === pick.brand)
   const modelObj = (models[pick.brand ?? ''] ?? []).find((m) => m.id === pick.model)
 
@@ -25,9 +25,6 @@ export default function PodborPage() {
     { label: 'Главная', onClick: () => router.push('/') },
     { label: 'Подбор по технике' },
   ]
-
-  const iconFor = (type: string | null) =>
-    (type === 'truck' || type === 'dump') ? 'truck' : 'excavator'
 
   return (
     <main className="wizard">
@@ -56,44 +53,21 @@ export default function PodborPage() {
 
         <div className="wiz-layout">
           <div>
-            {/* Step 0: Truck type */}
+            {/* Step 0: Brand */}
             {step === 0 && (
-              <div className="wiz-grid wiz-grid-3">
-                {equipmentTypes.map((t) => {
-                  const emojiMap: Record<string, string> = {
-                    tractor: '🚛', dump: '🚚', flatbed: '🛻', trailer: '🚌', delivery: '🚐', special: '🏗️',
-                  }
-                  return (
-                    <button key={t.id} className="wiz-card wiz-card-type" onClick={() => setPick({ ...pick, type: t.id })}>
-                      <div style={{ fontSize: 48 }}>{emojiMap[t.id] ?? '🚛'}</div>
-                      <div className="wiz-card-name">{t.ru}</div>
-                      <div className="wiz-card-sub">20 000+ артикулов</div>
-                    </button>
-                  )
-                })}
+              <div className="wiz-grid wiz-grid-4">
+                {brands.map((b) => (
+                  <button key={b.id} className="wiz-card wiz-card-brand" onClick={() => setPick({ ...pick, brand: b.id })}>
+                    <div className="wiz-brand-mark">{b.name[0]}</div>
+                    <div className="wiz-card-name">{b.name}</div>
+                    <div className="wiz-card-sub">{b.country} · {b.models} моделей</div>
+                  </button>
+                ))}
               </div>
             )}
 
-            {/* Step 1: Brand */}
+            {/* Step 1: Model */}
             {step === 1 && (
-              <>
-                <button className="btn btn-ghost btn-sm" style={{ marginBottom: 16 }} onClick={() => setPick({ ...pick, type: null })}>
-                  <Ico name="arrowLeft" size={14} /> Назад
-                </button>
-                <div className="wiz-grid wiz-grid-4">
-                  {brands.map((b) => (
-                    <button key={b.id} className="wiz-card wiz-card-brand" onClick={() => setPick({ ...pick, brand: b.id })}>
-                      <div className="wiz-brand-mark">{b.name[0]}</div>
-                      <div className="wiz-card-name">{b.name}</div>
-                      <div className="wiz-card-sub">{b.country} · {b.models} моделей</div>
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-
-            {/* Step 2: Model */}
-            {step === 2 && (
               <>
                 <button className="btn btn-ghost btn-sm" style={{ marginBottom: 16 }} onClick={() => setPick({ ...pick, brand: null })}>
                   <Ico name="arrowLeft" size={14} /> Назад
@@ -102,7 +76,7 @@ export default function PodborPage() {
                   {(models[pick.brand ?? ''] ?? []).length ? (
                     (models[pick.brand ?? ''] ?? []).map((m) => (
                       <button key={m.id} className="wiz-card wiz-card-model" onClick={() => setPick({ ...pick, model: m.id })}>
-                        <div className="wiz-model-mark"><Ico name={iconFor(pick.type)} size={32} /></div>
+                        <div className="wiz-model-mark"><Ico name="truck" size={32} /></div>
                         <div className="wiz-card-name">{brandObj?.name} {m.name}</div>
                         <div className="wiz-card-sub">{m.cls} · {m.years}</div>
                       </button>
@@ -119,8 +93,8 @@ export default function PodborPage() {
               </>
             )}
 
-            {/* Step 3: Year */}
-            {step === 3 && (
+            {/* Step 2: Year */}
+            {step === 2 && (
               <>
                 <button className="btn btn-ghost btn-sm" style={{ marginBottom: 16 }} onClick={() => setPick({ ...pick, model: null })}>
                   <Ico name="arrowLeft" size={14} /> Назад
@@ -136,8 +110,8 @@ export default function PodborPage() {
               </>
             )}
 
-            {/* Step 4: System */}
-            {step === 4 && (
+            {/* Step 3: System */}
+            {step === 3 && (
               <>
                 <button className="btn btn-ghost btn-sm" style={{ marginBottom: 16 }} onClick={() => setPick({ ...pick, year: null })}>
                   <Ico name="arrowLeft" size={14} /> Назад
@@ -154,8 +128,8 @@ export default function PodborPage() {
               </>
             )}
 
-            {/* Step 5: Sub-assembly */}
-            {step === 5 && (
+            {/* Step 4: Sub-assembly */}
+            {step === 4 && (
               <>
                 <button className="btn btn-ghost btn-sm" style={{ marginBottom: 16 }} onClick={() => setPick({ ...pick, system: null })}>
                   <Ico name="arrowLeft" size={14} /> Назад
