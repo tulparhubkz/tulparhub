@@ -1,15 +1,14 @@
 import Link from 'next/link'
+import Image from 'next/image'
 
 export function Footer() {
   return (
     <footer className="foot">
       <div className="container foot-grid">
         <div className="foot-brand">
-          <div className="logo">
-            <span className="logo-text" style={{ color: '#fff', fontSize: 24 }}>
-              TULPAR<span style={{ color: 'var(--gold)' }}>HUB</span>
-            </span>
-          </div>
+          <Link href="/">
+            <Image src="/logo.png" alt="TulparHub" width={160} height={58} style={{ objectFit: 'contain' }} />
+          </Link>
           <p className="foot-tag">Грузовые запчасти и аренда спецтехники · с 2026 года.</p>
           <div className="foot-trust">
             <div><b>20 000+</b><span>SKU на складах</span></div>
