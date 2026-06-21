@@ -112,18 +112,18 @@ export const models: Record<string, Model[]> = {
 }
 
 export const systems: System[] = [
-  { id: 'engine',       ru: 'Двигатель',          icon: 'engine',  count: 3480  },
-  { id: 'suspension',   ru: 'Ходовая и подвеска', icon: 'chassis', count: 2326  },
-  { id: 'electrical',   ru: 'Электрика',          icon: 'elec',    count: 1665  },
-  { id: 'transmission', ru: 'Трансмиссия',        icon: 'gear',    count: 1298  },
-  { id: 'cabin',        ru: 'Кабина и кузов',     icon: 'cab',     count: 1076  },
-  { id: 'brakes',       ru: 'Тормозная система',  icon: 'brakes',  count: 988   },
-  { id: 'filters',      ru: 'Фильтры',            icon: 'filter',  count: 751   },
-  { id: 'steering',     ru: 'Рулевое управление', icon: 'steer',   count: 474   },
-  { id: 'axle',         ru: 'Мосты и полуоси',    icon: 'chassis', count: 451   },
-  { id: 'fuel',         ru: 'Топливная система',  icon: 'fuel',    count: 183   },
-  { id: 'cooling',      ru: 'Система охлаждения', icon: 'cool',    count: 128   },
-  { id: 'pneumatics',   ru: 'Пневматика',         icon: 'brakes',  count: 88    },
+  { id: 'engine',       ru: 'Двигатель',          icon: 'engine',       count: 3480 },
+  { id: 'suspension',   ru: 'Ходовая и подвеска', icon: 'suspension',   count: 2326 },
+  { id: 'electrical',   ru: 'Электрика',          icon: 'electrical',   count: 1665 },
+  { id: 'transmission', ru: 'Трансмиссия',        icon: 'transmission', count: 1298 },
+  { id: 'cabin',        ru: 'Кабина и кузов',     icon: 'cabin',        count: 1076 },
+  { id: 'brakes',       ru: 'Тормозная система',  icon: 'brakes',       count: 988  },
+  { id: 'filters',      ru: 'Фильтры',            icon: 'filters',      count: 751  },
+  { id: 'steering',     ru: 'Рулевое управление', icon: 'steering',     count: 474  },
+  { id: 'axle',         ru: 'Мосты и полуоси',    icon: 'axle',         count: 451  },
+  { id: 'fuel',         ru: 'Топливная система',  icon: 'fuel',         count: 183  },
+  { id: 'cooling',      ru: 'Система охлаждения', icon: 'cooling',      count: 128  },
+  { id: 'pneumatics',   ru: 'Пневматика',         icon: 'pneumatics',   count: 88   },
 ]
 
 export const subAssemblies: Record<string, string[]> = {
