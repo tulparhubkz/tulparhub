@@ -10,6 +10,7 @@ export interface Brand {
   name: string
   country: string
   models: number
+  parts?: number
 }
 
 export interface Model {

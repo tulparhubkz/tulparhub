@@ -60,7 +60,7 @@ export default function PodborPage() {
                   <button key={b.id} className="wiz-card wiz-card-brand" onClick={() => setPick({ ...pick, brand: b.id })}>
                     <div className="wiz-brand-mark">{b.name[0]}</div>
                     <div className="wiz-card-name">{b.name}</div>
-                    <div className="wiz-card-sub">{b.country} · {b.models} моделей</div>
+                    <div className="wiz-card-sub">{b.models} моделей · {b.parts?.toLocaleString('ru')} запч.</div>
                   </button>
                 ))}
               </div>
