@@ -8,6 +8,7 @@ export interface EquipmentType {
 export interface Brand {
   id: string
   name: string
+  dbName: string
   country: string
   models: number
   parts?: number
@@ -19,6 +20,7 @@ export interface Model {
   name: string
   years: string
   cls: string
+  fits: string
 }
 
 export interface System {

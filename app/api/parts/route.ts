@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAnonClient } from '@/lib/supabase-server'
-import { parts as mockParts } from '@/lib/data'
+import { parts as mockParts, brands, models } from '@/lib/data'
 import { decodeVin, isValidVin } from '@/lib/vinDecoder'
 
 export async function GET(req: NextRequest) {
@@ -33,7 +33,26 @@ export async function GET(req: NextRequest) {
         .lte('price', priceMax)
 
       if (system)  query = query.eq('category', system)
-      if (brand)   query = query.eq('brand', brand)
+
+      // brand/model params refer to the TRUCK brand — filter via fits[] array
+      if (brand) {
+        const brandObj = brands.find(b => b.id === brand)
+        const dbName = brandObj?.dbName ?? brand
+        if (model) {
+          const modelObj = (models[brand] ?? []).find(m => m.id === model)
+          const fitsStr = modelObj?.fits ?? `${dbName} ${model}`
+          query = query.contains('fits', [fitsStr])
+        } else {
+          const brandModels = models[brand] ?? []
+          if (brandModels.length > 0) {
+            // use overlaps: parts that fit ANY known model of this brand
+            query = query.overlaps('fits', brandModels.map(m => m.fits))
+          } else {
+            // brand-only fits (Scania, Renault, Iveco, etc.) — exact string match
+            query = query.contains('fits', [dbName])
+          }
+        }
+      }
       if (oemOnly) query = query.eq('type', 'OEM')
       if (q) {
         const words = q.trim().split(/\s+/).filter(Boolean)
