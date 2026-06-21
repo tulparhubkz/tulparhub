@@ -1,15 +1,15 @@
 import type { Brand, City, EquipmentType, Model, Part, RentalUnit, System } from '@/types'
 
 export const equipmentTypes: EquipmentType[] = [
-  { id: 'truck',     ru: 'Грузовики',          en: 'Trucks',       count: 12480 },
-  { id: 'excavator', ru: 'Экскаваторы',         en: 'Excavators',   count: 5210  },
-  { id: 'loader',    ru: 'Погрузчики',          en: 'Loaders',      count: 3140  },
-  { id: 'dozer',     ru: 'Бульдозеры',          en: 'Bulldozers',   count: 1820  },
-  { id: 'crane',     ru: 'Краны',               en: 'Cranes',       count: 980   },
-  { id: 'mixer',     ru: 'Бетоносмесители',     en: 'Mixers',       count: 410   },
-  { id: 'dump',      ru: 'Самосвалы',           en: 'Dump trucks',  count: 2360  },
-  { id: 'grader',    ru: 'Грейдеры',            en: 'Graders',      count: 320   },
-  { id: 'roller',    ru: 'Катки',               en: 'Rollers',      count: 290   },
+  { id: 'truck',     ru: 'Грузовики',          en: 'Trucks',       count: 20279 },
+  { id: 'excavator', ru: 'Экскаваторы',         en: 'Excavators',   count: 0     },
+  { id: 'loader',    ru: 'Погрузчики',          en: 'Loaders',      count: 0     },
+  { id: 'dozer',     ru: 'Бульдозеры',          en: 'Bulldozers',   count: 0     },
+  { id: 'crane',     ru: 'Краны',               en: 'Cranes',       count: 0     },
+  { id: 'mixer',     ru: 'Бетоносмесители',     en: 'Mixers',       count: 0     },
+  { id: 'dump',      ru: 'Самосвалы',           en: 'Dump trucks',  count: 0     },
+  { id: 'grader',    ru: 'Грейдеры',            en: 'Graders',      count: 0     },
+  { id: 'roller',    ru: 'Катки',               en: 'Rollers',      count: 0     },
 ]
 
 export const brands: Brand[] = [
@@ -50,18 +50,18 @@ export const models: Record<string, Model[]> = {
 }
 
 export const systems: System[] = [
-  { id: 'engine',  ru: 'Двигатель',          icon: 'engine',  count: 412 },
-  { id: 'trans',   ru: 'Трансмиссия',        icon: 'gear',    count: 286 },
-  { id: 'hydro',   ru: 'Гидравлика',         icon: 'hydro',   count: 198 },
-  { id: 'chassis', ru: 'Ходовая и подвеска', icon: 'chassis', count: 314 },
-  { id: 'brakes',  ru: 'Тормозная система',  icon: 'brakes',  count: 167 },
-  { id: 'elec',    ru: 'Электрика',          icon: 'elec',    count: 245 },
-  { id: 'cab',     ru: 'Кабина и кузов',     icon: 'cab',     count: 178 },
-  { id: 'cool',    ru: 'Система охлаждения', icon: 'cool',    count: 92  },
-  { id: 'fuel',    ru: 'Топливная система',  icon: 'fuel',    count: 134 },
-  { id: 'steer',   ru: 'Рулевое управление', icon: 'steer',   count: 88  },
-  { id: 'filter',  ru: 'Фильтры',            icon: 'filter',  count: 211 },
-  { id: 'under',   ru: 'Ходовая (гусеницы)', icon: 'tracks',  count: 156 },
+  { id: 'engine',       ru: 'Двигатель',          icon: 'engine',  count: 3480  },
+  { id: 'suspension',   ru: 'Ходовая и подвеска', icon: 'chassis', count: 2326  },
+  { id: 'electrical',   ru: 'Электрика',          icon: 'elec',    count: 1665  },
+  { id: 'transmission', ru: 'Трансмиссия',        icon: 'gear',    count: 1298  },
+  { id: 'cabin',        ru: 'Кабина и кузов',     icon: 'cab',     count: 1076  },
+  { id: 'brakes',       ru: 'Тормозная система',  icon: 'brakes',  count: 988   },
+  { id: 'filters',      ru: 'Фильтры',            icon: 'filter',  count: 751   },
+  { id: 'steering',     ru: 'Рулевое управление', icon: 'steer',   count: 474   },
+  { id: 'axle',         ru: 'Мосты и полуоси',    icon: 'chassis', count: 451   },
+  { id: 'fuel',         ru: 'Топливная система',  icon: 'fuel',    count: 183   },
+  { id: 'cooling',      ru: 'Система охлаждения', icon: 'cool',    count: 128   },
+  { id: 'pneumatics',   ru: 'Пневматика',         icon: 'brakes',  count: 88    },
 ]
 
 export const subAssemblies: Record<string, string[]> = {
