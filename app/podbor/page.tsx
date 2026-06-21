@@ -17,7 +17,7 @@ export default function PodborPage() {
 
   const step = !pick.type ? 0 : !pick.brand ? 1 : !pick.model ? 2 : !pick.year ? 3 : !pick.system ? 4 : 5
 
-  const steps = ['Тип техники', 'Производитель', 'Модель', 'Год выпуска', 'Система', 'Подузел']
+  const steps = ['Тип грузовика', 'Производитель', 'Модель', 'Год выпуска', 'Система', 'Подузел']
   const brandObj = brands.find((b) => b.id === pick.brand)
   const modelObj = (models[pick.brand ?? ''] ?? []).find((m) => m.id === pick.model)
 
@@ -35,8 +35,8 @@ export default function PodborPage() {
         <Crumbs items={crumbs} />
 
         <div className="wiz-head">
-          <h1>Подбор запчастей по технике</h1>
-          <p>Найдите точную деталь для своей машины за 6 кликов — без OEM-номера.</p>
+          <h1>Подбор запчастей для грузовиков</h1>
+          <p>Выберите тип и марку грузовика — покажем подходящие запчасти.</p>
         </div>
 
         {/* Progress */}
@@ -56,16 +56,18 @@ export default function PodborPage() {
 
         <div className="wiz-layout">
           <div>
-            {/* Step 0: Equipment type */}
+            {/* Step 0: Truck type */}
             {step === 0 && (
               <div className="wiz-grid wiz-grid-3">
                 {equipmentTypes.map((t) => {
-                  const iconMap: Record<string, string> = { truck: 'truck', excavator: 'excavator', loader: 'loader', dozer: 'dozer', crane: 'crane', mixer: 'mixer', dump: 'dump', grader: 'grader', roller: 'roller' }
+                  const emojiMap: Record<string, string> = {
+                    tractor: '🚛', dump: '🚚', flatbed: '🛻', trailer: '🚌', delivery: '🚐', special: '🏗️',
+                  }
                   return (
                     <button key={t.id} className="wiz-card wiz-card-type" onClick={() => setPick({ ...pick, type: t.id })}>
-                      <div style={{ color: 'var(--ink-2)' }}><Ico name={iconMap[t.id] ?? 'truck'} size={56} stroke={1.2} /></div>
+                      <div style={{ fontSize: 48 }}>{emojiMap[t.id] ?? '🚛'}</div>
                       <div className="wiz-card-name">{t.ru}</div>
-                      <div className="wiz-card-sub">{t.count.toLocaleString('ru-RU')} артикулов · {Math.floor(t.count / 800)} моделей</div>
+                      <div className="wiz-card-sub">20 000+ артикулов</div>
                     </button>
                   )
                 })}

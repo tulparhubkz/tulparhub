@@ -9,17 +9,14 @@ import { PartCard } from '@/components/catalog/PartCard'
 import { equipmentTypes, systems, brands } from '@/lib/data'
 import { useCart } from '@/store/cart'
 
-// Маппинг типа техники → поисковый запрос по маркам в fits
+// Маппинг типа грузовика → поисковый запрос
 const TYPE_QUERY: Record<string, string> = {
-  truck:     'Volvo Scania MAN DAF Mercedes КАМАЗ МАЗ HOWO Shacman FAW Renault Iveco',
-  excavator: 'CAT Komatsu Hitachi Hyundai Volvo Doosan XCMG SANY JCB Liebherr',
-  loader:    'CAT Komatsu Volvo XCMG SDLG JCB Liebherr Case Manitou',
-  dozer:     'CAT Komatsu Liebherr Shantui John Deere Case',
-  crane:     'Liebherr Manitowoc Grove Tadano Terex Palfinger',
-  mixer:     'Stetter Liebherr ZF КАМАЗ МАЗ',
-  dump:      'КАМАЗ HOWO Shacman FAW Volvo CAT Komatsu Belaz',
-  grader:    'CAT Komatsu John Deere Volvo XCMG',
-  roller:    'Dynapac Bomag Hamm Ammann CAT Volvo',
+  tractor:  'Volvo Scania MAN DAF Mercedes Renault Iveco КАМАЗ МАЗ',
+  dump:     'КАМАЗ HOWO Shacman FAW МАЗ',
+  flatbed:  'КАМАЗ МАЗ HOWO Shacman Volvo MAN',
+  trailer:  'Volvo Scania MAN DAF Mercedes Renault',
+  delivery: 'Mercedes Renault Iveco MAN',
+  special:  'КАМАЗ МАЗ HOWO Shacman FAW Volvo',
 }
 
 // Rental slideshow images (SVG placeholders styled as real equipment)
@@ -112,14 +109,14 @@ function RentalSlideshow() {
   )
 }
 
-function EquipIcon({ kind, size = 48 }: { kind: string; size?: number }) {
-  const nameMap: Record<string, string> = {
-    truck: 'truck', excavator: 'excavator', loader: 'loader', dozer: 'dozer',
-    crane: 'crane', mixer: 'mixer', dump: 'dump', grader: 'grader', roller: 'roller',
-  }
+const TRUCK_EMOJI: Record<string, string> = {
+  tractor: '🚛', dump: '🚚', flatbed: '🚛', trailer: '🚌', delivery: '🚐', special: '🏗️',
+}
+
+function TruckTypeIcon({ kind, size = 48 }: { kind: string; size?: number }) {
   return (
-    <div style={{ width: size, height: size, display: 'grid', placeItems: 'center', color: 'var(--ink)' }}>
-      <Ico name={nameMap[kind] ?? 'truck'} size={size} stroke={1.2} />
+    <div style={{ width: size, height: size, display: 'grid', placeItems: 'center', fontSize: size * 0.6 }}>
+      {TRUCK_EMOJI[kind] ?? '🚛'}
     </div>
   )
 }
@@ -265,7 +262,7 @@ export default function HomePage() {
               <span className="hs-tag-fast">быстрее</span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '4px 0' }}>
-              {equipmentTypes.slice(0, 4).map(t => (
+              {equipmentTypes.map(t => (
                 <Link key={t.id} href={`/catalog?q=${encodeURIComponent(TYPE_QUERY[t.id] ?? t.ru)}`} style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -336,18 +333,18 @@ export default function HomePage() {
         <div className="container">
           <div className="section-head">
             <div>
-              <h2 className="section-title">Что подбираем</h2>
-              <p className="section-sub">Каталог покрывает 9 классов техники — от тягачей до дорожных катков.</p>
+              <h2 className="section-title">Типы грузовиков</h2>
+              <p className="section-sub">Запчасти для всех типов грузового транспорта — 20 000+ артикулов в наличии.</p>
             </div>
-            <Link href="/catalog" className="section-more">Все типы техники <Ico name="arrow" size={14} /></Link>
+            <Link href="/catalog" className="section-more">Весь каталог <Ico name="arrow" size={14} /></Link>
           </div>
           <div className="type-tiles">
             {equipmentTypes.map((t) => (
               <Link key={t.id} href={`/catalog?q=${encodeURIComponent(TYPE_QUERY[t.id] ?? t.ru)}`} className="type-tile" style={{ textDecoration: 'none' }}>
-                <div className="type-tile-icon"><EquipIcon kind={t.id} size={48} /></div>
+                <div className="type-tile-icon"><TruckTypeIcon kind={t.id} size={40} /></div>
                 <div className="type-tile-meta">
                   <div className="type-tile-name">{t.ru}</div>
-                  <div className="type-tile-count">{t.count.toLocaleString('ru-RU')} артикулов</div>
+                  <div className="type-tile-count">20 000+ артикулов</div>
                 </div>
                 <div className="type-tile-arrow"><Ico name="chevron" size={14} /></div>
               </Link>

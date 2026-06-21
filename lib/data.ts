@@ -1,15 +1,12 @@
 import type { Brand, City, EquipmentType, Model, Part, RentalUnit, System } from '@/types'
 
 export const equipmentTypes: EquipmentType[] = [
-  { id: 'truck',     ru: 'Грузовики',          en: 'Trucks',       count: 20279 },
-  { id: 'excavator', ru: 'Экскаваторы',         en: 'Excavators',   count: 0     },
-  { id: 'loader',    ru: 'Погрузчики',          en: 'Loaders',      count: 0     },
-  { id: 'dozer',     ru: 'Бульдозеры',          en: 'Bulldozers',   count: 0     },
-  { id: 'crane',     ru: 'Краны',               en: 'Cranes',       count: 0     },
-  { id: 'mixer',     ru: 'Бетоносмесители',     en: 'Mixers',       count: 0     },
-  { id: 'dump',      ru: 'Самосвалы',           en: 'Dump trucks',  count: 0     },
-  { id: 'grader',    ru: 'Грейдеры',            en: 'Graders',      count: 0     },
-  { id: 'roller',    ru: 'Катки',               en: 'Rollers',      count: 0     },
+  { id: 'tractor',   ru: 'Седельные тягачи',    en: 'Semi-trucks',    count: 20279 },
+  { id: 'dump',      ru: 'Самосвалы',           en: 'Dump trucks',    count: 20279 },
+  { id: 'flatbed',   ru: 'Бортовые / шасси',    en: 'Flatbed trucks', count: 20279 },
+  { id: 'trailer',   ru: 'Прицепы и п/прицепы', en: 'Trailers',       count: 20279 },
+  { id: 'delivery',  ru: 'Развозные',           en: 'Delivery vans',  count: 20279 },
+  { id: 'special',   ru: 'Спецтехника',         en: 'Special trucks', count: 20279 },
 ]
 
 export const brands: Brand[] = [
