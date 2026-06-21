@@ -13,15 +13,15 @@ export const equipmentTypes: EquipmentType[] = [
 // `dbName` = exact prefix used in fits strings (e.g. "Mercedes Actros").
 // Only models that actually appear in DB fits are listed.
 export const brands: Brand[] = [
-  { id: 'volvo',   name: 'Volvo',         dbName: 'Volvo',   country: 'SE', models: 5,  parts: 3180 },
-  { id: 'mercedes',name: 'Mercedes-Benz', dbName: 'Mercedes',country: 'DE', models: 4,  parts: 1603 },
-  { id: 'daf',     name: 'DAF',           dbName: 'DAF',     country: 'NL', models: 2,  parts: 1214 },
+  { id: 'volvo',   name: 'Volvo',         dbName: 'Volvo',   country: 'SE', models: 5,  parts: 1995 },
+  { id: 'mercedes',name: 'Mercedes-Benz', dbName: 'Mercedes',country: 'DE', models: 4,  parts: 1460 },
+  { id: 'daf',     name: 'DAF',           dbName: 'DAF',     country: 'NL', models: 2,  parts: 845  },
   { id: 'scania',  name: 'Scania',        dbName: 'Scania',  country: 'SE', models: 0,  parts: 990  },
   { id: 'renault', name: 'Renault',       dbName: 'Renault', country: 'FR', models: 0,  parts: 982  },
-  { id: 'man',     name: 'MAN',           dbName: 'MAN',     country: 'DE', models: 3,  parts: 538  },
+  { id: 'man',     name: 'MAN',           dbName: 'MAN',     country: 'DE', models: 3,  parts: 533  },
   { id: 'iveco',   name: 'Iveco',         dbName: 'Iveco',   country: 'IT', models: 0,  parts: 424  },
-  { id: 'kamaz',   name: 'КАМАЗ',         dbName: 'KAMAZ',   country: 'RU', models: 5,  parts: 99   },
-  { id: 'shacman', name: 'Shacman',       dbName: 'SHACMAN', country: 'CN', models: 0,  parts: 42   },
+  { id: 'kamaz',   name: 'КАМАЗ',         dbName: 'KAMAZ',   country: 'RU', models: 5,  parts: 44   },
+  { id: 'shacman', name: 'Shacman',       dbName: 'SHACMAN', country: 'CN', models: 0,  parts: 4    },
   { id: 'maz',     name: 'МАЗ',           dbName: 'MAZ',     country: 'BY', models: 0,  parts: 13   },
   { id: 'howo',    name: 'HOWO',          dbName: 'HOWO',    country: 'CN', models: 0,  parts: 11   },
 ]
