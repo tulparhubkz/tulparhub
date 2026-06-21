@@ -6,10 +6,11 @@ export default function WarrantyPage() {
     <>
       <style>{`
         .wt-hero {
-          background: linear-gradient(135deg, #1a2236 0%, #243048 100%);
-          color: #fff;
+          background: var(--surf-2);
+          color: var(--ink);
           padding: 52px 0;
           margin-bottom: 48px;
+          border-bottom: 1px solid var(--line);
         }
         .wt-hero-inner {
           max-width: 860px;
@@ -23,7 +24,7 @@ export default function WarrantyPage() {
         }
         .wt-hero p {
           font-size: 16px;
-          color: rgba(255,255,255,.78);
+          color: var(--ink-2);
           line-height: 1.6;
         }
 
@@ -199,21 +200,23 @@ export default function WarrantyPage() {
         .wt-exclude p:last-child { margin: 0; }
 
         .wt-contact {
-          background: var(--accent);
+          background: var(--surf-2);
+          border: 1.5px solid var(--line);
           border-radius: var(--radius-lg);
           padding: 36px;
           text-align: center;
-          color: #fff;
+          color: var(--ink);
           margin-top: 32px;
         }
         .wt-contact h2 {
           font-size: 22px;
           font-weight: 800;
           margin-bottom: 8px;
+          color: var(--ink);
         }
         .wt-contact p {
           font-size: 15px;
-          opacity: .88;
+          color: var(--ink-2);
           margin-bottom: 20px;
         }
         .wt-contact-btns {
@@ -230,14 +233,14 @@ export default function WarrantyPage() {
           text-decoration: none;
           transition: .15s;
         }
-        .wt-btn-white { background: #fff; color: var(--accent); }
-        .wt-btn-white:hover { background: #f0f4ff; }
+        .wt-btn-white { background: var(--accent); color: #fff; }
+        .wt-btn-white:hover { background: var(--accent-deep); }
         .wt-btn-outline {
-          background: rgba(255,255,255,.15);
-          color: #fff;
-          border: 1.5px solid rgba(255,255,255,.4);
+          background: var(--surf);
+          color: var(--ink);
+          border: 1.5px solid var(--line-2);
         }
-        .wt-btn-outline:hover { background: rgba(255,255,255,.25); }
+        .wt-btn-outline:hover { background: var(--surf-2); border-color: var(--ink); }
 
         .wt-meta {
           font-size: 13px;
@@ -257,8 +260,8 @@ export default function WarrantyPage() {
       {/* Hero */}
       <div className="wt-hero">
         <div className="wt-hero-inner">
-          <div className="crumbs" style={{ marginBottom: 20, color: 'rgba(255,255,255,.5)', fontSize: 13 }}>
-            <Link href="/" style={{ color: 'rgba(255,255,255,.6)' }}>Главная</Link>
+          <div className="crumbs" style={{ marginBottom: 20, fontSize: 13 }}>
+            <Link href="/">Главная</Link>
             {' / '}
             <span>Гарантия и возврат</span>
           </div>

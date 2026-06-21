@@ -6,10 +6,11 @@ export default function AboutPage() {
     <>
       <style>{`
         .ab-hero {
-          background: linear-gradient(135deg, #1a2236 0%, #243048 60%, #1e3a5f 100%);
-          color: #fff;
+          background: var(--surf-2);
+          color: var(--ink);
           padding: 60px 0;
           margin-bottom: 56px;
+          border-bottom: 1px solid var(--line);
         }
         .ab-hero-inner {
           max-width: 1200px;
@@ -26,11 +27,11 @@ export default function AboutPage() {
           margin-bottom: 18px;
           line-height: 1.15;
         }
-        .ab-hero h1 span { color: #f0b429; }
+        .ab-hero h1 span { color: var(--accent); }
         .ab-hero p {
           font-size: 16px;
           line-height: 1.7;
-          color: rgba(255,255,255,.82);
+          color: var(--ink-2);
           margin-bottom: 12px;
         }
         .ab-hero ul {
@@ -46,7 +47,7 @@ export default function AboutPage() {
           align-items: flex-start;
           gap: 10px;
           font-size: 15px;
-          color: rgba(255,255,255,.88);
+          color: var(--ink-2);
           line-height: 1.5;
         }
         .ab-hero ul li::before {
@@ -54,12 +55,13 @@ export default function AboutPage() {
           width: 7px;
           height: 7px;
           border-radius: 50%;
-          background: #f0b429;
+          background: var(--accent);
           flex-shrink: 0;
           margin-top: 7px;
         }
         .ab-truck-img {
-          background: rgba(255,255,255,.06);
+          background: var(--surf);
+          border: 1.5px solid var(--line);
           border-radius: 18px;
           height: 280px;
           display: flex;
@@ -168,10 +170,11 @@ export default function AboutPage() {
         }
 
         .ab-delivery {
-          background: linear-gradient(135deg, #1a2236 0%, #243048 100%);
+          background: var(--surf-2);
+          border: 1.5px solid var(--line);
           border-radius: var(--radius-lg);
           padding: 40px 48px;
-          color: #fff;
+          color: var(--ink);
           display: grid;
           grid-template-columns: 1fr 1fr 1fr 1fr;
           gap: 32px;
@@ -182,13 +185,14 @@ export default function AboutPage() {
           width: 44px;
           height: 44px;
           border-radius: 10px;
-          background: rgba(255,255,255,.1);
+          background: var(--accent-soft);
           display: flex;
           align-items: center;
           justify-content: center;
+          color: var(--accent);
         }
-        .ab-del-title { font-size: 15px; font-weight: 700; }
-        .ab-del-text { font-size: 13px; color: rgba(255,255,255,.7); line-height: 1.5; }
+        .ab-del-title { font-size: 15px; font-weight: 700; color: var(--ink); }
+        .ab-del-text { font-size: 13px; color: var(--ink-2); line-height: 1.5; }
 
         .ab-pay {
           display: flex;
@@ -208,20 +212,22 @@ export default function AboutPage() {
         }
 
         .ab-cta {
-          background: var(--accent);
+          background: var(--surf-2);
+          border: 1.5px solid var(--line);
           border-radius: var(--radius-lg);
           padding: 48px;
           text-align: center;
-          color: #fff;
+          color: var(--ink);
         }
         .ab-cta h2 {
           font-size: 28px;
           font-weight: 800;
           margin-bottom: 12px;
+          color: var(--ink);
         }
         .ab-cta p {
           font-size: 16px;
-          opacity: .88;
+          color: var(--ink-2);
           margin-bottom: 28px;
         }
         .ab-cta-btns {
@@ -239,16 +245,16 @@ export default function AboutPage() {
           transition: .15s;
         }
         .ab-btn-white {
-          background: #fff;
-          color: var(--accent);
-        }
-        .ab-btn-white:hover { background: #f0f4ff; }
-        .ab-btn-outline {
-          background: rgba(255,255,255,.15);
+          background: var(--accent);
           color: #fff;
-          border: 1.5px solid rgba(255,255,255,.4);
         }
-        .ab-btn-outline:hover { background: rgba(255,255,255,.25); }
+        .ab-btn-white:hover { background: var(--accent-deep); }
+        .ab-btn-outline {
+          background: var(--surf);
+          color: var(--ink);
+          border: 1.5px solid var(--line-2);
+        }
+        .ab-btn-outline:hover { background: var(--surf-2); border-color: var(--ink); }
 
         @media (max-width: 900px) {
           .ab-hero-inner { grid-template-columns: 1fr; }

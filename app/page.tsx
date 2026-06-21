@@ -46,11 +46,12 @@ function RentalSlideshow() {
       position: 'relative',
       borderRadius: 16,
       overflow: 'hidden',
-      background: `linear-gradient(135deg, #1a2236 0%, #243048 100%)`,
-      border: '1px solid rgba(255,255,255,.1)',
+      background: 'var(--surf)',
+      border: '1.5px solid var(--line)',
+      boxShadow: 'var(--shadow-sm)',
     }}>
       {/* Chip */}
-      <div style={{ background: 'rgba(255,255,255,.12)', fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,.8)', padding: '6px 14px' }}>
+      <div style={{ background: 'var(--surf-2)', fontSize: 11, fontWeight: 600, color: 'var(--ink-2)', padding: '6px 14px', borderBottom: '1px solid var(--line)' }}>
         Парк 240+ единиц онлайн
       </div>
 
@@ -67,8 +68,8 @@ function RentalSlideshow() {
         <div style={{
           width: 100, height: 100,
           borderRadius: '50%',
-          background: `${slide.color}22`,
-          border: `2px solid ${slide.color}44`,
+          background: `${slide.color}18`,
+          border: `2px solid ${slide.color}55`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -76,7 +77,7 @@ function RentalSlideshow() {
         }}>
           {slide.emoji}
         </div>
-        <div style={{ color: '#fff', fontWeight: 700, fontSize: 16 }}>{slide.label}</div>
+        <div style={{ color: 'var(--ink)', fontWeight: 700, fontSize: 16 }}>{slide.label}</div>
         {/* Dots */}
         <div style={{ display: 'flex', gap: 6 }}>
           {RENTAL_SLIDES.map((_, i) => (
@@ -87,7 +88,7 @@ function RentalSlideshow() {
                 width: i === cur ? 20 : 6,
                 height: 6,
                 borderRadius: 3,
-                background: i === cur ? slide.color : 'rgba(255,255,255,.3)',
+                background: i === cur ? 'var(--accent)' : 'var(--line-2)',
                 border: 'none',
                 cursor: 'pointer',
                 transition: 'all .3s',
@@ -99,11 +100,11 @@ function RentalSlideshow() {
       </div>
 
       {/* Price row */}
-      <div style={{ display: 'flex', borderTop: '1px solid rgba(255,255,255,.1)' }}>
+      <div style={{ display: 'flex', borderTop: '1px solid var(--line)' }}>
         {[['75 000 ₸', 'смена 8 ч'], ['95 000 ₸', 'сутки'], ['1.8 М ₸', 'месяц']].map(([num, lbl]) => (
-          <div key={lbl} style={{ flex: 1, padding: '14px 20px', borderRight: '1px solid rgba(255,255,255,.08)' }}>
-            <div style={{ fontSize: 17, fontWeight: 700, color: '#fff' }}>{num}</div>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,.5)', marginTop: 2 }}>{lbl}</div>
+          <div key={lbl} style={{ flex: 1, padding: '14px 20px', borderRight: '1px solid var(--line)' }}>
+            <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--accent-deep)' }}>{num}</div>
+            <div style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 2 }}>{lbl}</div>
           </div>
         ))}
       </div>
@@ -148,21 +149,8 @@ export default function HomePage() {
   return (
     <main>
       <style>{`
-        /* ── Button visibility fix ── */
-        .hero-cta .btn-ghost,
-        .rcta-actions .btn-ghost {
-          color: #fff !important;
-          border-color: rgba(255,255,255,.4) !important;
-          background: rgba(255,255,255,.08) !important;
-        }
-        .hero-cta .btn-ghost:hover,
-        .rcta-actions .btn-ghost:hover {
-          background: rgba(255,255,255,.18) !important;
-          border-color: rgba(255,255,255,.7) !important;
-        }
-
         /* ── Marquee strip ── */
-        .hm-item { color: rgba(255,255,255,.7) !important; font-size: 13px !important; }
+        .hm-item { color: rgba(255,255,255,.9) !important; font-size: 13px !important; }
 
         /* ── Brands grid ── */
         .brands-new {
@@ -235,8 +223,8 @@ export default function HomePage() {
             <div className="hero-cta">
               <Link href="/catalog">
                 <button style={{
-                  background: 'var(--gold)',
-                  color: '#1a2236',
+                  background: 'var(--accent)',
+                  color: '#fff',
                   fontWeight: 700,
                   fontSize: 15,
                   padding: '13px 28px',
@@ -252,13 +240,13 @@ export default function HomePage() {
               </Link>
               <Link href="/rental">
                 <button style={{
-                  background: 'rgba(255,255,255,.12)',
-                  color: '#fff',
+                  background: 'var(--surf)',
+                  color: 'var(--ink)',
                   fontWeight: 700,
                   fontSize: 15,
                   padding: '13px 28px',
                   borderRadius: 9,
-                  border: '1.5px solid rgba(255,255,255,.35)',
+                  border: '1.5px solid var(--line-2)',
                   cursor: 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -461,13 +449,13 @@ export default function HomePage() {
               </Link>
               <a href="tel:+77000000000">
                 <button style={{
-                  background: 'rgba(255,255,255,.12)',
-                  color: '#fff',
+                  background: 'var(--surf)',
+                  color: 'var(--ink)',
                   fontWeight: 700,
                   fontSize: 15,
                   padding: '13px 24px',
                   borderRadius: 9,
-                  border: '1.5px solid rgba(255,255,255,.35)',
+                  border: '1.5px solid var(--line-2)',
                   cursor: 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
