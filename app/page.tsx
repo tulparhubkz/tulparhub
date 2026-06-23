@@ -6,18 +6,8 @@ import { Ico } from '@/components/ui/Ico'
 import { Badge } from '@/components/ui/Badge'
 import { SysGlyph } from '@/components/ui/SysGlyph'
 import { PartCard } from '@/components/catalog/PartCard'
-import { equipmentTypes, systems, brands } from '@/lib/data'
+import { systems, brands } from '@/lib/data'
 import { useCart } from '@/store/cart'
-
-// Маппинг типа грузовика → поисковый запрос
-const TYPE_QUERY: Record<string, string> = {
-  tractor:  'Volvo Scania MAN DAF Mercedes Renault Iveco КАМАЗ МАЗ',
-  dump:     'КАМАЗ HOWO Shacman FAW МАЗ',
-  flatbed:  'КАМАЗ МАЗ HOWO Shacman Volvo MAN',
-  trailer:  'Volvo Scania MAN DAF Mercedes Renault',
-  delivery: 'Mercedes Renault Iveco MAN',
-  special:  'КАМАЗ МАЗ HOWO Shacman FAW Volvo',
-}
 
 // Rental slideshow images (SVG placeholders styled as real equipment)
 const RENTAL_SLIDES = [
@@ -262,8 +252,8 @@ export default function HomePage() {
               <span className="hs-tag-fast">быстрее</span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '4px 0' }}>
-              {equipmentTypes.map(t => (
-                <Link key={t.id} href={`/catalog?q=${encodeURIComponent(TYPE_QUERY[t.id] ?? t.ru)}`} style={{
+              {brands.slice(0, 6).map(b => (
+                <Link key={b.id} href={`/catalog?brand=${b.id}`} style={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
@@ -276,8 +266,8 @@ export default function HomePage() {
                   fontWeight: 500,
                   transition: '.15s',
                 }}>
-                  <span>{t.ru}</span>
-                  <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>{t.count.toLocaleString('ru')} запч.</span>
+                  <span>{b.name}</span>
+                  <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>{(b.parts ?? 0).toLocaleString('ru')} запч.</span>
                 </Link>
               ))}
             </div>
@@ -328,23 +318,25 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Типы техники ── */}
+      {/* ── Марки грузовиков ── */}
       <section className="section">
         <div className="container">
           <div className="section-head">
             <div>
-              <h2 className="section-title">Типы грузовиков</h2>
-              <p className="section-sub">Запчасти для всех типов грузового транспорта — 20 000+ артикулов в наличии.</p>
+              <h2 className="section-title">Марки грузовиков</h2>
+              <p className="section-sub">Запчасти по маркам — только реальное наличие, проверенные данные.</p>
             </div>
             <Link href="/catalog" className="section-more">Весь каталог <Ico name="arrow" size={14} /></Link>
           </div>
           <div className="type-tiles">
-            {equipmentTypes.map((t) => (
-              <Link key={t.id} href={`/catalog?q=${encodeURIComponent(TYPE_QUERY[t.id] ?? t.ru)}`} className="type-tile" style={{ textDecoration: 'none' }}>
-                <div className="type-tile-icon"><TruckTypeIcon kind={t.id} size={40} /></div>
+            {brands.map((b) => (
+              <Link key={b.id} href={`/catalog?brand=${b.id}`} className="type-tile" style={{ textDecoration: 'none' }}>
+                <div className="type-tile-icon" style={{ width: 48, height: 48, borderRadius: 10, background: 'var(--surf-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 14, color: 'var(--ink)', flexShrink: 0, border: '1.5px solid var(--line)' }}>
+                  {b.name.slice(0, 3).toUpperCase()}
+                </div>
                 <div className="type-tile-meta">
-                  <div className="type-tile-name">{t.ru}</div>
-                  <div className="type-tile-count">20 000+ артикулов</div>
+                  <div className="type-tile-name">{b.name}</div>
+                  <div className="type-tile-count">{(b.parts ?? 0).toLocaleString('ru-RU')} запч. · {b.country}</div>
                 </div>
                 <div className="type-tile-arrow"><Ico name="chevron" size={14} /></div>
               </Link>
