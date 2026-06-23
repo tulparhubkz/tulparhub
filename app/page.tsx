@@ -9,20 +9,44 @@ import { PartCard } from '@/components/catalog/PartCard'
 import { systems, brands } from '@/lib/data'
 import { useCart } from '@/store/cart'
 
-// Rental slideshow images (SVG placeholders styled as real equipment)
 const RENTAL_SLIDES = [
-  { label: 'Экскаватор CAT 320', emoji: '🏗️', color: '#f0b429' },
-  { label: 'Автокран 25 т', emoji: '🏗️', color: '#3b82f6' },
-  { label: 'Погрузчик XCMG', emoji: '🚜', color: '#10b981' },
-  { label: 'Самосвал HOWO 20 т', emoji: '🚛', color: '#f97316' },
-  { label: 'Бульдозер Komatsu D65', emoji: '🚧', color: '#8b5cf6' },
+  {
+    label: 'Экскаватор CAT 320',
+    sub: 'Гусеничный · 20 т · 2022 г.',
+    img: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=640&q=80&auto=format&fit=crop',
+    prices: [['85 000 ₸', 'смена 8 ч'], ['110 000 ₸', 'сутки'], ['2.1 М ₸', 'месяц']],
+  },
+  {
+    label: 'Автокран КС-55713 · 25 т',
+    sub: 'Галичанин · стрела 31 м · 2020 г.',
+    img: 'https://images.unsplash.com/photo-1581094480560-01f3d57c5949?w=640&q=80&auto=format&fit=crop',
+    prices: [['95 000 ₸', 'смена 8 ч'], ['130 000 ₸', 'сутки'], ['2.5 М ₸', 'месяц']],
+  },
+  {
+    label: 'Погрузчик SDLG L956',
+    sub: 'Фронтальный · ковш 3 м³ · 2021 г.',
+    img: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=640&q=80&auto=format&fit=crop',
+    prices: [['65 000 ₸', 'смена 8 ч'], ['80 000 ₸', 'сутки'], ['1.5 М ₸', 'месяц']],
+  },
+  {
+    label: 'Самосвал Shacman F3000 8×4',
+    sub: '30 т · 2022 г. · Алматы/Астана',
+    img: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=640&q=80&auto=format&fit=crop',
+    prices: [['55 000 ₸', 'смена 8 ч'], ['70 000 ₸', 'сутки'], ['1.3 М ₸', 'месяц']],
+  },
+  {
+    label: 'Бульдозер Komatsu D65',
+    sub: 'Гусеничный · отвал 3.7 м · 2021 г.',
+    img: 'https://images.unsplash.com/photo-1517089596392-fb9a9033e05b?w=640&q=80&auto=format&fit=crop',
+    prices: [['75 000 ₸', 'смена 8 ч'], ['95 000 ₸', 'сутки'], ['1.8 М ₸', 'месяц']],
+  },
 ]
 
 function RentalSlideshow() {
   const [cur, setCur] = useState(0)
 
   useEffect(() => {
-    const t = setInterval(() => setCur(i => (i + 1) % RENTAL_SLIDES.length), 3000)
+    const t = setInterval(() => setCur(i => (i + 1) % RENTAL_SLIDES.length), 3500)
     return () => clearInterval(t)
   }, [])
 
@@ -30,7 +54,6 @@ function RentalSlideshow() {
 
   return (
     <div style={{
-      position: 'relative',
       borderRadius: 16,
       overflow: 'hidden',
       background: 'var(--surf)',
@@ -42,44 +65,42 @@ function RentalSlideshow() {
         Парк 240+ единиц онлайн
       </div>
 
-      {/* Slide */}
-      <div style={{
-        height: 260,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 16,
-        transition: 'all .4s ease',
-      }}>
+      {/* Photo */}
+      <div style={{ position: 'relative', height: 220, overflow: 'hidden', background: '#111' }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          key={slide.img}
+          src={slide.img}
+          alt={slide.label}
+          style={{
+            width: '100%', height: '100%',
+            objectFit: 'cover',
+            display: 'block',
+            transition: 'opacity .4s ease',
+          }}
+        />
+        {/* Dark gradient overlay for text readability */}
         <div style={{
-          width: 100, height: 100,
-          borderRadius: '50%',
-          background: `${slide.color}18`,
-          border: `2px solid ${slide.color}55`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: 48,
-        }}>
-          {slide.emoji}
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(to top, rgba(0,0,0,.65) 0%, rgba(0,0,0,.1) 50%, transparent 100%)',
+        }} />
+        {/* Label on photo */}
+        <div style={{ position: 'absolute', bottom: 12, left: 14, right: 14 }}>
+          <div style={{ color: '#fff', fontWeight: 700, fontSize: 15, lineHeight: 1.25, textShadow: '0 1px 4px rgba(0,0,0,.5)' }}>{slide.label}</div>
+          <div style={{ color: 'rgba(255,255,255,.75)', fontSize: 11, marginTop: 3 }}>{slide.sub}</div>
         </div>
-        <div style={{ color: 'var(--ink)', fontWeight: 700, fontSize: 16 }}>{slide.label}</div>
         {/* Dots */}
-        <div style={{ display: 'flex', gap: 6 }}>
+        <div style={{ position: 'absolute', bottom: 10, right: 14, display: 'flex', gap: 5 }}>
           {RENTAL_SLIDES.map((_, i) => (
             <button
               key={i}
               onClick={() => setCur(i)}
               style={{
-                width: i === cur ? 20 : 6,
-                height: 6,
+                width: i === cur ? 18 : 6, height: 6,
                 borderRadius: 3,
-                background: i === cur ? 'var(--accent)' : 'var(--line-2)',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'all .3s',
-                padding: 0,
+                background: i === cur ? '#fff' : 'rgba(255,255,255,.45)',
+                border: 'none', cursor: 'pointer',
+                transition: 'all .3s', padding: 0,
               }}
             />
           ))}
@@ -88,9 +109,9 @@ function RentalSlideshow() {
 
       {/* Price row */}
       <div style={{ display: 'flex', borderTop: '1px solid var(--line)' }}>
-        {[['75 000 ₸', 'смена 8 ч'], ['95 000 ₸', 'сутки'], ['1.8 М ₸', 'месяц']].map(([num, lbl]) => (
-          <div key={lbl} style={{ flex: 1, padding: '14px 20px', borderRight: '1px solid var(--line)' }}>
-            <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--accent-deep)' }}>{num}</div>
+        {slide.prices.map(([num, lbl]) => (
+          <div key={lbl} style={{ flex: 1, padding: '12px 16px', borderRight: '1px solid var(--line)' }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--accent-deep)' }}>{num}</div>
             <div style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 2 }}>{lbl}</div>
           </div>
         ))}
