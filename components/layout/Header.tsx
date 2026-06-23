@@ -10,6 +10,8 @@ import { useGarage } from '@/store/garage'
 import { fmtKZT } from '@/lib/utils'
 import { CityModal } from './CityModal'
 import { GaragePanel } from '@/components/garage/GaragePanel'
+import { supabase } from '@/lib/supabase'
+import type { User } from '@supabase/supabase-js'
 
 interface SearchResults {
   parts: Array<{ id: string; name: string; oem: string; price: number }>
@@ -30,6 +32,15 @@ export function Header() {
   const { vehicles }                = useGarage()
   const cartCount                 = useCartCount()
   const debounceRef               = useRef<ReturnType<typeof setTimeout>>()
+  const [user, setUser]           = useState<User | null>(null)
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUser(data.user))
+    const { data: sub } = supabase.auth.onAuthStateChange((_ev, session) => {
+      setUser(session?.user ?? null)
+    })
+    return () => sub.subscription.unsubscribe()
+  }, [])
 
   useEffect(() => {
     const q = search.trim()
@@ -172,10 +183,24 @@ export function Header() {
               <span className="hdr-iconlbl">Корзина</span>
               {cartCount > 0 && <span className="hdr-iconcount on">{cartCount}</span>}
             </Link>
-            <Link href="/auth" className="hdr-iconbtn" style={{ textDecoration: 'none', flexDirection: 'column' }}>
-              <Ico name="user" size={18} />
-              <span className="hdr-iconlbl">Войти</span>
-            </Link>
+            {user ? (
+              <div style={{ position: 'relative' }}>
+                <button className="hdr-iconbtn" style={{ flexDirection: 'column' }}
+                  onClick={async () => { await supabase.auth.signOut(); setUser(null) }}>
+                  <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 700 }}>
+                    {(user.user_metadata?.first_name?.[0] || user.email?.[0] || '?').toUpperCase()}
+                  </div>
+                  <span className="hdr-iconlbl" style={{ maxWidth: 60, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {user.user_metadata?.first_name || 'Аккаунт'}
+                  </span>
+                </button>
+              </div>
+            ) : (
+              <Link href="/auth" className="hdr-iconbtn" style={{ textDecoration: 'none', flexDirection: 'column' }}>
+                <Ico name="user" size={18} />
+                <span className="hdr-iconlbl">Войти</span>
+              </Link>
+            )}
           </div>
         </div>
 
