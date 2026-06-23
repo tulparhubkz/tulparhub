@@ -482,40 +482,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Бренды ── */}
-      <section className="section">
-        <div className="container">
-          <div className="section-head">
-            <div>
-              <h2 className="section-title">Работаем с производителями</h2>
-              <p className="section-sub">300+ брендов — от мировых лидеров до проверенных аналогов.</p>
-            </div>
-            <Link href="/parts-brands" className="section-more">Все бренды <Ico name="arrow" size={14} /></Link>
-          </div>
-          <div className="brands-new">
-            {[
-              { name: 'FEBI', country: 'Германия' },
-              { name: 'MAHLE', country: 'Германия' },
-              { name: 'WABCO', country: 'США/Бельгия' },
-              { name: 'ZF', country: 'Германия' },
-              { name: 'SKF', country: 'Швеция' },
-              { name: 'KNORR', country: 'Германия' },
-              { name: 'SACHS', country: 'Германия' },
-              { name: 'MANN', country: 'Германия' },
-              { name: 'DAYCO', country: 'США' },
-              { name: 'NRF', country: 'Нидерланды' },
-              { name: 'SAMPA', country: 'Турция' },
-              { name: 'DT', country: 'Бельгия' },
-            ].map(b => (
-              <Link key={b.name} href={`/parts-brands/${encodeURIComponent(b.name)}`} className="brand-new-card">
-                <div className="brand-new-logo">{b.name.slice(0, 4)}</div>
-                <div className="brand-new-name">{b.name}</div>
-                <div className="brand-new-country">{b.country}</div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
     </main>
   )
 }
