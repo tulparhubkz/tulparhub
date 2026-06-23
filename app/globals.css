@@ -858,39 +858,32 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .city-card-sub { font-size: 11px; color: var(--ink-3); }
 .modal-foot { font-size: 12px; color: var(--ink-3); border-top: 1px solid var(--line); padding-top: 12px; }
 
-/* ── Chat bubble ── */
+/* ── Floating chat ── */
+.float-chat { position: fixed; bottom: 28px; right: 28px; z-index: 200; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
 .chat-bubble {
-  position: fixed;
-  bottom: 28px;
-  right: 28px;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: #fff;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
+  width: 54px; height: 54px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  display: grid; place-items: center;
+  cursor: pointer; border: none;
   box-shadow: 0 6px 24px rgba(219,10,64,0.35);
-  z-index: 200;
   transition: transform 0.15s;
+  flex-shrink: 0;
 }
 .chat-bubble:hover { transform: scale(1.08); }
-.chat-tip {
-  position: absolute;
-  bottom: calc(100% + 10px);
-  right: 0;
-  background: var(--ink);
-  color: #fff;
-  font-size: 11px;
-  padding: 8px 12px;
-  border-radius: var(--radius-lg);
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.15s;
+.float-menu {
+  background: var(--surf); border: 1.5px solid var(--line);
+  border-radius: 16px; box-shadow: 0 8px 32px rgba(10,26,79,0.12);
+  overflow: hidden; min-width: 220px;
 }
-.chat-bubble:hover .chat-tip { opacity: 1; }
+.float-menu-head { padding: 14px 16px 12px; border-bottom: 1px solid var(--line); }
+.float-menu-head b { display: block; font-size: 13px; font-weight: 700; color: var(--ink); }
+.float-menu-head span { font-size: 11px; color: var(--ink-3); }
+.float-link { display: flex; align-items: center; gap: 10px; padding: 12px 16px; font-size: 14px; font-weight: 500; text-decoration: none; border-bottom: 1px solid var(--line); transition: background 0.1s; }
+.float-link:last-child { border-bottom: none; }
+.float-wa  { color: #128c7e; } .float-wa:hover  { background: #f0fdf8; }
+.float-tg  { color: #0088cc; } .float-tg:hover  { background: #eff8ff; }
+.float-phone { color: var(--ink-2); } .float-phone:hover { background: var(--surf-2); }
+.chat-tip { display: none; }
 
 /* ── Footer ── */
 .foot { background: var(--surf-2); color: var(--ink-2); padding: 60px 0 0; border-top: 1px solid var(--line); }

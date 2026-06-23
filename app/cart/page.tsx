@@ -29,20 +29,29 @@ export default function CartPage() {
 
   const handleCheckout = async () => {
     if (submitting) return
+    const name  = nameRef.current?.value?.trim()
+    const phone = phoneRef.current?.value?.trim()
+    if (!name)  { addToast('Введите имя', 'info'); return }
+    if (!phone) { addToast('Введите телефон', 'info'); return }
     setSubmitting(true)
     try {
       const result = await submitOrder({
         kind:     'order',
-        name:     nameRef.current?.value ?? 'Клиент',
-        phone:    phoneRef.current?.value ?? '',
+        name,
+        phone,
         payment:  pay,
         delivery,
         company:  companyRef.current?.value,
         bin:      binRef.current?.value,
         items:    items.map(({ id, oem, name, qty, price }) => ({ id, oem, name, qty, price })),
       })
-      addToast(result.message)
-      if (result.ok) clearCart()
+      if (result.ok) {
+        clearCart()
+        const q = new URLSearchParams({ num: result.invoiceNumber ?? '', phone, pay })
+        router.push(`/order-success?${q}`)
+      } else {
+        addToast(result.message, 'info')
+      }
     } catch {
       addToast('Ошибка соединения. Попробуйте ещё раз.', 'info')
     } finally {
@@ -181,13 +190,24 @@ export default function CartPage() {
               </div>
             </div>
 
+            {/* Contact — always shown */}
+            {!b2b && (
+              <div className="cart-section">
+                <h3>4. Контактные данные</h3>
+                <div className="b2b-grid">
+                  <div className="b2b-row"><label>Имя *</label><input ref={nameRef} placeholder="Айбек Тулегенов" /></div>
+                  <div className="b2b-row"><label>Телефон *</label><input ref={phoneRef} placeholder="+7 (700) 000-00-00" /></div>
+                </div>
+              </div>
+            )}
+
             {/* B2B */}
             {b2b && (
               <div className="cart-section cart-b2b">
                 <h3>4. Реквизиты компании</h3>
                 <div className="b2b-grid">
-                  <div className="b2b-row"><label>Контактное лицо</label><input ref={nameRef} defaultValue="" placeholder="Айбек Тулегенов" /></div>
-                  <div className="b2b-row"><label>Телефон</label><input ref={phoneRef} defaultValue="" placeholder="+7 (700) 000-00-00" /></div>
+                  <div className="b2b-row"><label>Контактное лицо *</label><input ref={nameRef} placeholder="Айбек Тулегенов" /></div>
+                  <div className="b2b-row"><label>Телефон *</label><input ref={phoneRef} placeholder="+7 (700) 000-00-00" /></div>
                   <div className="b2b-row"><label>Название юр. лица</label><input ref={companyRef} defaultValue="ТОО «АлматыСпецТранс»" /></div>
                   <div className="b2b-row"><label>БИН / ИИН</label><input ref={binRef} defaultValue="200140012345" /></div>
                   <div className="b2b-row"><label>ИИК</label><input defaultValue="KZ496010131000123456" /></div>
