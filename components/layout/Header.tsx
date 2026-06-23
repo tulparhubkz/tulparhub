@@ -189,10 +189,7 @@ export function Header() {
             <Link href="/catalog">Запчасти</Link>
             <Link href="/rental">Аренда техники</Link>
             <Link href="/parts-brands">Бренды</Link>
-            <a href="#">Оптовикам</a>
-            <a href="#">Доставка</a>
             <Link href="/about">О компании</Link>
-            <a href="#">Контакты</a>
             <span className="nav-grow" />
             <Link href="/vin" className="nav-help-btn">Помощь в подборе</Link>
             <a href="#" className="nav-promo"><Ico name="bolt" size={14} /> Акция KAMAZ, HOWO, Shacman</a>
