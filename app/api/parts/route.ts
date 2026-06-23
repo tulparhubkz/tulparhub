@@ -16,6 +16,7 @@ export async function GET(req: NextRequest) {
     const decoded = decodeVin(vinCandidate)
     if (decoded) q = decoded.searchQuery
   }
+  const partBrand = searchParams.get('partBrand') ?? ''   // parts manufacturer (MANN, Bosch…)
   const oemOnly  = searchParams.get('oemOnly') === '1'
   const inStock  = searchParams.get('inStock') === '1'
   const priceMax = Number(searchParams.get('priceMax') ?? 999_999_999)
@@ -53,6 +54,7 @@ export async function GET(req: NextRequest) {
           }
         }
       }
+      if (partBrand) query = query.ilike('brand', `%${partBrand}%`)
       if (oemOnly) query = query.eq('type', 'OEM')
       if (q) {
         const clean = q.trim()
