@@ -55,18 +55,15 @@ export async function GET(req: NextRequest) {
       }
       if (oemOnly) query = query.eq('type', 'OEM')
       if (q) {
-        const words = q.trim().split(/\s+/).filter(Boolean)
-        if (words.length > 3) {
-          // Many words = OR search (e.g. list of brands for equipment type filter)
-          const orClauses = words.map(w => `name.ilike.%${w}%`).join(',')
-          query = query.or(orClauses)
-        } else if (words.length > 1) {
-          // 2-3 words: AND search (phrase match)
-          for (const w of words) {
-            query = query.ilike('name', `%${w}%`)
-          }
+        const clean = q.trim()
+        const words = clean.split(/\s+/).filter(Boolean)
+        const oemClause = `oem.ilike.%${clean}%`
+        if (words.length > 1) {
+          // Multi-word: ALL words must appear in name, OR full string in oem
+          const andName = words.map(w => `name.ilike.%${w}%`).join(',')
+          query = query.or(`and(${andName}),${oemClause}`)
         } else {
-          query = query.or(`name.ilike.%${q}%,oem.ilike.%${q}%`)
+          query = query.or(`name.ilike.%${clean}%,${oemClause}`)
         }
       }
 
