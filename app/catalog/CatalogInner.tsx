@@ -180,12 +180,6 @@ export default function CatalogInner() {
 
   const totalPages = Math.ceil(total / 24)
 
-  // Price segments for filter display
-  const segments = [
-    { id: 'premium', label: 'Премиум', tag: 'A' },
-    { id: 'mid',     label: 'Средний', tag: 'B' },
-    { id: 'budget',  label: 'Бюджет',  tag: null },
-  ]
 
   return (
     <main className="plp">
@@ -243,15 +237,6 @@ export default function CatalogInner() {
               </label>
             </div>
 
-            <div className="filt-block">
-              <h4>Сегмент</h4>
-              {segments.map((s) => (
-                <label key={s.id} className="filt-row">
-                  <input type="checkbox" />
-                  <span>{s.label} {s.tag && <b style={{ background: 'var(--accent)', color: '#fff', fontSize: 10, padding: '1px 5px', borderRadius: 3, marginLeft: 4 }}>{s.tag}</b>}</span>
-                </label>
-              ))}
-            </div>
 
             <div className="filt-block">
               <h4>Система</h4>
