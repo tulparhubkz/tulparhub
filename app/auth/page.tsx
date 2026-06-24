@@ -44,6 +44,7 @@ export default function AuthPage() {
       password,
       options: {
         data: { first_name: firstName, last_name: lastName, phone },
+        emailRedirectTo: 'https://tulparhub-psi.vercel.app/auth/callback',
       },
     })
     setLoading(false)
