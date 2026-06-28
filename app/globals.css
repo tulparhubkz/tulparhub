@@ -919,9 +919,11 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
   .sheet-body { grid-template-columns: 1fr; }
 }
 @media (max-width: 600px) {
-  .hdr-top { display: none; }
+  /* Keep the city selector reachable; drop lang/phone/callback to declutter */
+  .hdr-actions { display: none; }
   .hdr-main { flex-wrap: wrap; gap: 10px; }
-  .hdr-user { display: none; }
+  .hdr-user { display: none; }       /* replaced by the bottom tab bar */
+  .search-tabs { display: none; }    /* keep the search input roomy on phones */
   .b2b-grid { grid-template-columns: 1fr; }
   .b2b-row-full { grid-column: span 1; }
   .part-row { flex-wrap: wrap; }
@@ -1318,3 +1320,66 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .cap-continue:hover { border-color: var(--accent); color: var(--accent); }
 .cap-go-cart { padding: 11px 24px; background: var(--accent); color: #fff; border-radius: var(--radius); text-decoration: none; font-size: 14px; font-weight: 700; }
 .cap-go-cart:hover { background: var(--accent-deep); }
+
+/* ── Mobile foundation ────────────────────────────────── */
+:root { --bottom-nav-h: 0px; }
+
+/* Garage drawer must never exceed the viewport width */
+.gp-panel { width: min(380px, 100%); }
+
+@media (max-width: 600px) {
+  :root { --bottom-nav-h: 60px; }
+  /* leave room for the fixed bottom tab bar + iOS home indicator */
+  body { padding-bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom, 0px)); }
+
+  .container { padding: 0 14px; }
+  .section { padding: 36px 0; }
+  .hero { padding: 28px 0 0; }
+  .foot { padding: 40px 0 0; }
+  .foot-grid { grid-template-columns: 1fr; gap: 28px; }
+  .foot-legal { flex-direction: column; gap: 8px; text-align: center; }
+
+  /* wide tables scroll instead of blowing out the layout */
+  .pdp-specs, .pdp-cross-tab { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* comfortable tap targets */
+  .btn-sm { padding: 9px 14px; }
+  .chip { padding: 7px 12px; }
+
+  /* keep the floating chat above the bottom tab bar */
+  .float-chat { bottom: calc(var(--bottom-nav-h) + 16px); right: 16px; }
+}
+
+/* ── Bottom tab bar (mobile only) ─────────────────────── */
+.bottomnav { display: none; }
+@media (max-width: 600px) {
+  .bottomnav {
+    display: flex;
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 150;
+    background: var(--surf);
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -2px 12px rgba(10,26,79,.06);
+    min-height: var(--bottom-nav-h);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .bn-item {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px;
+    background: none; border: none; cursor: pointer;
+    color: var(--ink-3); text-decoration: none;
+    font-size: 10px; font-weight: 600;
+    padding: 8px 0; min-height: 44px;
+  }
+  .bn-item.on { color: var(--accent); }
+  .bn-icon { position: relative; display: flex; }
+  .bn-badge {
+    position: absolute; top: -6px; right: -8px;
+    min-width: 16px; height: 16px; padding: 0 4px;
+    border-radius: 99px; background: var(--accent); color: #fff;
+    font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+}

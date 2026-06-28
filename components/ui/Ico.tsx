@@ -13,6 +13,7 @@ const paths: Record<string, React.ReactNode> = {
   heart: <path d="M12 20s-7-4.3-7-10a4 4 0 0 1 7-2.7A4 4 0 0 1 19 10c0 5.7-7 10-7 10z"/>,
   list: <><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h10"/></>,
   user: <><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1.3-3.5 4-5 7-5s5.7 1.5 7 5"/></>,
+  home: <><path d="M4 11 12 4l8 7"/><path d="M6 10v9h12v-9"/></>,
   phone: <path d="M5 4h3l2 5-2.5 1.5a11 11 0 0 0 6 6L15 14l5 2v3a2 2 0 0 1-2 2A15 15 0 0 1 3 6a2 2 0 0 1 2-2z"/>,
   pin: <><path d="M12 21s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></>,
   truck: <><rect x="2" y="7" width="11" height="9" rx="1"/><path d="M13 10h5l3 3v3h-8"/><circle cx="7" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/></>,
