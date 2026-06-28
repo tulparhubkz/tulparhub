@@ -1,0 +1,36 @@
+# Deploy to the KZ VPS over SSH. Requires repo secrets (Settings → Secrets):
+#   SSH_HOST   — server IP / hostname
+#   SSH_USER   — deploy user
+#   SSH_KEY    — that user's private SSH key
+# And on the server: the repo cloned at DEPLOY_PATH with a populated .env.
+# See DEPLOY.md for first-time server setup.
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  DEPLOY_PATH: /opt/tulparhub
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -e
+            cd ${{ env.DEPLOY_PATH }}
+            git pull --ff-only
+            docker compose up -d --build
+            docker image prune -f
