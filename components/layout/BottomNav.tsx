@@ -44,8 +44,8 @@ export function BottomNav() {
           <span>Гараж</span>
         </button>
         <Link href="/account" className={`bn-item ${active('/account') ? 'on' : ''}`}>
-          <Ico name="user" size={22} />
-          <span>Аккаунт</span>
+          <Ico name="list" size={22} />
+          <span>Меню</span>
         </Link>
       </nav>
       {showGarage && <GaragePanel onClose={() => setShowGarage(false)} />}
