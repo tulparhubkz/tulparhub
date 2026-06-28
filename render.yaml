@@ -8,6 +8,7 @@ services:
     name: tulparhub
     runtime: docker
     plan: free
+    region: frankfurt # closest Render region to Kazakhstan; keep DB (Neon) in EU too
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /
