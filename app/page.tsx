@@ -205,6 +205,15 @@ export default function HomePage() {
         @media (max-width: 1100px) { .featured-grid { grid-template-columns: repeat(2,1fr); } }
         @media (max-width: 600px)  { .featured-grid { grid-template-columns: 1fr; } }
         @media (max-width: 1000px) { .brands-new { grid-template-columns: repeat(4, 1fr); } }
+
+        /* ── Category rows on mobile (Autopiter-style list) ── */
+        .cat-chev { display: none; }
+        @media (max-width: 600px) {
+          .cat-grid { grid-template-columns: 1fr; gap: 8px; }
+          .cat-card { flex-direction: row; text-align: left; align-items: center; gap: 14px; padding: 12px 14px; }
+          .cat-card .cat-meta { flex: 1; min-width: 0; }
+          .cat-chev { display: flex; color: var(--ink-3); }
+        }
       `}</style>
 
       {/* ── Hero ── */}
@@ -339,8 +348,33 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Марки грузовиков ── */}
+      {/* ── Категории (category-first) ── */}
       <section className="section">
+        <div className="container">
+          <div className="section-head">
+            <div>
+              <h2 className="section-title">Категории запчастей</h2>
+              <p className="section-sub">Выберите узел — найдём всё по вашей технике.</p>
+            </div>
+            <Link href="/catalog" className="section-more">Весь каталог <Ico name="arrow" size={14} /></Link>
+          </div>
+          <div className="cat-grid">
+            {systems.map((s) => (
+              <Link key={s.id} href={`/catalog?system=${s.id}`} className="cat-card" style={{ textDecoration: 'none' }}>
+                <SysGlyph id={s.id} size={44} />
+                <div className="cat-meta">
+                  <div className="cat-name">{s.ru}</div>
+                  <div className="cat-count">{s.count.toLocaleString('ru-RU')} артикулов</div>
+                </div>
+                <span className="cat-chev"><Ico name="chevron" size={16} /></span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Марки грузовиков ── */}
+      <section className="section section-tint">
         <div className="container">
           <div className="section-head">
             <div>
@@ -360,28 +394,6 @@ export default function HomePage() {
                   <div className="type-tile-count">{(b.parts ?? 0).toLocaleString('ru-RU')} запч. · {b.country}</div>
                 </div>
                 <div className="type-tile-arrow"><Ico name="chevron" size={14} /></div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Популярные категории ── */}
-      <section className="section section-tint">
-        <div className="container">
-          <div className="section-head">
-            <div>
-              <h2 className="section-title">Популярные категории</h2>
-              <p className="section-sub">Запросы с высокой частотой за последние 30 дней.</p>
-            </div>
-            <Link href="/catalog" className="section-more">К полному каталогу <Ico name="arrow" size={14} /></Link>
-          </div>
-          <div className="cat-grid">
-            {systems.slice(0, 8).map((s) => (
-              <Link key={s.id} href={`/catalog?system=${s.id}`} className="cat-card" style={{ textDecoration: 'none' }}>
-                <SysGlyph id={s.id} size={48} />
-                <div className="cat-name">{s.ru}</div>
-                <div className="cat-count">{s.count} артикулов</div>
               </Link>
             ))}
           </div>
