@@ -1,14 +1,15 @@
-# Deploy to the KZ VPS over SSH. Requires repo secrets (Settings → Secrets):
+# Deploy to the KZ VPS over SSH. MANUAL-ONLY for now (run from the Actions tab)
+# until the VPS + secrets exist — the live test env currently deploys via Render.
+# Requires repo secrets (Settings → Secrets):
 #   SSH_HOST   — server IP / hostname
 #   SSH_USER   — deploy user
 #   SSH_KEY    — that user's private SSH key
 # And on the server: the repo cloned at DEPLOY_PATH with a populated .env.
-# See DEPLOY.md for first-time server setup.
+# See DEPLOY.md for first-time server setup. To re-enable auto-deploy, add a
+# `push: { branches: [main] }` trigger below.
 name: Deploy
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 concurrency:
