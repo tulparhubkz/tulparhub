@@ -4,7 +4,9 @@ import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
 import { Ico } from '@/components/ui/Ico'
 import { useCart } from '@/store/cart'
+import { useGarage } from '@/store/garage'
 import { CityModal } from '@/components/layout/CityModal'
+import { GaragePanel } from '@/components/garage/GaragePanel'
 
 // Mobile "menu hub" reached from the bottom bar's Аккаунт tab: profile/sign-in
 // plus all secondary sections, city, language and contacts in one place.
@@ -21,7 +23,9 @@ const LINKS: Array<{ href: string; label: string; icon: string }> = [
 export default function AccountPage() {
   const { data: session } = useSession()
   const { city, lang, setLang } = useCart()
+  const vehicles = useGarage((s) => s.vehicles)
   const [showCity, setShowCity] = useState(false)
+  const [showGarage, setShowGarage] = useState(false)
   const user = session?.user
 
   return (
@@ -43,6 +47,12 @@ export default function AccountPage() {
 
       <div className="acc-group-title">Разделы</div>
       <nav className="acc-list">
+        <button className="acc-row" onClick={() => setShowGarage(true)}>
+          <Ico name="truck" size={18} />
+          <span>Мой гараж</span>
+          {vehicles.length > 0 && <span className="acc-row-val">{vehicles.length}</span>}
+          <Ico name="chevron" size={16} className="acc-row-arr" />
+        </button>
         {LINKS.map((l) => (
           <Link key={l.href} href={l.href} className="acc-row">
             <Ico name={l.icon} size={18} />
@@ -86,6 +96,7 @@ export default function AccountPage() {
       </div>
 
       {showCity && <CityModal onClose={() => setShowCity(false)} />}
+      {showGarage && <GaragePanel onClose={() => setShowGarage(false)} />}
     </main>
   )
 }
