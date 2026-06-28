@@ -1353,6 +1353,29 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
   .float-chat { bottom: calc(var(--bottom-nav-h) + 16px); right: 16px; }
 }
 
+/* ── Account / menu hub ───────────────────────────────── */
+.acc { max-width: 640px; margin: 0 auto; padding: 24px 16px 40px; }
+.acc-profile { display: flex; align-items: center; gap: 14px; background: var(--surf); border: 1.5px solid var(--line); border-radius: var(--radius-xl); padding: 16px; margin-bottom: 24px; }
+.acc-avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-size: 18px; font-weight: 700; flex-shrink: 0; }
+.acc-profile-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.acc-profile-meta b { font-size: 15px; color: var(--ink); }
+.acc-profile-meta span { font-size: 12px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.acc-signout { background: none; border: 1.5px solid var(--line-2); border-radius: var(--radius-lg); padding: 8px 14px; font-size: 13px; font-weight: 600; color: var(--ink-2); cursor: pointer; flex-shrink: 0; }
+.acc-signout:hover { border-color: var(--accent); color: var(--accent); }
+.acc-group-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); margin: 0 0 8px 4px; }
+.acc-list { display: flex; flex-direction: column; background: var(--surf); border: 1.5px solid var(--line); border-radius: var(--radius-xl); overflow: hidden; margin-bottom: 24px; }
+.acc-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: none; border-bottom: 1px solid var(--line); background: none; cursor: pointer; text-decoration: none; color: var(--ink); font-size: 14px; font-weight: 500; text-align: left; width: 100%; min-height: 52px; }
+.acc-row:last-child { border-bottom: none; }
+.acc-row:hover { background: var(--surf-2); }
+.acc-row > span:first-of-type { flex: 1; }
+.acc-row > svg { color: var(--ink-3); flex-shrink: 0; }
+.acc-row-arr { margin-left: auto; }
+.acc-row-val { color: var(--ink-3); font-size: 13px; }
+.acc-row-static, .acc-row-static:hover { cursor: default; background: none; }
+.acc-lang { display: flex; gap: 2px; margin-left: auto; }
+.acc-lang button { background: var(--surf-2); border: none; color: var(--ink-3); font-size: 12px; font-weight: 700; padding: 5px 9px; border-radius: 6px; cursor: pointer; }
+.acc-lang button.on { background: var(--accent); color: #fff; }
+
 /* ── Bottom tab bar (mobile only) ─────────────────────── */
 .bottomnav { display: none; }
 @media (max-width: 600px) {

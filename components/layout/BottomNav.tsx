@@ -43,7 +43,7 @@ export function BottomNav() {
           </span>
           <span>Гараж</span>
         </button>
-        <Link href="/auth" className={`bn-item ${active('/auth') ? 'on' : ''}`}>
+        <Link href="/account" className={`bn-item ${active('/account') ? 'on' : ''}`}>
           <Ico name="user" size={22} />
           <span>Аккаунт</span>
         </Link>
