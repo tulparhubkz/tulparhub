@@ -1,12 +1,10 @@
 'use client'
 import Link from 'next/link'
 import { useWishlist } from '@/store/wishlist'
-import { useCart } from '@/store/cart'
-import { PartCard } from '@/components/catalog/PartCard'
+import { ProductCard } from '@/components/catalog/ProductCard'
 
 export default function WishlistPage() {
-  const { items, remove } = useWishlist()
-  const { addItem } = useCart()
+  const { items } = useWishlist()
 
   return (
     <main className="container" style={{ padding: '32px 0 60px' }}>
@@ -33,9 +31,9 @@ export default function WishlistPage() {
           </Link>
         </div>
       ) : (
-        <div className="plp-grid">
+        <div className="plp-grid2">
           {items.map(part => (
-            <PartCard key={part.id} part={part} />
+            <ProductCard key={part.id} part={part} />
           ))}
         </div>
       )}

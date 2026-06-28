@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { getBrandInfo } from '@/lib/brandInfo'
-import { PartCard } from '@/components/catalog/PartCard'
+import { ProductCard } from '@/components/catalog/ProductCard'
 
 export default function BrandPage() {
   const { brand: brandParam } = useParams<{ brand: string }>()
@@ -77,8 +77,8 @@ export default function BrandPage() {
         ) : parts.length === 0 ? (
           <p style={{ color: 'var(--ink-3)' }}>Товары не найдены.</p>
         ) : (
-          <div className="plp-grid">
-            {parts.map(p => <PartCard key={p.id} part={p} />)}
+          <div className="plp-grid2">
+            {parts.map(p => <ProductCard key={p.id} part={p} />)}
           </div>
         )}
       </main>

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Ico } from '@/components/ui/Ico'
 import { Badge } from '@/components/ui/Badge'
 import { SysGlyph } from '@/components/ui/SysGlyph'
-import { PartCard } from '@/components/catalog/PartCard'
+import { ProductCard } from '@/components/catalog/ProductCard'
 import { systems, brands } from '@/lib/data'
 import { useCart } from '@/store/cart'
 
@@ -400,7 +400,7 @@ export default function HomePage() {
           </div>
           {parts.length > 0 ? (
             <div className="featured-grid">
-              {parts.map(p => <PartCard key={p.id} part={p} />)}
+              {parts.map(p => <ProductCard key={p.id} part={p} />)}
             </div>
           ) : (
             <div className="featured-grid">
