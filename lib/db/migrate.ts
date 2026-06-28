@@ -6,13 +6,12 @@ import 'dotenv/config'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import { Pool } from 'pg'
+import { sslOption } from './ssl'
 
 async function main() {
-  const cs = process.env.DATABASE_URL
-  const isLocal = /@(localhost|127\.0\.0\.1|db)([:/]|$)/.test(cs ?? '')
   const pool = new Pool({
-    connectionString: cs,
-    ssl: cs && !isLocal ? { rejectUnauthorized: false } : undefined,
+    connectionString: process.env.DATABASE_URL,
+    ssl: sslOption(),
   })
   const db = drizzle(pool)
   console.log('Running migrations…')
