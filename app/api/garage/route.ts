@@ -1,67 +1,34 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+import { listGarage, addGarage, updateGarage, removeGarage } from '@/lib/services/garage'
 
 // GET /api/garage?user_id=xxx
 export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url)
-  const user_id = searchParams.get('user_id')
-  if (!user_id) return NextResponse.json({ error: 'user_id required' }, { status: 400 })
-
-  const { data, error } = await supabase
-    .from('garage')
-    .select('*')
-    .eq('user_id', user_id)
-    .order('created_at', { ascending: false })
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  const userId = new URL(req.url).searchParams.get('user_id')
+  if (!userId) return NextResponse.json({ error: 'user_id required' }, { status: 400 })
+  const data = await listGarage(userId)
   return NextResponse.json(data)
 }
 
 // POST /api/garage  { user_id, vin, name, note }
 export async function POST(req: Request) {
-  const body = await req.json()
-  const { user_id, vin, name, note } = body
+  const { user_id, vin, name, note } = await req.json()
   if (!user_id || !vin) return NextResponse.json({ error: 'user_id and vin required' }, { status: 400 })
-
-  const { data, error } = await supabase
-    .from('garage')
-    .insert({ user_id, vin: vin.toUpperCase(), name: name || vin.toUpperCase(), note: note || '' })
-    .select()
-    .single()
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json(data, { status: 201 })
+  const row = await addGarage({ userId: user_id, vin, name, note })
+  return NextResponse.json(row, { status: 201 })
 }
 
 // PATCH /api/garage  { id, name, note }
 export async function PATCH(req: Request) {
-  const body = await req.json()
-  const { id, name, note } = body
+  const { id, name, note } = await req.json()
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
-
-  const { data, error } = await supabase
-    .from('garage')
-    .update({ name, note })
-    .eq('id', id)
-    .select()
-    .single()
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json(data)
+  const row = await updateGarage({ id, name, note })
+  return NextResponse.json(row)
 }
 
 // DELETE /api/garage?id=xxx
 export async function DELETE(req: Request) {
-  const { searchParams } = new URL(req.url)
-  const id = searchParams.get('id')
+  const id = new URL(req.url).searchParams.get('id')
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
-
-  const { error } = await supabase.from('garage').delete().eq('id', id)
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  await removeGarage(id)
   return NextResponse.json({ ok: true })
 }

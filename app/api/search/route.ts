@@ -1,42 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createAnonClient } from '@/lib/supabase-server'
-import { parts as mockParts, systems, brands } from '@/lib/data'
+import { searchPartsLite } from '@/lib/services/parts'
+import { systems, brands } from '@/lib/data'
 import { decodeVin, isValidVin } from '@/lib/vinDecoder'
 
 export async function GET(req: NextRequest) {
   let q = (req.nextUrl.searchParams.get('q') ?? '').trim()
   if (q.length < 2) return NextResponse.json({ parts: [], systems: [], brands: [] })
-  // auto-detect VIN
+
   if (isValidVin(q)) {
     const decoded = decodeVin(q)
     if (decoded) q = decoded.searchQuery
   }
-
   const lower = q.toLowerCase()
-  const db = createAnonClient()
 
-  let partResults: Array<{ id: string; name: string; oem: string; price: number }> = []
-
-  if (db) {
-    try {
-      const { data } = await db
-        .from('parts')
-        .select('id, name, oem, price')
-        .or(`name.ilike.%${q}%,oem.ilike.%${q}%,cross.cs.{${q}}`)
-        .gt('price', 0)
-        .limit(8)
-      partResults = data ?? []
-    } catch {
-      // fallback to mock
-    }
-  }
-
-  if (!partResults.length) {
-    partResults = mockParts
-      .filter((p) => p.name.toLowerCase().includes(lower) || p.oem.toLowerCase().includes(lower))
-      .slice(0, 6)
-      .map(({ id, name, oem, price }) => ({ id, name, oem, price }))
-  }
+  const parts = await searchPartsLite(q, 8)
 
   const systemResults = systems
     .filter((s) => s.ru.toLowerCase().includes(lower))
@@ -48,5 +25,5 @@ export async function GET(req: NextRequest) {
     .slice(0, 3)
     .map(({ id, name }) => ({ id, label: name, href: `/catalog?brand=${id}` }))
 
-  return NextResponse.json({ parts: partResults, systems: systemResults, brands: brandResults })
+  return NextResponse.json({ parts, systems: systemResults, brands: brandResults })
 }

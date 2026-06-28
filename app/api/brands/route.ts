@@ -1,22 +1,8 @@
 import { NextResponse } from 'next/server'
-import { createAnonClient } from '@/lib/supabase-server'
-import { brands as mockBrands, models as mockModels } from '@/lib/data'
+import { brands, models } from '@/lib/data'
 
+// Truck brands + their models. Static config (no real vendor feed for this yet).
 export async function GET() {
-  const db = createAnonClient()
-
-  if (db) {
-    try {
-      const { data, error } = await db.from('brands').select('*, models(*)')
-      if (error) throw error
-      return NextResponse.json(data)
-    } catch {}
-  }
-
-  // Attach models to each brand from mock data
-  const result = mockBrands.map((b) => ({
-    ...b,
-    models: mockModels[b.id] ?? [],
-  }))
+  const result = brands.map((b) => ({ ...b, models: models[b.id] ?? [] }))
   return NextResponse.json(result)
 }
