@@ -919,9 +919,14 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
   .sheet-body { grid-template-columns: 1fr; }
 }
 @media (max-width: 600px) {
+  /* Top bar (city/lang/phone) hidden on phones — these live in the Меню hub */
   .hdr-top { display: none; }
   .hdr-main { flex-wrap: wrap; gap: 10px; }
-  .hdr-user { display: none; }
+  .hdr-user { display: none; }       /* replaced by the bottom tab bar */
+  .search-tabs { display: none; }    /* keep the search input roomy on phones */
+  /* drop the horizontal-scrolling secondary nav — primary is in the bottom bar,
+     the rest lives in the footer */
+  .hdr-nav { display: none; }
   .b2b-grid { grid-template-columns: 1fr; }
   .b2b-row-full { grid-column: span 1; }
   .part-row { flex-wrap: wrap; }
@@ -1318,3 +1323,103 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .cap-continue:hover { border-color: var(--accent); color: var(--accent); }
 .cap-go-cart { padding: 11px 24px; background: var(--accent); color: #fff; border-radius: var(--radius); text-decoration: none; font-size: 14px; font-weight: 700; }
 .cap-go-cart:hover { background: var(--accent-deep); }
+
+/* ── Mobile foundation ────────────────────────────────── */
+:root { --bottom-nav-h: 0px; }
+
+/* Garage drawer must never exceed the viewport width */
+.gp-panel { width: min(380px, 100%); }
+
+/* On phones the garage is full-screen but stops above the bottom tab bar,
+   so the tab bar stays visible (and the bar is raised above the panel). */
+@media (max-width: 600px) {
+  .gp-panel {
+    top: 0; left: 0; right: 0;
+    bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom, 0px));
+    width: 100%;
+    border-radius: 0;
+    box-shadow: none;
+    animation: gpFadeIn .18s ease;
+  }
+}
+@keyframes gpFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+@media (max-width: 600px) {
+  :root { --bottom-nav-h: 60px; }
+  /* leave room for the fixed bottom tab bar + iOS home indicator */
+  body { padding-bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom, 0px)); }
+
+  .container { padding: 0 14px; }
+  .section { padding: 36px 0; }
+  .hero { padding: 28px 0 0; }
+  .foot { padding: 40px 0 0; }
+  .foot-grid { grid-template-columns: 1fr; gap: 28px; }
+  .foot-legal { flex-direction: column; gap: 8px; text-align: center; }
+
+  /* wide tables scroll instead of blowing out the layout */
+  .pdp-specs, .pdp-cross-tab { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* comfortable tap targets */
+  .btn-sm { padding: 9px 14px; }
+  .chip { padding: 7px 12px; }
+
+  /* keep the floating chat above the bottom tab bar */
+  .float-chat { bottom: calc(var(--bottom-nav-h) + 16px); right: 16px; }
+}
+
+/* ── Account / menu hub ───────────────────────────────── */
+.acc { max-width: 640px; margin: 0 auto; padding: 24px 16px 40px; }
+.acc-profile { display: flex; align-items: center; gap: 14px; background: var(--surf); border: 1.5px solid var(--line); border-radius: var(--radius-xl); padding: 16px; margin-bottom: 24px; }
+.acc-avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-size: 18px; font-weight: 700; flex-shrink: 0; }
+.acc-profile-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.acc-profile-meta b { font-size: 15px; color: var(--ink); }
+.acc-profile-meta span { font-size: 12px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.acc-signout { background: none; border: 1.5px solid var(--line-2); border-radius: var(--radius-lg); padding: 8px 14px; font-size: 13px; font-weight: 600; color: var(--ink-2); cursor: pointer; flex-shrink: 0; }
+.acc-signout:hover { border-color: var(--accent); color: var(--accent); }
+.acc-group-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); margin: 0 0 8px 4px; }
+.acc-list { display: flex; flex-direction: column; background: var(--surf); border: 1.5px solid var(--line); border-radius: var(--radius-xl); overflow: hidden; margin-bottom: 24px; }
+.acc-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: none; border-bottom: 1px solid var(--line); background: none; cursor: pointer; text-decoration: none; color: var(--ink); font-size: 14px; font-weight: 500; text-align: left; width: 100%; min-height: 52px; }
+.acc-row:last-child { border-bottom: none; }
+.acc-row:hover { background: var(--surf-2); }
+.acc-row > span:first-of-type { flex: 1; }
+.acc-row > svg { color: var(--ink-3); flex-shrink: 0; }
+.acc-row-arr { margin-left: auto; }
+.acc-row-val { color: var(--ink-3); font-size: 13px; }
+.acc-row-static, .acc-row-static:hover { cursor: default; background: none; }
+.acc-lang { display: flex; gap: 2px; margin-left: auto; }
+.acc-lang button { background: var(--surf-2); border: none; color: var(--ink-3); font-size: 12px; font-weight: 700; padding: 5px 9px; border-radius: 6px; cursor: pointer; }
+.acc-lang button.on { background: var(--accent); color: #fff; }
+
+/* ── Bottom tab bar (mobile only) ─────────────────────── */
+.bottomnav { display: none; }
+@media (max-width: 600px) {
+  .bottomnav {
+    display: flex;
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 250; /* above the garage panel so the bar stays visible */
+    background: var(--surf);
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -2px 12px rgba(10,26,79,.06);
+    min-height: var(--bottom-nav-h);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .bn-item {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px;
+    background: none; border: none; cursor: pointer;
+    color: var(--ink-3); text-decoration: none;
+    font-size: 10px; font-weight: 600;
+    padding: 8px 0; min-height: 44px;
+  }
+  .bn-item.on { color: var(--accent); }
+  .bn-icon { position: relative; display: flex; }
+  .bn-badge {
+    position: absolute; top: -6px; right: -8px;
+    min-width: 16px; height: 16px; padding: 0 4px;
+    border-radius: 99px; background: var(--accent); color: #fff;
+    font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+}
