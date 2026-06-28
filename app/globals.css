@@ -1330,6 +1330,23 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 /* Garage drawer must never exceed the viewport width */
 .gp-panel { width: min(380px, 100%); }
 
+/* On phones, present the garage as a bottom sheet instead of a full-screen slab */
+@media (max-width: 600px) {
+  .gp-panel {
+    top: auto; left: 0; right: 0; bottom: 0;
+    width: 100%;
+    height: auto;
+    max-height: 85vh;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    box-shadow: 0 -8px 32px rgba(10,36,71,.18);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    animation: gpSheetUp .22s ease;
+  }
+  .gp-screen { padding-bottom: 16px; }
+  .gp-empty { padding: 28px 0; }
+}
+@keyframes gpSheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
 @media (max-width: 600px) {
   :root { --bottom-nav-h: 60px; }
   /* leave room for the fixed bottom tab bar + iOS home indicator */
