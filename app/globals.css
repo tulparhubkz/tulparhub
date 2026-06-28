@@ -924,6 +924,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
   .hdr-main { flex-wrap: wrap; gap: 10px; }
   .hdr-user { display: none; }       /* replaced by the bottom tab bar */
   .search-tabs { display: none; }    /* keep the search input roomy on phones */
+  /* drop the horizontal-scrolling secondary nav — primary is in the bottom bar,
+     the rest lives in the footer */
+  .hdr-nav { display: none; }
   .b2b-grid { grid-template-columns: 1fr; }
   .b2b-row-full { grid-column: span 1; }
   .part-row { flex-wrap: wrap; }
