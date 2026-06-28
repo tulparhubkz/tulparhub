@@ -1291,7 +1291,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 @keyframes gpFadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 @media (max-width: 600px) {
-  :root { --bottom-nav-h: 60px; }
+  :root { --bottom-nav-h: 78px; } /* taller: bar floats as a pill with margin */
   /* leave room for the fixed bottom tab bar + iOS home indicator */
   body { padding-bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom, 0px)); }
 
@@ -1373,24 +1373,41 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
   .bottomnav {
     display: flex;
     position: fixed;
-    left: 0; right: 0; bottom: 0;
+    left: 12px; right: 12px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
     z-index: 250; /* above the garage panel so the bar stays visible */
-    background: var(--surf);
-    border-top: 1px solid var(--line);
-    box-shadow: 0 -2px 12px rgba(10,26,79,.06);
-    min-height: var(--bottom-nav-h);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    border-radius: 22px;
+    /* Liquid Glass: translucent, blurred, with a specular top edge */
+    background: rgba(255,255,255,0.6);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255,255,255,0.55);
+    box-shadow: 0 10px 30px -6px rgba(10,26,79,.22), inset 0 1px 0 rgba(255,255,255,.7);
+    min-height: 58px;
+    padding: 6px;
+  }
+  /* Solid fallback where backdrop-filter is unsupported */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .bottomnav { background: var(--surf); }
   }
   .bn-item {
     flex: 1;
+    position: relative;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: 3px;
     background: none; border: none; cursor: pointer;
-    color: var(--ink-3); text-decoration: none;
+    color: var(--ink-2); text-decoration: none;
     font-size: 10px; font-weight: 600;
-    padding: 8px 0; min-height: 44px;
+    padding: 6px 0; min-height: 46px;
+    border-radius: 16px;
   }
   .bn-item.on { color: var(--accent); }
+  .bn-item.on::before {
+    content: '';
+    position: absolute; inset: 4px 8px;
+    border-radius: 14px;
+    background: rgba(219,10,64,0.12);
+  }
   .bn-icon { position: relative; display: flex; }
   .bn-badge {
     position: absolute; top: -6px; right: -8px;
