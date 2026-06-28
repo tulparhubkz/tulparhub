@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "vercel-build": "yarn db:migrate && next build",
     "start": "next start",
     "import-csv": "npx tsx scripts/import-csv.ts",
     "db:generate": "drizzle-kit generate",
