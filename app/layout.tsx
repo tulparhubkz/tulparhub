@@ -4,6 +4,7 @@ import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { FloatingChat } from '@/components/layout/FloatingChat'
 import { CartAddedPopup } from '@/components/cart/CartAddedPopup'
+import { Providers } from './providers'
 import './globals.css'
 
 const golos = Golos_Text({
@@ -29,11 +30,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ru" className={`${golos.variable} ${jetbrains.variable}`}>
       <body>
-        <Header />
-        {children}
-        <Footer />
-        <FloatingChat />
-        <CartAddedPopup />
+        <Providers>
+          <Header />
+          {children}
+          <Footer />
+          <FloatingChat />
+          <CartAddedPopup />
+        </Providers>
       </body>
     </html>
   )
