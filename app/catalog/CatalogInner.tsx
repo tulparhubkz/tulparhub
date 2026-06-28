@@ -20,6 +20,7 @@ export default function CatalogInner() {
   const [loading, setLoading]     = useState(true)
   const [sort, setSort]           = useState('popular')
   const [b2b, setB2b]             = useState(false)
+  const [showFilters, setShowFilters] = useState(false) // mobile filter sheet
   const [brandSearch, setBrandSearch] = useState('')   // filter by parts manufacturer (MANN, Bosch…)
   const [priceMax, setPriceMax]   = useState(1000000)
   const [priceCommit, setPriceCommit] = useState(1000000) // fires fetch only on mouse/touch up
@@ -104,6 +105,99 @@ export default function CatalogInner() {
     brandSearch.trim(), priceCommit < 1000000,
   ].filter(Boolean).length
 
+  const resetFilters = () => {
+    setFilters(f => ({ ...f, system:'', oemOnly:false, inStock:false, outOfStock:false }))
+    setBrandSearch('')
+    setPriceMax(1000000)
+    setPriceCommit(1000000)
+    setPage(1)
+  }
+
+  // Filter controls — shared by the desktop sidebar and the mobile bottom sheet.
+  const filterPanel = (
+    <>
+      {/* Parts manufacturer search */}
+      <div className="filt-block">
+        <h4>Производитель запчасти</h4>
+        <div style={{ position:'relative', display:'flex', alignItems:'center' }}>
+          <span style={{ position:'absolute', left:8, pointerEvents:'none', color:'var(--ink-3)' }}><Ico name="search" size={14} /></span>
+          <input
+            type="text"
+            placeholder="MANN, Bosch, ELRING…"
+            value={brandSearch}
+            onChange={e => { setBrandSearch(e.target.value); setPage(1) }}
+            style={{ width:'100%', padding:'8px 10px 8px 30px', border:'1.5px solid var(--line-2)', borderRadius:8, fontSize:13, outline:'none' }}
+          />
+          {brandSearch && (
+            <button onClick={() => { setBrandSearch(''); setPage(1) }}
+              style={{ position:'absolute', right:8, background:'none', border:'none', cursor:'pointer', color:'var(--ink-3)', fontSize:16 }}>×</button>
+          )}
+        </div>
+      </div>
+
+      {/* Type */}
+      <div className="filt-block">
+        <h4>Тип</h4>
+        <label className="filt-row">
+          <input type="checkbox" checked={filters.oemOnly}
+            onChange={e => { setFilters(f => ({ ...f, oemOnly: e.target.checked })); setPage(1) }} />
+          <span>Только OEM (оригинал)</span>
+        </label>
+        <label className="filt-row">
+          <input type="checkbox" checked={filters.inStock}
+            onChange={e => { setFilters(f => ({ ...f, inStock: e.target.checked, outOfStock: e.target.checked ? false : f.outOfStock })); setPage(1) }} />
+          <span>В наличии</span>
+        </label>
+        <label className="filt-row">
+          <input type="checkbox" checked={filters.outOfStock}
+            onChange={e => { setFilters(f => ({ ...f, outOfStock: e.target.checked, inStock: e.target.checked ? false : f.inStock })); setPage(1) }} />
+          <span>Под заказ</span>
+        </label>
+      </div>
+
+      {/* System */}
+      <div className="filt-block">
+        <h4>Система</h4>
+        {systems.map(s => (
+          <label key={s.id} className="filt-row">
+            <input type="checkbox"
+              checked={filters.system === s.id}
+              onChange={e => { setFilters(f => ({ ...f, system: e.target.checked ? s.id : '' })); setPage(1) }} />
+            <span>{s.ru}</span>
+            <span className="filt-count">{s.count.toLocaleString('ru-RU')}</span>
+          </label>
+        ))}
+      </div>
+
+      {/* Price */}
+      <div className="filt-block">
+        <h4>Цена, ₸</h4>
+        <input
+          type="range" min="0" max="1000000" step="10000"
+          value={priceMax}
+          onChange={e => setPriceMax(+e.target.value)}
+          onMouseUp={e => { setPriceCommit((e.target as HTMLInputElement).valueAsNumber); setPage(1) }}
+          onTouchEnd={e => { setPriceCommit((e.target as HTMLInputElement).valueAsNumber); setPage(1) }}
+          style={{ width:'100%' }}
+        />
+        <div className="filt-price-row">
+          <span>0 ₸</span>
+          <b>до {priceMax.toLocaleString('ru-RU')} ₸</b>
+        </div>
+      </div>
+
+      {/* Reset */}
+      {activeCount > 0 && (
+        <div className="filt-block">
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+            <span style={{ fontSize:13, color:'var(--ink-3)' }}>Выбрано фильтров: {activeCount}</span>
+            <button className="filt-clear" onClick={resetFilters}>Сбросить все</button>
+          </div>
+        </div>
+      )}
+    </>
+  )
+
   return (
     <main className="plp">
       <div className="container">
@@ -130,102 +224,22 @@ export default function CatalogInner() {
         </header>
 
         <div className="plp-layout">
-          {/* ── Sidebar filters ── */}
-          <aside className="plp-filters">
-
-            {/* Parts manufacturer search */}
-            <div className="filt-block">
-              <h4>Производитель запчасти</h4>
-              <div style={{ position:'relative', display:'flex', alignItems:'center' }}>
-                <span style={{ position:'absolute', left:8, pointerEvents:'none', color:'var(--ink-3)' }}><Ico name="search" size={14} /></span>
-                <input
-                  type="text"
-                  placeholder="MANN, Bosch, ELRING…"
-                  value={brandSearch}
-                  onChange={e => { setBrandSearch(e.target.value); setPage(1) }}
-                  style={{ width:'100%', padding:'8px 10px 8px 30px', border:'1.5px solid var(--line-2)', borderRadius:8, fontSize:13, outline:'none' }}
-                />
-                {brandSearch && (
-                  <button onClick={() => { setBrandSearch(''); setPage(1) }}
-                    style={{ position:'absolute', right:8, background:'none', border:'none', cursor:'pointer', color:'var(--ink-3)', fontSize:16 }}>×</button>
-                )}
-              </div>
-            </div>
-
-            {/* Type */}
-            <div className="filt-block">
-              <h4>Тип</h4>
-              <label className="filt-row">
-                <input type="checkbox" checked={filters.oemOnly}
-                  onChange={e => { setFilters(f => ({ ...f, oemOnly: e.target.checked })); setPage(1) }} />
-                <span>Только OEM (оригинал)</span>
-              </label>
-              <label className="filt-row">
-                <input type="checkbox" checked={filters.inStock}
-                  onChange={e => { setFilters(f => ({ ...f, inStock: e.target.checked, outOfStock: e.target.checked ? false : f.outOfStock })); setPage(1) }} />
-                <span>В наличии</span>
-              </label>
-              <label className="filt-row">
-                <input type="checkbox" checked={filters.outOfStock}
-                  onChange={e => { setFilters(f => ({ ...f, outOfStock: e.target.checked, inStock: e.target.checked ? false : f.inStock })); setPage(1) }} />
-                <span>Под заказ</span>
-              </label>
-            </div>
-
-            {/* System */}
-            <div className="filt-block">
-              <h4>Система</h4>
-              {systems.map(s => (
-                <label key={s.id} className="filt-row">
-                  <input type="checkbox"
-                    checked={filters.system === s.id}
-                    onChange={e => { setFilters(f => ({ ...f, system: e.target.checked ? s.id : '' })); setPage(1) }} />
-                  <span>{s.ru}</span>
-                  <span className="filt-count">{s.count.toLocaleString('ru-RU')}</span>
-                </label>
-              ))}
-            </div>
-
-            {/* Price */}
-            <div className="filt-block">
-              <h4>Цена, ₸</h4>
-              <input
-                type="range" min="0" max="1000000" step="10000"
-                value={priceMax}
-                onChange={e => setPriceMax(+e.target.value)}
-                onMouseUp={e => { setPriceCommit((e.target as HTMLInputElement).valueAsNumber); setPage(1) }}
-                onTouchEnd={e => { setPriceCommit((e.target as HTMLInputElement).valueAsNumber); setPage(1) }}
-                style={{ width:'100%' }}
-              />
-              <div className="filt-price-row">
-                <span>0 ₸</span>
-                <b>до {priceMax.toLocaleString('ru-RU')} ₸</b>
-              </div>
-            </div>
-
-            {/* Reset */}
-            {activeCount > 0 && (
-              <div className="filt-block">
-                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                  <span style={{ fontSize:13, color:'var(--ink-3)' }}>Выбрано фильтров: {activeCount}</span>
-                  <button className="filt-clear" onClick={() => {
-                    setFilters(f => ({ ...f, system:'', oemOnly:false, inStock:false, outOfStock:false }))
-                    setBrandSearch('')
-                    setPriceMax(1000000)
-                    setPriceCommit(1000000)
-                    setPage(1)
-                  }}>Сбросить все</button>
-                </div>
-              </div>
-            )}
-          </aside>
+          {/* ── Sidebar filters (desktop) ── */}
+          <aside className="plp-filters">{filterPanel}</aside>
 
           {/* ── Results ── */}
           <div className="plp-results">
             <div className="plp-bar">
-              <span style={{ fontSize:13, color:'var(--ink-3)' }}>
-                {loading ? 'Загрузка…' : `${total.toLocaleString('ru-RU')} товаров`}
-              </span>
+              <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                <button className="filters-trigger" onClick={() => setShowFilters(true)}>
+                  <Ico name="filter" size={16} />
+                  Фильтры
+                  {activeCount > 0 && <span className="ft-count">{activeCount}</span>}
+                </button>
+                <span style={{ fontSize:13, color:'var(--ink-3)' }}>
+                  {loading ? 'Загрузка…' : `${total.toLocaleString('ru-RU')} товаров`}
+                </span>
+              </div>
               <select value={sort} onChange={e => { setSort(e.target.value); setPage(1) }}>
                 <option value="popular">Сначала популярные</option>
                 <option value="price-asc">Цена ↑ (дешевле)</option>
@@ -239,12 +253,7 @@ export default function CatalogInner() {
             ) : parts.length === 0 ? (
               <div style={{ padding:'4rem 0', textAlign:'center', color:'var(--ink-3)' }}>
                 <p style={{ marginBottom:12 }}>Товары не найдены.</p>
-                <button className="filt-clear" onClick={() => {
-                  setFilters(f => ({ ...f, system:'', oemOnly:false, inStock:false, outOfStock:false, q:'' }))
-                  setBrandSearch('')
-                  setPriceMax(1000000)
-                  setPriceCommit(1000000)
-                }}>Сбросить фильтры</button>
+                <button className="filt-clear" onClick={() => { resetFilters(); setFilters(f => ({ ...f, q:'' })) }}>Сбросить фильтры</button>
               </div>
             ) : (
               <div className="plp-grid2">
@@ -272,6 +281,27 @@ export default function CatalogInner() {
           </div>
         </div>
       </div>
+
+      {/* ── Mobile filter sheet ── */}
+      {showFilters && (
+        <div className="sheet-backdrop" onClick={() => setShowFilters(false)}>
+          <div className="sheet filters-sheet" onClick={e => e.stopPropagation()}>
+            <div className="sheet-head">
+              <div>
+                <div className="sheet-pre">Каталог</div>
+                <h3>Фильтры</h3>
+              </div>
+              <button onClick={() => setShowFilters(false)}><Ico name="close" size={20} /></button>
+            </div>
+            <div className="filters-sheet-body">{filterPanel}</div>
+            <div className="filters-apply">
+              <button className="btn btn-primary btn-lg btn-full" onClick={() => setShowFilters(false)}>
+                Показать {total.toLocaleString('ru-RU')} товаров
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }
