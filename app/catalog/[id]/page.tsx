@@ -215,12 +215,12 @@ export default function PDPPage() {
     .sort(([a], [b]) => (a === 'Алматы' ? -1 : b === 'Алматы' ? 1 : 0))
 
   const specEntries = Object.entries(specs)
-  const crossNums   = [part.oem, ...(part.cross || [])].filter(Boolean)
+  const crossNums   = Array.from(new Set([part.oem, ...(part.cross || [])].filter(Boolean)))
   const mySeg       = specs['Сегмент'] || 'Бюджет'
 
   return (
     <>
-      <style>{`
+      <style jsx>{`
         .pdp{display:grid;grid-template-columns:440px 1fr;gap:34px;align-items:start}
         .gallery{position:sticky;top:18px}
         .gal-main{aspect-ratio:1;background:linear-gradient(140deg,#f6f8fb,#eef2f7);border:1px solid var(--line);border-radius:var(--radius-lg);display:grid;place-items:center;position:relative}
@@ -297,6 +297,40 @@ export default function PDPPage() {
         .crumbs{display:flex;align-items:center;gap:8px;color:var(--ink-3);font-size:13px;padding:22px 0 18px;flex-wrap:wrap}
         .crumbs a:hover{color:var(--accent)}
         .crumbs .sep{color:var(--line-2)}
+
+        /* ── Responsive ── */
+        @media (max-width:900px){
+          .pdp{grid-template-columns:1fr;gap:20px}
+          .gallery{position:static}
+          .gal-main{max-width:440px}
+          .spec-grid{grid-template-columns:1fr}
+          .fits{grid-template-columns:1fr}
+          .analogs{grid-template-columns:repeat(2,1fr)}
+        }
+        @media (max-width:600px){
+          .pdp-title{font-size:22px}
+          .price-now{font-size:28px}
+          .buybox-top{flex-direction:column;align-items:stretch;gap:14px}
+          .buybox-actions{flex-wrap:wrap}
+          .btn-buy{order:-1;flex-basis:100%}
+          .analogs{grid-template-columns:1fr}
+          .psec{padding:26px 0}
+          .container{padding-bottom:84px} /* clear the sticky buy bar */
+        }
+
+        /* ── Sticky mobile buy bar ── */
+        .pdp-buybar{display:none}
+        @media (max-width:600px){
+          .pdp-buybar{
+            display:flex;align-items:center;gap:12px;
+            position:fixed;left:0;right:0;
+            bottom:calc(var(--bottom-nav-h) + env(safe-area-inset-bottom,0px));
+            z-index:140;background:var(--surf);border-top:1px solid var(--line);
+            padding:10px 14px;box-shadow:0 -2px 12px rgba(10,26,79,.08)
+          }
+          .pdp-buybar .bb-price{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+          .pdp-buybar .bb-add{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--accent);color:#fff;font-weight:700;font-size:15px;height:44px;border-radius:9px;border:none;cursor:pointer}
+        }
       `}</style>
 
       <div className="container">
@@ -561,6 +595,15 @@ export default function PDPPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Sticky add-to-cart bar (mobile only) */}
+      <div className="pdp-buybar">
+        <div className="bb-price">{fmtKZT(price)}</div>
+        <button className="bb-add" onClick={() => addItem({ ...part, stock }, qty)}>
+          <CartIcon />
+          {inCart ? 'Добавить ещё' : 'В корзину'}
+        </button>
       </div>
     </>
   )
