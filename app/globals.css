@@ -1330,22 +1330,19 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 /* Garage drawer must never exceed the viewport width */
 .gp-panel { width: min(380px, 100%); }
 
-/* On phones, present the garage as a bottom sheet instead of a full-screen slab */
+/* On phones the garage is full-screen but stops above the bottom tab bar,
+   so the tab bar stays visible (and the bar is raised above the panel). */
 @media (max-width: 600px) {
   .gp-panel {
-    top: auto; left: 0; right: 0; bottom: 0;
+    top: 0; left: 0; right: 0;
+    bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom, 0px));
     width: 100%;
-    height: auto;
-    max-height: 85vh;
-    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-    box-shadow: 0 -8px 32px rgba(10,36,71,.18);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    animation: gpSheetUp .22s ease;
+    border-radius: 0;
+    box-shadow: none;
+    animation: gpFadeIn .18s ease;
   }
-  .gp-screen { padding-bottom: 16px; }
-  .gp-empty { padding: 28px 0; }
 }
-@keyframes gpSheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes gpFadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 @media (max-width: 600px) {
   :root { --bottom-nav-h: 60px; }
@@ -1400,7 +1397,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
     display: flex;
     position: fixed;
     left: 0; right: 0; bottom: 0;
-    z-index: 150;
+    z-index: 250; /* above the garage panel so the bar stays visible */
     background: var(--surf);
     border-top: 1px solid var(--line);
     box-shadow: 0 -2px 12px rgba(10,26,79,.06);
