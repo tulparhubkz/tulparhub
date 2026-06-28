@@ -1357,6 +1357,16 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .filters-sheet .filt-block:first-child { padding-top: 0; }
 .filters-apply { position: sticky; bottom: 0; background: var(--surf); padding-top: 12px; margin-top: 4px; }
 
+/* ── Cart item: stack into two rows on phones (price was getting clipped) ── */
+@media (max-width: 600px) {
+  .cart-item { flex-wrap: wrap; gap: 10px 12px; }
+  .ci-thumb { width: 56px; height: 56px; }
+  .ci-meta { flex: 1 1 calc(100% - 70px); min-width: 0; }
+  .ci-qty { order: 3; }
+  .ci-price { order: 4; margin-left: auto; text-align: left; min-width: auto; }
+  .ci-remove { order: 5; }
+}
+
 /* ── Bottom tab bar (mobile only) ─────────────────────── */
 .bottomnav { display: none; }
 @media (max-width: 600px) {
