@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Standalone server for the Docker image; on Vercel let the platform handle output.
-  output: process.env.VERCEL ? undefined : 'standalone',
+  // Standalone server for the Docker image (Render).
+  output: 'standalone',
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: '**' },
