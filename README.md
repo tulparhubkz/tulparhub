@@ -1,98 +1,64 @@
-# TulparHub — Next.js приложение
+# TulparHub
 
-Маркетплейс грузовых запчастей и аренды спецтехники. Переписан из HTML-прототипа в полноценный Next.js проект.
+Маркетплейс грузовых запчастей и аренды спецтехники (Казахстан). Next.js + самостоятельно размещаемый PostgreSQL.
 
-## Запуск
+## Стек
 
-### 1. Установите Node.js (если ещё не установлен)
+| Слой | Технология |
+|------|------------|
+| Frontend / API | Next.js 14 (App Router), TypeScript |
+| База данных | PostgreSQL + Drizzle ORM |
+| Авторизация | Auth.js (NextAuth v5) — Google + email magic link |
+| Инфраструктура | Docker Compose (Postgres + app + Caddy auto-TLS), KZ VPS |
+| Стейт на клиенте | Zustand + localStorage (корзина, избранное, гараж) |
 
-```bash
-# macOS — через Homebrew:
-brew install node
+Источник данных каталога — CSV-выгрузка прайса вендора (см. `scripts/import-csv.ts`); в будущем — 1С.
 
-# Или скачайте установщик с https://nodejs.org (версия 18 или 20)
-```
-
-### 2. Установите зависимости и запустите
-
-```bash
-cd /Users/ulzanbaglanova/Claude/Projects/tulparhub
-npm install
-npm run dev
-```
-
-Откройте **http://localhost:3000**
-
-### 3. Подключение Supabase (опционально)
-
-Скопируйте `.env.local.example` в `.env.local` и заполните ключи из вашего проекта на supabase.com:
+## Локальный запуск
 
 ```bash
-cp .env.local.example .env.local
+docker compose -f docker-compose.dev.yml up -d   # Postgres на localhost:5432
+cp .env.example .env                             # DATABASE_URL уже настроен для dev
+yarn install
+yarn db:migrate                                  # применить миграции
+yarn import-csv                                  # импорт каталога (нужен CSV по пути CSV_PATH)
+yarn dev                                          # http://localhost:3000
 ```
 
-Без `.env.local` приложение работает на mock-данных из `lib/data.ts`.
+## Скрипты
 
-## API (бэкенд)
+| Команда | Действие |
+|---------|----------|
+| `yarn dev` / `yarn build` / `yarn start` | разработка / сборка / прод |
+| `yarn db:generate` | сгенерировать миграцию из `lib/db/schema.ts` |
+| `yarn db:migrate` | применить миграции |
+| `yarn db:studio` | Drizzle Studio (просмотр БД) |
+| `yarn import-csv` | импорт прайса вендора в БД |
 
-Все маршруты — Next.js Route Handlers внутри `app/api/`. При наличии `.env.local` работают через Supabase, без него — на mock-данных.
+## API (Route Handlers в `app/api/`)
 
 | Метод | Путь | Описание |
 |-------|------|----------|
-| GET | `/api/parts` | Список запчастей. Параметры: `system`, `brand`, `q`, `oemOnly=1`, `inStock=1`, `priceMax`, `sort`, `page` |
+| GET | `/api/parts` | Список запчастей: `system`, `brand`, `model`, `partBrand`, `q`, `oemOnly=1`, `inStock=1`, `priceMax`, `sort`, `page` |
 | GET | `/api/parts/:id` | Одна запчасть |
-| GET | `/api/rental` | Список техники. Параметры: `type`, `operator=yes/no/any`, `city`, `page` |
-| GET | `/api/rental/:id` | Одна единица техники |
-| POST | `/api/leads` | Принять заявку (заказ, звонок, бронирование). JSON body с полями `kind`, `name`, `phone`, ... |
-| GET | `/api/search?q=...` | Поиск — возвращает `{ parts, systems, brands }` |
-| GET | `/api/brands` | Все бренды с моделями |
-| GET | `/api/systems` | Все узлы и системы |
-| GET | `/api/cities` | Все города |
-
-### Seed (заполнение БД)
-
-```bash
-cp .env.local.example .env.local   # добавьте ключи Supabase
-npm run seed                        # npx tsx scripts/seed.ts
-```
+| GET | `/api/search?q=` | Поиск (parts / systems / brands) |
+| GET | `/api/part-brands` | Производители запчастей с количеством |
+| GET | `/api/rental`, `/api/rental/:id` | Аренда техники |
+| GET | `/api/brands`, `/api/systems`, `/api/cities` | Справочники (из `lib/data`) |
+| POST | `/api/leads` | Заявка (заказ / звонок / бронь / запрос цены) |
+| `/api/auth/*` | Auth.js (Google, email) |
 
 ## Структура
 
 ```
-app/
-  page.tsx              → Главная
-  podbor/page.tsx       → Подбор по технике (6-шаговый визард)
-  catalog/page.tsx      → Каталог с фильтрами
-  catalog/[id]/page.tsx → Карточка товара
-  rental/page.tsx       → Аренда спецтехники
-  cart/page.tsx         → Корзина и оформление заказа
-  globals.css           → Все CSS-переменные и стили
-
-components/
-  ui/                   → Ico, Btn, Badge, Chip, Price, Stock, Crumbs, Toast, VehicleSelector
-  layout/               → Header, Footer, CityModal, FloatingChat
-  catalog/              → PartCard, PartRow
-  rental/               → RentalCard, BookingSheet
-
-lib/
-  data.ts               → Все демо-данные (запчасти, техника, бренды...)
-  utils.ts              → fmtKZT, fmtVAT, stockStatus
-  supabase.ts           → Supabase клиент и запросы
-
-store/
-  cart.ts               → Zustand store (корзина, город, язык) + localStorage
+app/            страницы + app/api (Route Handlers) + actions.ts (server actions)
+lib/db/         schema.ts (Drizzle), index.ts (клиент), миграции в drizzle/
+lib/services/   слой доступа к данным (parts, leads, garage) — роуты зовут его, не БД напрямую
+lib/auth.ts     конфиг Auth.js
+lib/data.ts     статические справочники (бренды/модели/города/категории, демо-аренда)
+store/          Zustand-сторы (корзина, избранное, гараж)
 ```
 
-## Сборка и деплой
+## Деплой
 
-```bash
-npm run build    # Собрать production-версию
-npm start        # Запустить production-сервер
-
-# Деплой на Vercel:
-# 1. git init && git add . && git commit -m "init"
-# 2. Создайте репо на GitHub и запушьте
-# 3. Зайдите на vercel.com → Import → выберите репо
-# 4. Добавьте NEXT_PUBLIC_SUPABASE_URL и NEXT_PUBLIC_SUPABASE_ANON_KEY
-# 5. Deploy
-```
+См. [DEPLOY.md](DEPLOY.md) — self-hosted на KZ VPS через Docker Compose, авто-деплой из `main` (GitHub Actions).

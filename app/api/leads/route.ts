@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase-server'
+import { createLead } from '@/lib/services/leads'
 import { z } from 'zod'
 
 const LeadSchema = z.object({
@@ -42,33 +42,11 @@ export async function POST(req: NextRequest) {
 
   const payload = parsed.data
 
-  // Try Supabase insert
   try {
-    const db = createServerClient()
-    const { error } = await db.from('leads').insert({
-      kind:      payload.kind,
-      name:      payload.name,
-      phone:     payload.phone,
-      email:     payload.email ?? null,
-      city:      payload.city ?? null,
-      comment:   payload.comment ?? null,
-      meta: {
-        company:   payload.company,
-        bin:       payload.bin,
-        payment:   payload.payment,
-        delivery:  payload.delivery,
-        unit_id:   payload.unit_id,
-        date_from: payload.date_from,
-        date_to:   payload.date_to,
-        address:   payload.address,
-        items:     payload.items,
-      },
-    })
-    if (error) throw error
+    await createLead(payload)
   } catch (err) {
-    // Log but still return success to client — lead will be retried or handled by ops
-    console.error('[leads] Supabase insert failed:', err)
-    // In production you'd also write to a fallback queue here
+    // Log but still return success to client — ops will follow up / retry.
+    console.error('[leads] insert failed:', err)
   }
 
   // Build invoice number for B2B orders

@@ -1,6 +1,6 @@
 'use server'
 
-import { createServerClient } from '@/lib/supabase-server'
+import { createLead } from '@/lib/services/leads'
 import { revalidatePath } from 'next/cache'
 
 export interface OrderPayload {
@@ -30,27 +30,23 @@ export async function submitOrder(payload: OrderPayload): Promise<{ ok: boolean;
   }
 
   try {
-    const db = createServerClient()
-    const { error } = await db.from('leads').insert({
+    await createLead({
       kind:    payload.kind,
       name:    payload.name.trim(),
       phone:   payload.phone.trim(),
       email:   payload.email?.trim() ?? null,
       city:    payload.city ?? null,
       comment: payload.comment?.trim() ?? null,
-      meta: {
-        company:   payload.company,
-        bin:       payload.bin,
-        payment:   payload.payment,
-        delivery:  payload.delivery,
-        unit_id:   payload.unit_id,
-        date_from: payload.date_from,
-        date_to:   payload.date_to,
-        address:   payload.address,
-        items:     payload.items,
-      },
+      company:   payload.company,
+      bin:       payload.bin,
+      payment:   payload.payment,
+      delivery:  payload.delivery,
+      unit_id:   payload.unit_id,
+      date_from: payload.date_from,
+      date_to:   payload.date_to,
+      address:   payload.address,
+      items:     payload.items,
     })
-    if (error) throw error
   } catch (err) {
     console.error('[submitOrder] DB error:', err)
     // Don't surface DB errors to user — fail open, ops will retry

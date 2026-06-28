@@ -1,0 +1,32 @@
+# Render Blueprint — all-in-one test/staging: web (Docker) + free Postgres.
+# In Render: New → Blueprint → pick this repo → Apply.
+databases:
+  - name: tulparhub-db
+    databaseName: tulparhub
+    user: tulparhub
+    plan: free
+    # Allow external connections so the catalog can be seeded from a laptop
+    # (run `yarn import-csv` with DATABASE_SSL=true). Test DB; password is generated.
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: anywhere (test env)
+
+services:
+  - type: web
+    name: tulparhub
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      # Internal connection string (plaintext, in-network) — used by the app + migrations.
+      - key: DATABASE_URL
+        fromDatabase:
+          name: tulparhub-db
+          property: connectionString
+      - key: AUTH_SECRET
+        generateValue: true
+      - key: DATABASE_POOL_MAX
+        value: "5"
