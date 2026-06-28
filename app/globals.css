@@ -919,8 +919,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
   .sheet-body { grid-template-columns: 1fr; }
 }
 @media (max-width: 600px) {
-  /* Keep the city selector reachable; drop lang/phone/callback to declutter */
-  .hdr-actions { display: none; }
+  /* Top bar (city/lang/phone) hidden on phones — these live in the Меню hub */
+  .hdr-top { display: none; }
   .hdr-main { flex-wrap: wrap; gap: 10px; }
   .hdr-user { display: none; }       /* replaced by the bottom tab bar */
   .search-tabs { display: none; }    /* keep the search input roomy on phones */
