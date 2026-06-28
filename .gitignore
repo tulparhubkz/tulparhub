@@ -2,6 +2,13 @@ node_modules/
 .next/
 .env.local
 .env
+.env.*.local
 *.log
 .DS_Store
-yarn.lock
+package-lock.json
+backups/
+
+# Vendor data exports (catalog/price dumps) — never commit
+/data/
+example_database.csv
+*.csv
