@@ -59,6 +59,37 @@ lib/data.ts     статические справочники (бренды/мо
 store/          Zustand-сторы (корзина, избранное, гараж)
 ```
 
+## Как мы работаем
+
+- **`main` защищён — прямой push запрещён.** Всегда: ветка → PR → проверка `build`
+  в CI должна пройти → merge. Merge в `main` запускает авто-деплой.
+- **Ветки:** `feat/<имя>`, `fix/<имя>`, `chore/<имя>`. Коммиты — мелкие и по
+  существу, conventional style (`feat(catalog): ...`); один PR = одна задача.
+- **Пакетный менеджер — yarn** (не npm). После изменения зависимостей запусти
+  `yarn install`, чтобы `yarn.lock` совпадал — CI использует `--frozen-lockfile`.
+- **UI mobile-first.** Проверяй на **375px** (нет горизонтального скролла, чистая
+  консоль), затем desktop. Перед пушем `yarn build` должен проходить локально.
+
+## Подводные камни
+
+- **GET-роуты, читающие БД, должны иметь `export const dynamic = 'force-dynamic'`** —
+  иначе Next пытается отрендерить их при сборке (БД недоступна) и build падает.
+  Пример: `app/api/part-brands/route.ts`.
+- **Не правь версии зависимостей руками** в `package.json` — используй
+  `yarn add` / `yarn install`, чтобы lock-файл совпадал.
+- **Стили страницы** — `<style jsx>` (скоуп), а не голый `<style>` (утекает
+  глобально). Пример: `app/catalog/[id]/page.tsx`.
+- Клиент БД import-safe — `yarn build` работает без `DATABASE_URL`.
+
+## Задачи и роадмап
+
+Бэклог ведётся в GitHub (метки: `good first issue`, `feature`, `infra`, `blocked`):
+
+- **Issues:** https://github.com/tulparhubkz/tulparhub/issues
+- **Project board:** https://github.com/orgs/tulparhubkz/projects/1
+
+Новым контрибьюторам — начните с метки **`good first issue`**.
+
 ## Деплой
 
 См. [DEPLOY.md](DEPLOY.md) — self-hosted на KZ VPS через Docker Compose, авто-деплой из `main` (GitHub Actions).
