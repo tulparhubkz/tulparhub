@@ -25,7 +25,7 @@ export default function PartsBrandsPage() {
 
   return (
     <>
-      <style>{`
+      <style jsx global>{`
         .pb-page { max-width: 1100px; margin: 0 auto; padding: 32px 20px 60px; }
         .pb-title { font-size: 26px; font-weight: 800; color: var(--ink); margin-bottom: 6px; }
         .pb-sub { font-size: 14px; color: var(--ink-3); margin-bottom: 24px; }

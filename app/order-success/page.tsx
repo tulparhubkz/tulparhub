@@ -48,7 +48,7 @@ function OrderSuccessInner() {
 
   return (
     <>
-      <style>{`
+      <style jsx global>{`
         .success-page { min-height: 80vh; display: flex; align-items: center; justify-content: center; padding: 40px 16px; }
         .success-wrap { max-width: 700px; width: 100%; display: flex; flex-direction: column; gap: 24px; }
 

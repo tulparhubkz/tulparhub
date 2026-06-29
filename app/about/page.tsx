@@ -4,7 +4,7 @@ import Link from 'next/link'
 export default function AboutPage() {
   return (
     <>
-      <style>{`
+      <style jsx global>{`
         .ab-hero {
           background: var(--surf-2);
           color: var(--ink);

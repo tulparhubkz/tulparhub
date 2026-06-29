@@ -33,7 +33,7 @@ export default function BrandPage() {
 
   return (
     <>
-      <style>{`
+      <style jsx global>{`
         .bp-page { max-width: 1200px; margin: 0 auto; padding: 32px 20px 60px; }
         .bp-head { display: flex; gap: 28px; align-items: flex-start; background: var(--surf); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 28px; margin-bottom: 32px; }
         .bp-logo { width: 96px; height: 96px; border-radius: var(--radius); background: var(--surf-2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 28px; font-weight: 800; color: var(--ink-2); }
