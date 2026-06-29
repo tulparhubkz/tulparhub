@@ -47,7 +47,7 @@ export default function CartPage() {
       })
       if (result.ok) {
         clearCart()
-        const q = new URLSearchParams({ num: result.invoiceNumber ?? '', phone, pay })
+        const q = new URLSearchParams({ num: result.invoiceNumber ?? '', phone, pay, total: String(result.total ?? '') })
         router.push(`/order-success?${q}`)
       } else {
         addToast(result.message, 'info')
