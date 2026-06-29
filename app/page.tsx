@@ -156,7 +156,7 @@ export default function HomePage() {
 
   return (
     <main>
-      <style>{`
+      <style jsx global>{`
         /* ── Marquee strip ── */
         .hm-item { color: rgba(255,255,255,.9) !important; font-size: 13px !important; }
 

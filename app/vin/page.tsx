@@ -68,7 +68,7 @@ export default function VinPage() {
 
   return (
     <>
-      <style>{`
+      <style jsx global>{`
         .vin-page { max-width: 780px; margin: 0 auto; padding: 32px 20px 60px; }
         .vin-title { font-size: 26px; font-weight: 800; color: var(--ink); margin-bottom: 6px; }
         .vin-sub { font-size: 14px; color: var(--ink-3); margin-bottom: 24px; }

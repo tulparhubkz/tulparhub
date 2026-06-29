@@ -4,7 +4,7 @@ import Link from 'next/link'
 export default function WarrantyPage() {
   return (
     <>
-      <style>{`
+      <style jsx global>{`
         .wt-hero {
           background: var(--surf-2);
           color: var(--ink);
