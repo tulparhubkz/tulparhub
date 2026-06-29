@@ -1,6 +1,7 @@
 'use client'
 import { useState, useTransition } from 'react'
 import { fmtKZT } from '@/lib/utils'
+import { AdminNav } from '@/components/admin/AdminNav'
 import { setOrderStatus, setPaymentStatus } from './actions'
 
 // Kept local (not imported from lib/services/orders) so the server-only DB client
@@ -51,6 +52,7 @@ export function AdminOrders({ orders, adminEmail }: { orders: Order[]; adminEmai
   return (
     <main className="adm">
       <div className="container">
+        <AdminNav />
         <header className="adm-head">
           <div>
             <h1>Заказы</h1>
