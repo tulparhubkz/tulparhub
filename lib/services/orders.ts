@@ -1,6 +1,11 @@
 import { db } from '@/lib/db'
 import { orders, orderItems, parts } from '@/lib/db/schema'
-import { inArray } from 'drizzle-orm'
+import { inArray, eq, desc } from 'drizzle-orm'
+
+export const ORDER_STATUSES = ['new', 'confirmed', 'shipped', 'done', 'cancelled'] as const
+export type OrderStatus = (typeof ORDER_STATUSES)[number]
+export const PAYMENT_STATUSES = ['pending', 'paid', 'failed', 'refunded'] as const
+export type PaymentStatus = (typeof PAYMENT_STATUSES)[number]
 
 export interface OrderItemInput {
   id: string // part id
@@ -106,4 +111,74 @@ export async function createOrder(input: OrderInput): Promise<CreatedOrder> {
     }
   }
   throw new Error('createOrder: could not allocate a unique invoice number')
+}
+
+export interface OrderLineItem {
+  id: string
+  name: string
+  oem: string | null
+  qty: number
+  price: number
+}
+
+export interface OrderListItem {
+  id: string
+  invoiceNumber: string
+  createdAt: Date
+  customerName: string
+  customerPhone: string
+  customerEmail: string | null
+  company: string | null
+  city: string | null
+  delivery: string | null
+  paymentProvider: string | null
+  status: string
+  paymentStatus: string
+  total: number
+  items: OrderLineItem[]
+}
+
+/** Most-recent orders with their line items, for the admin panel. */
+export async function listOrders(limit = 100): Promise<OrderListItem[]> {
+  const os = await db.select().from(orders).orderBy(desc(orders.createdAt)).limit(limit)
+  if (os.length === 0) return []
+
+  const its = await db
+    .select()
+    .from(orderItems)
+    .where(inArray(orderItems.orderId, os.map((o) => o.id)))
+
+  const byOrder = new Map<string, OrderLineItem[]>()
+  for (const it of its) {
+    const arr = byOrder.get(it.orderId) ?? []
+    arr.push({ id: it.id, name: it.name, oem: it.oem, qty: it.qty, price: it.price })
+    byOrder.set(it.orderId, arr)
+  }
+
+  return os.map((o) => ({
+    id: o.id,
+    invoiceNumber: o.invoiceNumber,
+    createdAt: o.createdAt,
+    customerName: o.customerName,
+    customerPhone: o.customerPhone,
+    customerEmail: o.customerEmail,
+    company: o.company,
+    city: o.city,
+    delivery: o.delivery,
+    paymentProvider: o.paymentProvider,
+    status: o.status,
+    paymentStatus: o.paymentStatus,
+    total: o.total,
+    items: byOrder.get(o.id) ?? [],
+  }))
+}
+
+export async function updateOrderStatus(id: string, status: OrderStatus) {
+  if (!ORDER_STATUSES.includes(status)) throw new Error(`updateOrderStatus: invalid status "${status}"`)
+  await db.update(orders).set({ status }).where(eq(orders.id, id))
+}
+
+export async function updateOrderPayment(id: string, paymentStatus: PaymentStatus) {
+  if (!PAYMENT_STATUSES.includes(paymentStatus)) throw new Error(`updateOrderPayment: invalid payment status "${paymentStatus}"`)
+  await db.update(orders).set({ paymentStatus }).where(eq(orders.id, id))
 }
