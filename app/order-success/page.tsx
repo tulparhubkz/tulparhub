@@ -2,6 +2,7 @@
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Suspense } from 'react'
 import Link from 'next/link'
+import { fmtKZT } from '@/lib/utils'
 
 function OrderSuccessInner() {
   const params = useSearchParams()
@@ -9,6 +10,7 @@ function OrderSuccessInner() {
   const num    = params.get('num') ?? 'TH-2024-000000'
   const phone  = params.get('phone') ?? ''
   const pay    = params.get('pay') ?? 'invoice'
+  const total  = Number(params.get('total') ?? '') || 0
 
   const isInvoice = pay === 'invoice'
   const isKaspi   = pay === 'kaspi-qr' || pay === 'kaspi-rs'
@@ -56,6 +58,8 @@ function OrderSuccessInner() {
         .success-hero h1 { font-size: 28px; font-weight: 800; letter-spacing: -.02em; color: var(--ink); margin-bottom: 8px; }
         .success-hero p { color: var(--ink-2); font-size: 15px; line-height: 1.6; }
         .order-num { display: inline-flex; align-items: center; gap: 8px; background: var(--surf-2); border: 1.5px solid var(--line-2); border-radius: 10px; padding: 10px 18px; margin-top: 20px; font-family: var(--font-jetbrains, monospace); font-size: 18px; font-weight: 700; color: var(--ink); letter-spacing: .04em; }
+        .order-total { margin-top: 14px; font-size: 15px; color: var(--ink-2); }
+        .order-total b { color: var(--ink); font-weight: 800; font-size: 18px; }
         .copy-btn { background: none; border: none; cursor: pointer; color: var(--ink-3); padding: 2px; display: flex; align-items: center; }
         .copy-btn:hover { color: var(--accent); }
 
@@ -118,6 +122,7 @@ function OrderSuccessInner() {
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
               </button>
             </div>
+            {total > 0 && <div className="order-total">Сумма заказа: <b>{fmtKZT(total)}</b></div>}
           </div>
 
           {/* Steps: что дальше */}

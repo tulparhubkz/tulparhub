@@ -1,6 +1,8 @@
 'use server'
 
 import { createLead } from '@/lib/services/leads'
+import { createOrder } from '@/lib/services/orders'
+import { auth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 
 export interface OrderPayload {
@@ -21,7 +23,7 @@ export interface OrderPayload {
   address?: string
 }
 
-export async function submitOrder(payload: OrderPayload): Promise<{ ok: boolean; message: string; invoiceNumber?: string }> {
+export async function submitOrder(payload: OrderPayload): Promise<{ ok: boolean; message: string; invoiceNumber?: string; total?: number }> {
   if (!payload.name?.trim() || !payload.phone?.trim()) {
     return { ok: false, message: 'Заполните имя и телефон' }
   }
@@ -29,6 +31,52 @@ export async function submitOrder(payload: OrderPayload): Promise<{ ok: boolean;
     return { ok: false, message: 'Введите корректный номер телефона' }
   }
 
+  // Real orders are persisted to orders/order_items; failures are surfaced so a
+  // customer never sees "accepted" for an order that wasn't saved.
+  if (payload.kind === 'order') {
+    if (!payload.items?.length) {
+      return { ok: false, message: 'Корзина пуста' }
+    }
+    // Attach the signed-in user if there is a session (guest checkout otherwise).
+    let userId: string | null = null
+    let sessionEmail: string | null = null
+    try {
+      const session = await auth()
+      userId = session?.user?.id ?? null
+      sessionEmail = session?.user?.email ?? null
+    } catch {
+      /* auth not configured / no session — proceed as guest */
+    }
+
+    try {
+      const order = await createOrder({
+        userId,
+        name:     payload.name.trim(),
+        phone:    payload.phone.trim(),
+        email:    payload.email?.trim() || sessionEmail || null,
+        city:     payload.city ?? null,
+        company:  payload.company ?? null,
+        bin:      payload.bin ?? null,
+        delivery: payload.delivery ?? null,
+        address:  payload.address ?? null,
+        comment:  payload.comment?.trim() ?? null,
+        payment:  payload.payment ?? null,
+        items:    payload.items,
+      })
+      revalidatePath('/')
+      return {
+        ok: true,
+        message: `Заказ принят. Счёт ${order.invoiceNumber} сформирован.`,
+        invoiceNumber: order.invoiceNumber,
+        total: order.total,
+      }
+    } catch (err) {
+      console.error('[submitOrder] order error:', err)
+      return { ok: false, message: 'Не удалось оформить заказ. Попробуйте ещё раз или позвоните нам.' }
+    }
+  }
+
+  // Lightweight leads (callback / booking / quote) — fail open, ops will retry.
   try {
     await createLead({
       kind:    payload.kind,
@@ -48,24 +96,18 @@ export async function submitOrder(payload: OrderPayload): Promise<{ ok: boolean;
       items:     payload.items,
     })
   } catch (err) {
-    console.error('[submitOrder] DB error:', err)
-    // Don't surface DB errors to user — fail open, ops will retry
+    console.error('[submitOrder] lead error:', err)
   }
 
   revalidatePath('/')
 
-  const invoiceNumber = payload.kind === 'order'
-    ? `TH-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`
-    : undefined
-
   const messages: Record<string, string> = {
-    order:    `Заказ принят. Счёт ${invoiceNumber} сформирован и отправлен на email.`,
     callback: 'Заявка принята. Перезвоним в течение 12 минут.',
     booking:  'Заявка на аренду отправлена. Менеджер свяжется через 15 минут.',
     quote:    'Запрос цены отправлен. Коммерческое предложение — в течение 1 часа.',
   }
 
-  return { ok: true, message: messages[payload.kind] ?? 'Заявка принята.', invoiceNumber }
+  return { ok: true, message: messages[payload.kind] ?? 'Заявка принята.' }
 }
 
 export async function submitCallback(formData: FormData) {
