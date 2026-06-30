@@ -191,8 +191,17 @@ export default function PDPPage() {
   }, [id])
 
   if (loading) return (
-    <div className="container" style={{ padding: '6rem 0', textAlign: 'center', color: 'var(--ink-3)' }}>
-      Загрузка...
+    <div className="container" aria-hidden="true">
+      <div className="skel-pdp">
+        <div className="skel skel-gal" />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 8 }}>
+          <div className="skel" style={{ width: 120, height: 22 }} />
+          <div className="skel" style={{ width: '85%', height: 30 }} />
+          <div className="skel" style={{ width: '45%', height: 16 }} />
+          <div className="skel" style={{ width: '100%', height: 150, borderRadius: 'var(--radius-lg)', marginTop: 8 }} />
+          <div className="skel" style={{ width: '100%', height: 90, borderRadius: 'var(--radius-lg)' }} />
+        </div>
+      </div>
     </div>
   )
   if (!part || part.error) return (
