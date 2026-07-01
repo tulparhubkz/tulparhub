@@ -3,6 +3,7 @@
 import { createLead } from '@/lib/services/leads'
 import { createOrder, trackOrderByInvoice, type TrackedOrder } from '@/lib/services/orders'
 import { notifyOps, formatOrderMessage, formatLeadMessage } from '@/lib/notify'
+import { isValidPhone, isValidEmail } from '@/lib/validation'
 import { auth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 
@@ -24,12 +25,15 @@ export interface OrderPayload {
   address?: string
 }
 
-export async function submitOrder(payload: OrderPayload): Promise<{ ok: boolean; message: string; invoiceNumber?: string; total?: number }> {
+export async function submitOrder(payload: OrderPayload): Promise<{ ok: boolean; message: string; invoiceNumber?: string; total?: number; orderId?: string }> {
   if (!payload.name?.trim() || !payload.phone?.trim()) {
     return { ok: false, message: 'Заполните имя и телефон' }
   }
-  if (payload.phone.replace(/\D/g, '').length < 7) {
+  if (!isValidPhone(payload.phone)) {
     return { ok: false, message: 'Введите корректный номер телефона' }
+  }
+  if (payload.email?.trim() && !isValidEmail(payload.email)) {
+    return { ok: false, message: 'Введите корректный email' }
   }
 
   // Real orders are persisted to orders/order_items; failures are surfaced so a
@@ -70,6 +74,7 @@ export async function submitOrder(payload: OrderPayload): Promise<{ ok: boolean;
         total: order.total,
         name: payload.name.trim(),
         phone: payload.phone.trim(),
+        email: payload.email?.trim() || null,
         payment: payload.payment,
         delivery: payload.delivery,
         company: payload.company,
@@ -85,6 +90,7 @@ export async function submitOrder(payload: OrderPayload): Promise<{ ok: boolean;
         message: `Заказ принят. Счёт ${order.invoiceNumber} сформирован.`,
         invoiceNumber: order.invoiceNumber,
         total: order.total,
+        orderId: order.id,
       }
     } catch (err) {
       console.error('[submitOrder] order error:', err)

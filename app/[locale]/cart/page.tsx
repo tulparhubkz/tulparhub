@@ -10,6 +10,7 @@ import { ToastHost, type ToastItem } from '@/components/ui/Toast'
 import { useCart } from '@/store/cart'
 import { fmtKZT } from '@/lib/utils'
 import { useT } from '@/lib/i18n'
+import { isValidPhone, isValidEmail } from '@/lib/validation'
 import { submitOrder } from '@/app/actions'
 
 export default function CartPage() {
@@ -23,6 +24,7 @@ export default function CartPage() {
   const [submitting, setSubmitting] = useState(false)
   const nameRef  = useRef<HTMLInputElement>(null)
   const phoneRef = useRef<HTMLInputElement>(null)
+  const emailRef = useRef<HTMLInputElement>(null)
   const companyRef = useRef<HTMLInputElement>(null)
   const binRef   = useRef<HTMLInputElement>(null)
 
@@ -33,14 +35,18 @@ export default function CartPage() {
     if (submitting) return
     const name  = nameRef.current?.value?.trim()
     const phone = phoneRef.current?.value?.trim()
+    const email = emailRef.current?.value?.trim()
     if (!name)  { addToast(t('cart.toast.enterName'), 'info'); return }
     if (!phone) { addToast(t('cart.toast.enterPhone'), 'info'); return }
+    if (!isValidPhone(phone)) { addToast(t('cart.toast.badPhone'), 'info'); return }
+    if (email && !isValidEmail(email)) { addToast(t('cart.toast.badEmail'), 'info'); return }
     setSubmitting(true)
     try {
       const result = await submitOrder({
         kind:     'order',
         name,
         phone,
+        email,
         payment:  pay,
         delivery,
         company:  companyRef.current?.value,
@@ -49,7 +55,7 @@ export default function CartPage() {
       })
       if (result.ok) {
         clearCart()
-        const q = new URLSearchParams({ num: result.invoiceNumber ?? '', phone, pay, total: String(result.total ?? '') })
+        const q = new URLSearchParams({ num: result.invoiceNumber ?? '', phone, pay, total: String(result.total ?? ''), id: result.orderId ?? '' })
         router.push(`/order-success?${q}`)
       } else {
         addToast(result.message, 'info')
@@ -198,7 +204,8 @@ export default function CartPage() {
                 <h3>4. {t('cart.sec.contact')}</h3>
                 <div className="b2b-grid">
                   <div className="b2b-row"><label>{t('cart.name')}</label><input ref={nameRef} placeholder={t('cart.namePlaceholder')} /></div>
-                  <div className="b2b-row"><label>{t('cart.phone')}</label><input ref={phoneRef} placeholder="+7 (700) 000-00-00" /></div>
+                  <div className="b2b-row"><label>{t('cart.phone')}</label><input ref={phoneRef} type="tel" placeholder="+7 (700) 000-00-00" /></div>
+                  <div className="b2b-row"><label>{t('cart.email')}</label><input ref={emailRef} type="email" placeholder="mail@example.com" title={t('cart.emailNote')} /></div>
                 </div>
               </div>
             )}
@@ -209,7 +216,8 @@ export default function CartPage() {
                 <h3>4. {t('cart.sec.company')}</h3>
                 <div className="b2b-grid">
                   <div className="b2b-row"><label>{t('cart.contactPerson')}</label><input ref={nameRef} placeholder={t('cart.namePlaceholder')} /></div>
-                  <div className="b2b-row"><label>{t('cart.phone')}</label><input ref={phoneRef} placeholder="+7 (700) 000-00-00" /></div>
+                  <div className="b2b-row"><label>{t('cart.phone')}</label><input ref={phoneRef} type="tel" placeholder="+7 (700) 000-00-00" /></div>
+                  <div className="b2b-row"><label>{t('cart.email')}</label><input ref={emailRef} type="email" placeholder="mail@example.com" title={t('cart.emailNote')} /></div>
                   <div className="b2b-row"><label>{t('cart.companyName')}</label><input ref={companyRef} defaultValue="ТОО «АлматыСпецТранс»" /></div>
                   <div className="b2b-row"><label>{t('cart.bin')}</label><input ref={binRef} defaultValue="200140012345" /></div>
                   <div className="b2b-row"><label>{t('cart.iik')}</label><input defaultValue="KZ496010131000123456" /></div>
@@ -247,7 +255,6 @@ export default function CartPage() {
               >
                 {submitting ? t('cart.submitting') : pay === 'invoice' ? t('cart.makeInvoice') : t('cart.payOrder')}
               </Btn>
-              <button className="cart-pdf"><Ico name="pdf" size={14} /> {t('cart.downloadInvoice')}</button>
               <ul className="cart-trust">
                 <li><Ico name="check" size={12} /> {t('cart.trust1')}</li>
                 <li><Ico name="check" size={12} /> {t('cart.trust2')}</li>
