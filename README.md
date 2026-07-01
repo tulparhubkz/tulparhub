@@ -83,6 +83,7 @@ store/          Zustand-сторы (корзина, избранное, гара
 
 ## Задачи и роадмап
 
+План MVP и пост-MVP — в **[ROADMAP.md](ROADMAP.md)**.
 Бэклог ведётся в GitHub (метки: `good first issue`, `feature`, `infra`, `blocked`):
 
 - **Issues:** https://github.com/tulparhubkz/tulparhub/issues
