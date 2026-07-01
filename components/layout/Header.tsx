@@ -1,13 +1,13 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import Link from 'next/link'
+import { Link, useRouter, usePathname } from '@/i18n/navigation'
 import Image from 'next/image'
-import { useRouter } from 'next/navigation'
+import { useLocale } from 'next-intl'
 import { Ico } from '@/components/ui/Ico'
 import { useCart, useCartCount } from '@/store/cart'
 import { useWishlist } from '@/store/wishlist'
 import { useGarage } from '@/store/garage'
-import { useT, LANGS } from '@/lib/i18n'
+import { useT, LOCALES, LOCALE_LABELS } from '@/lib/i18n'
 import { fmtKZT } from '@/lib/utils'
 import { CityModal } from './CityModal'
 import { GaragePanel } from '@/components/garage/GaragePanel'
@@ -21,13 +21,15 @@ interface SearchResults {
 
 export function Header() {
   const router = useRouter()
+  const pathname = usePathname()
+  const locale = useLocale()
   const [search, setSearch]       = useState('')
   const [results, setResults]     = useState<SearchResults | null>(null)
   const [showResults, setShowResults] = useState(false)
   const [showCity, setShowCity]     = useState(false)
   const [showGarage, setShowGarage] = useState(false)
   const [searchTab, setSearchTab]   = useState<'article' | 'vin' | 'model'>('article')
-  const { city, lang, setLang }     = useCart()
+  const { city }                    = useCart()
   const t                           = useT()
   const wishCount                   = useWishlist(s => s.items.length)
   const { vehicles }                = useGarage()
@@ -79,8 +81,8 @@ export function Header() {
             </div>
             <div className="hdr-actions">
               <div className="lang">
-                {LANGS.map((l) => (
-                  <button key={l} type="button" className={lang === l ? 'on' : ''} onClick={() => setLang(l)}>{l}</button>
+                {LOCALES.map((code) => (
+                  <button key={code} type="button" className={locale === code ? 'on' : ''} onClick={() => router.replace(pathname, { locale: code })}>{LOCALE_LABELS[code]}</button>
                 ))}
               </div>
               <a href="tel:+77000000000" className="hdr-phone">

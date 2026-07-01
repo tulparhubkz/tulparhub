@@ -1,39 +1,19 @@
 'use client'
-import { useEffect, useState } from 'react'
-import { useCart } from '@/store/cart'
-import {
-  dictionaries,
-  DEFAULT_LANG,
-  HTML_LANG,
-  type Lang,
-  type TranslationKey,
-} from './dictionaries'
+// Thin client shim over next-intl so call sites keep using `t('dotted.key')`
+// with our typed TranslationKey union. Language now lives in the URL locale
+// (see i18n/routing.ts) and is provided via NextIntlClientProvider, so there is
+// no more localStorage/hydration dance here.
+import { useTranslations } from 'next-intl'
+import type { TranslationKey } from './dictionaries'
 
-export { LANGS, DEFAULT_LANG } from './dictionaries'
-export type { Lang, TranslationKey } from './dictionaries'
+export type { TranslationKey } from './dictionaries'
 
-// The selected language is persisted in the cart store (localStorage). On the
-// server and the first client paint we always use DEFAULT_LANG so the rendered
-// markup matches the SSR output; once mounted we switch to the stored value.
-// This avoids hydration mismatches when a user has picked KZ/EN. It also keeps
-// <html lang> in sync for accessibility/SEO.
-export function useLang(): Lang {
-  const stored = useCart((s) => s.lang)
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
+// URL locale codes and their display labels for the language switcher.
+export const LOCALES = ['ru', 'kz', 'en'] as const
+export type Locale = (typeof LOCALES)[number]
+export const LOCALE_LABELS: Record<Locale, string> = { ru: 'RU', kz: 'KZ', en: 'EN' }
 
-  const lang = mounted ? stored : DEFAULT_LANG
-
-  useEffect(() => {
-    if (mounted) document.documentElement.lang = HTML_LANG[lang]
-  }, [mounted, lang])
-
-  return lang
-}
-
-export type TFunction = (key: TranslationKey) => string
-
-export function useT(): TFunction {
-  const lang = useLang()
-  return (key) => dictionaries[lang][key] ?? dictionaries[DEFAULT_LANG][key] ?? key
+export function useT(): (key: TranslationKey) => string {
+  const t = useTranslations()
+  return t as unknown as (key: TranslationKey) => string
 }

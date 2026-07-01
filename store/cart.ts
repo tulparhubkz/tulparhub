@@ -2,19 +2,16 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { CartItem, Part } from '@/types'
-import type { Lang } from '@/lib/i18n/dictionaries'
 import { useCartPopup } from './cartPopup'
 
 interface CartStore {
   items: CartItem[]
   city: string
-  lang: Lang
   addItem: (part: Part, qty?: number) => void
   removeItem: (id: string) => void
   setQty: (id: string, qty: number) => void
   clearCart: () => void
   setCity: (city: string) => void
-  setLang: (lang: Lang) => void
 }
 
 export const useCart = create<CartStore>()(
@@ -22,7 +19,6 @@ export const useCart = create<CartStore>()(
     (set) => ({
       items: [],
       city: 'Алматы',
-      lang: 'RU',
       addItem: (part, qty = 1) => {
         set((s) => {
           const existing = s.items.find((i) => i.id === part.id)
@@ -51,7 +47,6 @@ export const useCart = create<CartStore>()(
         })),
       clearCart: () => set({ items: [] }),
       setCity: (city) => set({ city }),
-      setLang: (lang) => set({ lang }),
     }),
     { name: 'tulparhub-cart' }
   )

@@ -1,12 +1,14 @@
 'use client'
 import { useEffect, useRef } from 'react'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import Image from 'next/image'
 import { useCartPopup } from '@/store/cartPopup'
 import { useCart } from '@/store/cart'
 import { fmtKZT } from '@/lib/utils'
+import { useT } from '@/lib/i18n'
 
 export function CartAddedPopup() {
+  const t = useT()
   const { item, hide } = useCartPopup()
   const { items, setQty, removeItem } = useCart()
   const timerRef = useRef<ReturnType<typeof setTimeout>>()
@@ -34,7 +36,7 @@ export function CartAddedPopup() {
       <div className="cap-backdrop" onClick={hide} />
       <div className="cap-modal">
         <div className="cap-head">
-          <h2 className="cap-title">Добавлено в корзину</h2>
+          <h2 className="cap-title">{t('cap.title')}</h2>
           <button className="cap-close" onClick={hide}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -63,13 +65,13 @@ export function CartAddedPopup() {
               <button className="cap-qty-btn" onClick={() => changeQty(1)}>+</button>
             </div>
             <div className="cap-price">{fmtKZT(item.price * qty)}</div>
-            <div className="cap-price-unit">1 шт = {fmtKZT(item.price)}</div>
+            <div className="cap-price-unit">1 {t('cart.pcs')} = {fmtKZT(item.price)}</div>
           </div>
         </div>
 
         <div className="cap-footer">
-          <button className="cap-continue" onClick={hide}>Продолжить покупки</button>
-          <Link href="/cart" className="cap-go-cart" onClick={hide}>Перейти в корзину →</Link>
+          <button className="cap-continue" onClick={hide}>{t('success.continue')}</button>
+          <Link href="/cart" className="cap-go-cart" onClick={hide}>{t('cap.goCart')}</Link>
         </div>
       </div>
     </>

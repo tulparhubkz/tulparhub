@@ -3,8 +3,10 @@ import { useState } from 'react'
 import { cities } from '@/lib/data'
 import { useCart } from '@/store/cart'
 import { Ico } from '@/components/ui/Ico'
+import { useT } from '@/lib/i18n'
 
 export function CityModal({ onClose }: { onClose: () => void }) {
+  const t = useT()
   const { city, setCity } = useCart()
   const [q, setQ] = useState('')
 
@@ -16,7 +18,7 @@ export function CityModal({ onClose }: { onClose: () => void }) {
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-head">
-          <h3>Выберите город</h3>
+          <h3>{t('city.title')}</h3>
           <button type="button" onClick={onClose}><Ico name="close" size={16} /></button>
         </div>
 
@@ -25,7 +27,7 @@ export function CityModal({ onClose }: { onClose: () => void }) {
           <Ico name="search" size={15} />
           <input
             autoFocus
-            placeholder="Поиск города..."
+            placeholder={t('city.searchPh')}
             value={q}
             onChange={e => setQ(e.target.value)}
           />
@@ -39,7 +41,7 @@ export function CityModal({ onClose }: { onClose: () => void }) {
         <div className="city-grid">
           {filtered.length === 0 ? (
             <div style={{ gridColumn: '1/-1', padding: '20px 0', textAlign: 'center', color: 'var(--ink-3)', fontSize: 14 }}>
-              Город не найден
+              {t('city.notFound')}
             </div>
           ) : filtered.map((c) => (
             <button
@@ -58,7 +60,7 @@ export function CityModal({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="modal-foot">
-          <span>Город влияет на наличие товаров и цены.</span>
+          <span>{t('city.note')}</span>
         </div>
       </div>
     </div>

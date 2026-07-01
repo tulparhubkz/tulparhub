@@ -1,10 +1,11 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/navigation'
 import Image from 'next/image'
 import { fmtKZT } from '@/lib/utils'
 import { useCart } from '@/store/cart'
 import { useWishlist } from '@/store/wishlist'
+import { useT } from '@/lib/i18n'
 
 // Shared product card (the Autopiter-style ".card"). Used by the catalog,
 // wishlist and brand pages so there is one card to maintain.
@@ -34,6 +35,7 @@ function usePartImage(oem: string, name: string) {
 
 export function ProductCard({ part, b2b = false }: { part: any; b2b?: boolean }) {
   const router = useRouter()
+  const t = useT()
   const { items, addItem } = useCart()
   const toggle = useWishlist((s) => s.toggle)
   const inWish = useWishlist((s) => s.items.some((i) => i.id === part.id))
@@ -61,11 +63,11 @@ export function ProductCard({ part, b2b = false }: { part: any; b2b?: boolean })
       </div>
       <div className="card-body">
         <div className="card-badges">
-          <span className={`badge ${isOEM ? 'oem' : 'analog'}`}>{isOEM ? 'OEM' : 'Аналог'}</span>
+          <span className={`badge ${isOEM ? 'oem' : 'analog'}`}>{isOEM ? 'OEM' : t('pdp.badge.analog')}</span>
           {totalQty > 0 ? (
-            <span className="badge stock"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg> В наличии</span>
+            <span className="badge stock"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg> {t('catalog.filt.inStock')}</span>
           ) : (
-            <span className="badge" style={{ background: 'var(--surf-2)', color: 'var(--ink-3)' }}>Под заказ</span>
+            <span className="badge" style={{ background: 'var(--surf-2)', color: 'var(--ink-3)' }}>{t('pdp.badge.onOrder')}</span>
           )}
         </div>
         <div className="card-art">{part.oem}</div>
@@ -74,11 +76,11 @@ export function ProductCard({ part, b2b = false }: { part: any; b2b?: boolean })
         <div className="card-foot">
           <div className="card-price">
             <span className="now">{fmtKZT(price)}</span>
-            <span className="unit">с НДС · за шт</span>
+            <span className="unit">{t('pdp.priceMeta')}</span>
           </div>
           <button className="buy" onClick={(e) => { e.stopPropagation(); addItem({ ...part, stock: stockMap }, 1) }}>
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg>
-            {inCart ? 'В корзине' : 'В корзину'}
+            {inCart ? t('pc.inCart') : t('pdp.addToCart')}
           </button>
         </div>
       </div>

@@ -1,7 +1,9 @@
 'use client'
 import { useState } from 'react'
+import { useT } from '@/lib/i18n'
 
 export function FloatingChat() {
+  const t = useT()
   const [open, setOpen] = useState(false)
 
   return (
@@ -9,8 +11,8 @@ export function FloatingChat() {
       {open && (
         <div className="float-menu">
           <div className="float-menu-head">
-            <b>Связаться с менеджером</b>
-            <span>Ответим за 2 минуты</span>
+            <b>{t('chat.title')}</b>
+            <span>{t('chat.sub')}</span>
           </div>
           <a
             href="https://wa.me/77000000000?text=Здравствуйте!%20Нужна%20помощь%20с%20подбором%20запчасти."
@@ -39,7 +41,7 @@ export function FloatingChat() {
       <button
         className="chat-bubble"
         onClick={() => setOpen(o => !o)}
-        aria-label="Открыть чат"
+        aria-label={t('chat.aria')}
       >
         {open ? (
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>

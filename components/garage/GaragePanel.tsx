@@ -1,7 +1,8 @@
 'use client'
 import { useState } from 'react'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { useGarage, type GarageVehicle } from '@/store/garage'
+import { useT } from '@/lib/i18n'
 
 function TruckIcon({ size = 32 }: { size?: number }) {
   return (
@@ -13,6 +14,7 @@ function TruckIcon({ size = 32 }: { size?: number }) {
 }
 
 function EditModal({ vehicle, onClose }: { vehicle: GarageVehicle; onClose: () => void }) {
+  const t = useT()
   const { updateVehicle, removeVehicle } = useGarage()
   const [name, setName] = useState(vehicle.name)
   const [note, setNote] = useState(vehicle.note)
@@ -21,7 +23,7 @@ function EditModal({ vehicle, onClose }: { vehicle: GarageVehicle; onClose: () =
     <div className="gp-modal-backdrop" onClick={onClose}>
       <div className="gp-modal" onClick={e => e.stopPropagation()}>
         <div className="gp-modal-head">
-          <h3>Редактировать технику</h3>
+          <h3>{t('gp.editTitle')}</h3>
           <button onClick={onClose} className="gp-icon-btn">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
@@ -33,7 +35,7 @@ function EditModal({ vehicle, onClose }: { vehicle: GarageVehicle; onClose: () =
             <div className="gp-car-vin">{vehicle.vin}</div>
             {vehicle.searchQuery && vehicle.searchQuery !== vehicle.vin && (
               <div style={{ fontSize: 12, color: 'var(--ok)', marginTop: 2 }}>
-                → поиск по «{vehicle.searchQuery}»
+                {t('gp.searchByPre')}{vehicle.searchQuery}{t('gp.searchByPost')}
               </div>
             )}
           </div>
@@ -42,23 +44,24 @@ function EditModal({ vehicle, onClose }: { vehicle: GarageVehicle; onClose: () =
           </button>
         </div>
         <div className="gp-field">
-          <label>Название техники в гараже</label>
+          <label>{t('gp.nameLabel')}</label>
           <input value={name} onChange={e => setName(e.target.value)} placeholder={vehicle.vin} />
         </div>
         <div className="gp-field">
-          <label>VIN / описание</label>
-          <input value={note} onChange={e => setNote(e.target.value)} placeholder="Дополнительная информация" />
+          <label>{t('gp.vinLabel')}</label>
+          <input value={note} onChange={e => setNote(e.target.value)} placeholder={t('gp.notePh')} />
         </div>
         <button className="gp-save-btn" onClick={() => {
           updateVehicle(vehicle.id, { name: name.trim() || vehicle.vin, note: note.trim() })
           onClose()
-        }}>Сохранить</button>
+        }}>{t('gp.save')}</button>
       </div>
     </div>
   )
 }
 
 function AddForm({ onBack }: { onBack: () => void }) {
+  const t = useT()
   const { addVehicle } = useGarage()
   const [vin, setVin] = useState('')
   const [loading, setLoading] = useState(false)
@@ -81,8 +84,8 @@ function AddForm({ onBack }: { onBack: () => void }) {
 
   const submit = () => {
     const v = vin.trim()
-    if (!v) { setError('Введите VIN или модель техники'); return }
-    if (v.length < 3) { setError('Слишком короткое значение'); return }
+    if (!v) { setError(t('gp.errEnter')); return }
+    if (v.length < 3) { setError(t('gp.errShort')); return }
     addVehicle(v, decoded ? `${decoded.brand} ${decoded.model}${decoded.year ? ` ${decoded.year}` : ''}` : '', decoded?.searchQuery)
     onBack()
   }
@@ -91,9 +94,9 @@ function AddForm({ onBack }: { onBack: () => void }) {
     <div className="gp-screen">
       <button className="gp-back" onClick={onBack}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
-        Назад
+        {t('common.back')}
       </button>
-      <h2 className="gp-title">Добавить технику</h2>
+      <h2 className="gp-title">{t('gp.addTech')}</h2>
 
       <div className="gp-field" style={{ marginTop: 20 }}>
         <input
@@ -101,34 +104,35 @@ function AddForm({ onBack }: { onBack: () => void }) {
           value={vin}
           onChange={e => { setVin(e.target.value); setError(''); decode(e.target.value) }}
           onKeyDown={e => e.key === 'Enter' && submit()}
-          placeholder="VIN-номер, код или модель (DAF XF105)"
+          placeholder={t('gp.addPh')}
           className={error ? 'err' : ''}
         />
         {error && <div className="gp-error">{error}</div>}
       </div>
 
       {/* VIN decode result */}
-      {loading && <div className="gp-decode-box loading">Определяю технику...</div>}
+      {loading && <div className="gp-decode-box loading">{t('gp.decoding')}</div>}
       {decoded && !loading && (
         <div className="gp-decode-box ok">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
           <div>
-            <div className="gp-decode-name">{decoded.brand} {decoded.model}{decoded.year ? ` · ${decoded.year} г.` : ''}</div>
-            <div className="gp-decode-hint">Поиск запчастей: «{decoded.searchQuery}»</div>
+            <div className="gp-decode-name">{decoded.brand} {decoded.model}{decoded.year ? ` · ${decoded.year} ${t('common.yearShort')}`.trimEnd() : ''}</div>
+            <div className="gp-decode-hint">{t('gp.searchPartsPre')}{decoded.searchQuery}{t('gp.searchPartsPost')}</div>
           </div>
         </div>
       )}
 
       <p className="gp-hint">
-        Введите VIN-номер для автоматического определения марки и модели, или вручную укажите модель (например: <b>MAN TGA</b>, <b>DAF XF105</b>).
+        {t('gp.hintPre')}<b>MAN TGA</b>{t('gp.hintMid')}<b>DAF XF105</b>{t('gp.hintPost')}
       </p>
 
-      <button className="gp-add-btn" onClick={submit}>Добавить технику</button>
+      <button className="gp-add-btn" onClick={submit}>{t('gp.addTech')}</button>
     </div>
   )
 }
 
 export function GaragePanel({ onClose }: { onClose: () => void }) {
+  const t = useT()
   const { vehicles } = useGarage()
   const [screen, setScreen] = useState<'list' | 'add'>('list')
   const [editing, setEditing] = useState<GarageVehicle | null>(null)
@@ -138,7 +142,7 @@ export function GaragePanel({ onClose }: { onClose: () => void }) {
       <div className="gp-backdrop" onClick={onClose} />
       <div className="gp-panel">
         <div className="gp-panel-head">
-          <span className="gp-panel-title">Мой гараж</span>
+          <span className="gp-panel-title">{t('account.myGarage')}</span>
           <button className="gp-icon-btn" onClick={onClose}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
@@ -151,8 +155,8 @@ export function GaragePanel({ onClose }: { onClose: () => void }) {
             {vehicles.length === 0 ? (
               <div className="gp-empty">
                 <div className="gp-empty-icon"><TruckIcon size={48} /></div>
-                <p>Гараж пуст</p>
-                <span>Добавьте технику для быстрого поиска запчастей</span>
+                <p>{t('gp.empty')}</p>
+                <span>{t('gp.emptyText')}</span>
               </div>
             ) : (
               <div className="gp-list">
@@ -168,14 +172,14 @@ export function GaragePanel({ onClose }: { onClose: () => void }) {
                       className="gp-find-btn"
                       onClick={e => e.stopPropagation()}
                     >
-                      Запчасти →
+                      {t('gp.parts')}
                     </Link>
                   </div>
                 ))}
               </div>
             )}
             <button className="gp-add-btn" style={{ marginTop: 16 }} onClick={() => setScreen('add')}>
-              + Добавить технику
+              + {t('gp.addTech')}
             </button>
           </div>
         )}

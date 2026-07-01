@@ -1,6 +1,6 @@
 'use client'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { Link } from '@/i18n/navigation'
+import { usePathname } from '@/i18n/navigation'
 import { Ico } from '@/components/ui/Ico'
 import { useCartCount } from '@/store/cart'
 import { useT } from '@/lib/i18n'
@@ -15,7 +15,7 @@ export function BottomNav() {
     href === '/' ? pathname === '/' : pathname.startsWith(href)
 
   return (
-    <nav className="bottomnav" aria-label="Основная навигация">
+    <nav className="bottomnav" aria-label={t('bottomnav.aria')}>
       <Link href="/" className={`bn-item ${active('/') ? 'on' : ''}`}>
         <Ico name="home" size={22} />
         <span>{t('bottomnav.home')}</span>
