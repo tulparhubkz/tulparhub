@@ -113,6 +113,51 @@ export async function createOrder(input: OrderInput): Promise<CreatedOrder> {
   throw new Error('createOrder: could not allocate a unique invoice number')
 }
 
+function phoneDigits(s: string): string {
+  return (s ?? '').replace(/\D/g, '')
+}
+
+export interface TrackedOrder {
+  invoiceNumber: string
+  createdAt: string // ISO — serializable across the server-action boundary
+  status: string
+  paymentStatus: string
+  paymentProvider: string | null
+  delivery: string | null
+  city: string | null
+  total: number
+  items: Array<{ name: string; oem: string | null; qty: number; price: number }>
+}
+
+/**
+ * Guest order tracking: invoice number + the phone used at checkout (last 10
+ * digits must match, so +7/8 prefixes are interchangeable). Any mismatch —
+ * wrong number, wrong phone — returns the same null, so order numbers can't
+ * be enumerated.
+ */
+export async function trackOrderByInvoice(invoiceNumber: string, phone: string): Promise<TrackedOrder | null> {
+  const inv = (invoiceNumber ?? '').trim().toUpperCase()
+  const digits = phoneDigits(phone)
+  if (!/^TH-\d{4}-\d{6}$/.test(inv) || digits.length < 10) return null
+
+  const [o] = await db.select().from(orders).where(eq(orders.invoiceNumber, inv))
+  if (!o) return null
+  if (phoneDigits(o.customerPhone).slice(-10) !== digits.slice(-10)) return null
+
+  const its = await db.select().from(orderItems).where(eq(orderItems.orderId, o.id))
+  return {
+    invoiceNumber: o.invoiceNumber,
+    createdAt: o.createdAt.toISOString(),
+    status: o.status,
+    paymentStatus: o.paymentStatus,
+    paymentProvider: o.paymentProvider,
+    delivery: o.delivery,
+    city: o.city,
+    total: o.total,
+    items: its.map((it) => ({ name: it.name, oem: it.oem, qty: it.qty, price: it.price })),
+  }
+}
+
 export interface OrderLineItem {
   id: string
   name: string
