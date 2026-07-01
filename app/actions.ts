@@ -2,6 +2,7 @@
 
 import { createLead } from '@/lib/services/leads'
 import { createOrder, trackOrderByInvoice, type TrackedOrder } from '@/lib/services/orders'
+import { notifyOps, formatOrderMessage, formatLeadMessage } from '@/lib/notify'
 import { auth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 
@@ -63,6 +64,21 @@ export async function submitOrder(payload: OrderPayload): Promise<{ ok: boolean;
         payment:  payload.payment ?? null,
         items:    payload.items,
       })
+      // Fire-and-forget: a Telegram outage must never block or fail a checkout.
+      void notifyOps(formatOrderMessage({
+        invoiceNumber: order.invoiceNumber,
+        total: order.total,
+        name: payload.name.trim(),
+        phone: payload.phone.trim(),
+        payment: payload.payment,
+        delivery: payload.delivery,
+        company: payload.company,
+        bin: payload.bin,
+        city: payload.city,
+        comment: payload.comment,
+        items: (payload.items ?? []).map((i) => ({ name: i.name, qty: i.qty })),
+      }))
+
       revalidatePath('/')
       return {
         ok: true,
@@ -98,6 +114,16 @@ export async function submitOrder(payload: OrderPayload): Promise<{ ok: boolean;
   } catch (err) {
     console.error('[submitOrder] lead error:', err)
   }
+
+  void notifyOps(formatLeadMessage({
+    kind: payload.kind,
+    name: payload.name.trim(),
+    phone: payload.phone.trim(),
+    city: payload.city,
+    comment: payload.comment,
+    unitId: payload.unit_id,
+    dates: payload.date_from ? `${payload.date_from} → ${payload.date_to ?? '…'}` : null,
+  }))
 
   revalidatePath('/')
 
