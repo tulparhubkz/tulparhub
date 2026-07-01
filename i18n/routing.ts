@@ -5,6 +5,9 @@ import { defineRouting } from 'next-intl/routing'
 export const routing = defineRouting({
   locales: ['ru', 'kz', 'en'],
   defaultLocale: 'ru',
+  // KZ-market convention (like kaspi.kz): everyone lands on RU regardless of
+  // browser Accept-Language; switching is always explicit via the UI.
+  localeDetection: false,
 })
 
 export type Locale = (typeof routing.locales)[number]
