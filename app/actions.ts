@@ -1,7 +1,7 @@
 'use server'
 
 import { createLead } from '@/lib/services/leads'
-import { createOrder } from '@/lib/services/orders'
+import { createOrder, trackOrderByInvoice, type TrackedOrder } from '@/lib/services/orders'
 import { auth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 
@@ -108,6 +108,19 @@ export async function submitOrder(payload: OrderPayload): Promise<{ ok: boolean;
   }
 
   return { ok: true, message: messages[payload.kind] ?? 'Заявка принята.' }
+}
+
+export async function trackOrder(
+  invoiceNumber: string,
+  phone: string,
+): Promise<{ found: boolean; order?: TrackedOrder }> {
+  try {
+    const order = await trackOrderByInvoice(invoiceNumber, phone)
+    return order ? { found: true, order } : { found: false }
+  } catch (err) {
+    console.error('[trackOrder] error:', err)
+    return { found: false } // uniform response — no enumeration, no error detail
+  }
 }
 
 export async function submitCallback(formData: FormData) {

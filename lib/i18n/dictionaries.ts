@@ -12,14 +12,15 @@ import { podbor } from './messages/podbor'
 import { commerce } from './messages/commerce'
 import { catalog } from './messages/catalog'
 import { components } from './messages/components'
+import { track } from './messages/track'
 import type { Lang } from './config'
 
 export type { Lang } from './config'
 
 export const dictionaries = {
-  RU: { ...chrome.RU, ...home.RU, ...about.RU, ...warranty.RU, ...rental.RU, ...vin.RU, ...podbor.RU, ...commerce.RU, ...catalog.RU, ...components.RU },
-  KZ: { ...chrome.KZ, ...home.KZ, ...about.KZ, ...warranty.KZ, ...rental.KZ, ...vin.KZ, ...podbor.KZ, ...commerce.KZ, ...catalog.KZ, ...components.KZ },
-  EN: { ...chrome.EN, ...home.EN, ...about.EN, ...warranty.EN, ...rental.EN, ...vin.EN, ...podbor.EN, ...commerce.EN, ...catalog.EN, ...components.EN },
+  RU: { ...chrome.RU, ...home.RU, ...about.RU, ...warranty.RU, ...rental.RU, ...vin.RU, ...podbor.RU, ...commerce.RU, ...catalog.RU, ...components.RU, ...track.RU },
+  KZ: { ...chrome.KZ, ...home.KZ, ...about.KZ, ...warranty.KZ, ...rental.KZ, ...vin.KZ, ...podbor.KZ, ...commerce.KZ, ...catalog.KZ, ...components.KZ, ...track.KZ },
+  EN: { ...chrome.EN, ...home.EN, ...about.EN, ...warranty.EN, ...rental.EN, ...vin.EN, ...podbor.EN, ...commerce.EN, ...catalog.EN, ...components.EN, ...track.EN },
 } satisfies Record<Lang, Record<string, string>>
 
 export type TranslationKey = keyof typeof dictionaries.RU
