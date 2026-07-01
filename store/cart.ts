@@ -7,13 +7,11 @@ import { useCartPopup } from './cartPopup'
 interface CartStore {
   items: CartItem[]
   city: string
-  lang: string
   addItem: (part: Part, qty?: number) => void
   removeItem: (id: string) => void
   setQty: (id: string, qty: number) => void
   clearCart: () => void
   setCity: (city: string) => void
-  setLang: (lang: string) => void
 }
 
 export const useCart = create<CartStore>()(
@@ -21,7 +19,6 @@ export const useCart = create<CartStore>()(
     (set) => ({
       items: [],
       city: 'Алматы',
-      lang: 'RU',
       addItem: (part, qty = 1) => {
         set((s) => {
           const existing = s.items.find((i) => i.id === part.id)
@@ -50,7 +47,6 @@ export const useCart = create<CartStore>()(
         })),
       clearCart: () => set({ items: [] }),
       setCity: (city) => set({ city }),
-      setLang: (lang) => set({ lang }),
     }),
     { name: 'tulparhub-cart' }
   )

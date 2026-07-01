@@ -1,7 +1,10 @@
-import Link from 'next/link'
+'use client'
+import { Link } from '@/i18n/navigation'
 import Image from 'next/image'
+import { useT } from '@/lib/i18n'
 
 export function Footer() {
+  const t = useT()
   return (
     <footer className="foot">
       <div className="container foot-grid">
@@ -9,48 +12,48 @@ export function Footer() {
           <Link href="/">
             <Image src="/logo.png" alt="TulparHub" width={150} height={100} style={{ objectFit: 'contain' }} />
           </Link>
-          <p className="foot-tag">Грузовые запчасти и аренда спецтехники · с 2026 года.</p>
+          <p className="foot-tag">{t('footer.tag')}</p>
           <div className="foot-trust">
-            <div><b>20 000+</b><span>SKU на складах</span></div>
+            <div><b>20 000+</b><span>{t('footer.trust.sku')}</span></div>
           </div>
         </div>
         <div className="foot-col">
-          <h4>Каталог</h4>
-          <Link href="/catalog">Запчасти</Link>
-          <Link href="/catalog?type=oem">Поиск по OEM-номеру</Link>
-          <Link href="/podbor">Подбор по VIN</Link>
-          <Link href="/catalog">Бренды</Link>
-          <Link href="/rental">Аренда техники</Link>
-          <Link href="/catalog">Новые поступления</Link>
+          <h4>{t('footer.col.catalog')}</h4>
+          <Link href="/catalog">{t('footer.link.parts')}</Link>
+          <Link href="/catalog?type=oem">{t('footer.link.oem')}</Link>
+          <Link href="/podbor">{t('footer.link.vin')}</Link>
+          <Link href="/catalog">{t('footer.link.brands')}</Link>
+          <Link href="/rental">{t('footer.link.rental')}</Link>
+          <Link href="/catalog">{t('footer.link.new')}</Link>
         </div>
         <div className="foot-col">
-          <h4>Сервис</h4>
-          <a href="#">Доставка и оплата</a>
-          <Link href="/warranty">Гарантия и возврат</Link>
-          <a href="#">Оптовикам</a>
-          <a href="#">Для СТО</a>
-          <a href="#">1С-интеграция</a>
-          <a href="#">Документы</a>
+          <h4>{t('footer.col.service')}</h4>
+          <a href="#">{t('footer.link.delivery')}</a>
+          <Link href="/warranty">{t('footer.link.warranty')}</Link>
+          <a href="#">{t('footer.link.wholesale')}</a>
+          <a href="#">{t('footer.link.sto')}</a>
+          <a href="#">{t('footer.link.1c')}</a>
+          <a href="#">{t('footer.link.docs')}</a>
         </div>
         <div className="foot-col">
-          <h4>Компания</h4>
-          <Link href="/about">О нас</Link>
-          <a href="#">Карьера</a>
-          <a href="#">Партнёрам</a>
-          <a href="#">Новости</a>
-          <a href="#">База знаний</a>
+          <h4>{t('footer.col.company')}</h4>
+          <Link href="/about">{t('footer.link.about')}</Link>
+          <a href="#">{t('footer.link.career')}</a>
+          <a href="#">{t('footer.link.partners')}</a>
+          <a href="#">{t('footer.link.news')}</a>
+          <a href="#">{t('footer.link.kb')}</a>
         </div>
         <div className="foot-col">
-          <h4>Контакты</h4>
+          <h4>{t('footer.col.contacts')}</h4>
           <a href="tel:+77000000000">+7 (700) 000-00-00</a>
           <a href="mailto:info@tulparhub.kz">info@tulparhub.kz</a>
           <a href="#">Telegram · WhatsApp</a>
-          <a href="#">ул. Райымбека 348А, Алматы</a>
+          <a href="#">{t('footer.contact.address')}</a>
         </div>
       </div>
       <div className="container foot-legal">
-        <div>TulparHub © 2024–2025 · Все права защищены</div>
-        <div>ТОО «TulparHub» · БИН 200140000000</div>
+        <div>{t('footer.legal.rights')}</div>
+        <div>{t('footer.legal.entity')}</div>
       </div>
     </footer>
   )

@@ -1,12 +1,13 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import Link from 'next/link'
+import { Link, useRouter, usePathname } from '@/i18n/navigation'
 import Image from 'next/image'
-import { useRouter } from 'next/navigation'
+import { useLocale } from 'next-intl'
 import { Ico } from '@/components/ui/Ico'
 import { useCart, useCartCount } from '@/store/cart'
 import { useWishlist } from '@/store/wishlist'
 import { useGarage } from '@/store/garage'
+import { useT, LOCALES, LOCALE_LABELS } from '@/lib/i18n'
 import { fmtKZT } from '@/lib/utils'
 import { CityModal } from './CityModal'
 import { GaragePanel } from '@/components/garage/GaragePanel'
@@ -20,13 +21,16 @@ interface SearchResults {
 
 export function Header() {
   const router = useRouter()
+  const pathname = usePathname()
+  const locale = useLocale()
   const [search, setSearch]       = useState('')
   const [results, setResults]     = useState<SearchResults | null>(null)
   const [showResults, setShowResults] = useState(false)
   const [showCity, setShowCity]     = useState(false)
   const [showGarage, setShowGarage] = useState(false)
-  const [searchTab, setSearchTab]   = useState<'Артикул' | 'VIN' | 'Модель'>('Артикул')
-  const { city, lang, setLang }     = useCart()
+  const [searchTab, setSearchTab]   = useState<'article' | 'vin' | 'model'>('article')
+  const { city }                    = useCart()
+  const t                           = useT()
   const wishCount                   = useWishlist(s => s.items.length)
   const { vehicles }                = useGarage()
   const cartCount                 = useCartCount()
@@ -51,7 +55,7 @@ export function Header() {
   const handleSearch = () => {
     if (!search.trim()) return
     setShowResults(false)
-    if (searchTab === 'VIN') {
+    if (searchTab === 'vin') {
       router.push(`/catalog?vin=${encodeURIComponent(search)}`)
     } else {
       router.push(`/catalog?q=${encodeURIComponent(search)}`)
@@ -77,15 +81,15 @@ export function Header() {
             </div>
             <div className="hdr-actions">
               <div className="lang">
-                {(['RU', 'KZ', 'EN'] as const).map((l) => (
-                  <button key={l} type="button" className={lang === l ? 'on' : ''} onClick={() => setLang(l)}>{l}</button>
+                {LOCALES.map((code) => (
+                  <button key={code} type="button" className={locale === code ? 'on' : ''} onClick={() => router.replace(pathname, { locale: code })}>{LOCALE_LABELS[code]}</button>
                 ))}
               </div>
               <a href="tel:+77000000000" className="hdr-phone">
                 <Ico name="phone" size={13} />
                 <span>+7 (700) 000-00-00</span>
               </a>
-              <button type="button" className="callback">Заказать звонок</button>
+              <button type="button" className="callback">{t('header.callback')}</button>
             </div>
           </div>
         </div>
@@ -104,20 +108,20 @@ export function Header() {
               onFocus={() => setShowResults(true)}
               onBlur={() => setTimeout(() => setShowResults(false), 200)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              placeholder="OEM-номер, VIN, модель техники..."
+              placeholder={t('search.placeholder')}
             />
             <div className="search-tabs">
-              {(['Артикул', 'VIN', 'Модель'] as const).map((t) => (
-                <button key={t} type="button" className={searchTab === t ? 'on' : ''} onClick={() => setSearchTab(t)}>{t}</button>
+              {([['article', 'search.tab.article'], ['vin', 'search.tab.vin'], ['model', 'search.tab.model']] as const).map(([id, key]) => (
+                <button key={id} type="button" className={searchTab === id ? 'on' : ''} onClick={() => setSearchTab(id)}>{t(key)}</button>
               ))}
             </div>
-            <button type="button" className="search-go" onClick={handleSearch}>Найти</button>
+            <button type="button" className="search-go" onClick={handleSearch}>{t('search.go')}</button>
 
             {showResults && hasResults && (
               <div className="search-results">
                 {results!.parts.length > 0 && (
                   <div className="sr-group">
-                    <div className="sr-head">ЗАПЧАСТИ</div>
+                    <div className="sr-head">{t('search.group.parts')}</div>
                     {results!.parts.map((p) => (
                       <button key={p.id} className="sr-row" onMouseDown={() => { setShowResults(false); router.push(`/catalog/${p.id}`) }}>
                         <div className="sr-thumb" style={{ width: 36, height: 36, background: '#f0f2f5', borderRadius: 4, flexShrink: 0 }} />
@@ -132,7 +136,7 @@ export function Header() {
                 )}
                 {results!.systems.length > 0 && (
                   <div className="sr-group">
-                    <div className="sr-head">КАТЕГОРИИ</div>
+                    <div className="sr-head">{t('search.group.categories')}</div>
                     {results!.systems.map((s) => (
                       <button key={s.id} className="sr-row" onMouseDown={() => { setShowResults(false); router.push(s.href) }}>
                         <div className="sr-meta"><div className="sr-name">{s.label}</div></div>
@@ -142,7 +146,7 @@ export function Header() {
                 )}
                 {results!.brands.length > 0 && (
                   <div className="sr-group">
-                    <div className="sr-head">БРЕНДЫ</div>
+                    <div className="sr-head">{t('search.group.brands')}</div>
                     {results!.brands.map((b) => (
                       <button key={b.id} className="sr-row" onMouseDown={() => { setShowResults(false); router.push(b.href) }}>
                         <div className="sr-meta"><div className="sr-name">{b.label}</div></div>
@@ -151,7 +155,7 @@ export function Header() {
                   </div>
                 )}
                 <div className="sr-foot">
-                  <button onMouseDown={handleSearch}>Показать все результаты →</button>
+                  <button onMouseDown={handleSearch}>{t('search.showAll')}</button>
                 </div>
               </div>
             )}
@@ -160,19 +164,19 @@ export function Header() {
           <div className="hdr-user">
             <Link href="/wishlist" className="hdr-iconbtn" style={{ textDecoration: 'none', flexDirection: 'column', position: 'relative' }}>
               <Ico name="heart" size={18} />
-              <span className="hdr-iconlbl">Избранное</span>
+              <span className="hdr-iconlbl">{t('user.wishlist')}</span>
               {wishCount > 0 && <span className="hdr-iconcount on">{wishCount}</span>}
             </Link>
             <button type="button" className="hdr-iconbtn" onClick={() => setShowGarage(true)} style={{ position: 'relative' }}>
               <Ico name="truck" size={18} />
-              <span className="hdr-iconlbl">Гараж</span>
+              <span className="hdr-iconlbl">{t('user.garage')}</span>
               {vehicles.length > 0 && (
                 <span className="hdr-iconcount on" style={{ position: 'absolute', top: 2, right: 6 }}>{vehicles.length}</span>
               )}
             </button>
             <Link href="/cart" className="hdr-iconbtn" style={{ textDecoration: 'none', flexDirection: 'column' }}>
               <Ico name="cart" size={18} />
-              <span className="hdr-iconlbl">Корзина</span>
+              <span className="hdr-iconlbl">{t('user.cart')}</span>
               {cartCount > 0 && <span className="hdr-iconcount on">{cartCount}</span>}
             </Link>
             {user ? (
@@ -183,14 +187,14 @@ export function Header() {
                     {(user.name?.[0] || user.email?.[0] || '?').toUpperCase()}
                   </div>
                   <span className="hdr-iconlbl" style={{ maxWidth: 60, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {user.name?.split(' ')[0] || 'Аккаунт'}
+                    {user.name?.split(' ')[0] || t('user.account')}
                   </span>
                 </button>
               </div>
             ) : (
               <Link href="/auth" className="hdr-iconbtn" style={{ textDecoration: 'none', flexDirection: 'column' }}>
                 <Ico name="user" size={18} />
-                <span className="hdr-iconlbl">Войти</span>
+                <span className="hdr-iconlbl">{t('user.login')}</span>
               </Link>
             )}
           </div>
@@ -201,15 +205,15 @@ export function Header() {
           <div className="container hdr-nav-row">
             <Link href="/podbor" className="nav-catalog">
               <Ico name="grid" size={14} />
-              <span>Каталог</span>
+              <span>{t('nav.catalog')}</span>
             </Link>
-            <Link href="/catalog">Запчасти</Link>
-            <Link href="/rental">Аренда техники</Link>
-            <Link href="/parts-brands">Бренды</Link>
-            <Link href="/about">О компании</Link>
+            <Link href="/catalog">{t('nav.parts')}</Link>
+            <Link href="/rental">{t('nav.rental')}</Link>
+            <Link href="/parts-brands">{t('nav.brands')}</Link>
+            <Link href="/about">{t('nav.about')}</Link>
             <span className="nav-grow" />
-            <Link href="/vin" className="nav-help-btn">Помощь в подборе</Link>
-            <a href="#" className="nav-promo"><Ico name="bolt" size={14} /> Акция KAMAZ, HOWO, Shacman</a>
+            <Link href="/vin" className="nav-help-btn">{t('nav.help')}</Link>
+            <a href="#" className="nav-promo"><Ico name="bolt" size={14} /> {t('nav.promo')}</a>
           </div>
         </nav>
       </header>
