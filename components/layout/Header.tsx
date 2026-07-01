@@ -11,7 +11,7 @@ import { useT, LOCALES, LOCALE_LABELS } from '@/lib/i18n'
 import { fmtKZT } from '@/lib/utils'
 import { CityModal } from './CityModal'
 import { GaragePanel } from '@/components/garage/GaragePanel'
-import { useSession, signOut } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 
 interface SearchResults {
   parts: Array<{ id: string; name: string; oem: string; price: number }>
@@ -180,17 +180,14 @@ export function Header() {
               {cartCount > 0 && <span className="hdr-iconcount on">{cartCount}</span>}
             </Link>
             {user ? (
-              <div style={{ position: 'relative' }}>
-                <button className="hdr-iconbtn" style={{ flexDirection: 'column' }}
-                  onClick={() => signOut()}>
-                  <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 700 }}>
-                    {(user.name?.[0] || user.email?.[0] || '?').toUpperCase()}
-                  </div>
-                  <span className="hdr-iconlbl" style={{ maxWidth: 60, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {user.name?.split(' ')[0] || t('user.account')}
-                  </span>
-                </button>
-              </div>
+              <Link href="/account" className="hdr-iconbtn" style={{ textDecoration: 'none', flexDirection: 'column' }}>
+                <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 700 }}>
+                  {(user.name?.[0] || user.email?.[0] || '?').toUpperCase()}
+                </div>
+                <span className="hdr-iconlbl" style={{ maxWidth: 60, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {user.name?.split(' ')[0] || t('user.account')}
+                </span>
+              </Link>
             ) : (
               <Link href="/auth" className="hdr-iconbtn" style={{ textDecoration: 'none', flexDirection: 'column' }}>
                 <Ico name="user" size={18} />
