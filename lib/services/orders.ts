@@ -189,9 +189,25 @@ export interface OrderListItem {
   items: OrderLineItem[]
 }
 
+/** A signed-in user's own orders, newest first — for «Мои заказы». */
+export async function listUserOrders(userId: string, limit = 50): Promise<OrderListItem[]> {
+  if (!userId) return []
+  const os = await db
+    .select()
+    .from(orders)
+    .where(eq(orders.userId, userId))
+    .orderBy(desc(orders.createdAt))
+    .limit(limit)
+  return attachItems(os)
+}
+
 /** Most-recent orders with their line items, for the admin panel. */
 export async function listOrders(limit = 100): Promise<OrderListItem[]> {
   const os = await db.select().from(orders).orderBy(desc(orders.createdAt)).limit(limit)
+  return attachItems(os)
+}
+
+async function attachItems(os: (typeof orders.$inferSelect)[]): Promise<OrderListItem[]> {
   if (os.length === 0) return []
 
   const its = await db
