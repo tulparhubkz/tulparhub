@@ -13,6 +13,7 @@ import { GaragePanel } from '@/components/garage/GaragePanel'
 // Mobile "menu hub" reached from the bottom bar's Аккаунт tab: profile/sign-in
 // plus all secondary sections, city, language and contacts in one place.
 const LINKS: Array<{ href: string; labelKey: TranslationKey; icon: string }> = [
+  { href: '/account/orders', labelKey: 'account.link.orders', icon: 'list' },
   { href: '/track', labelKey: 'account.link.track', icon: 'search' },
   { href: '/podbor', labelKey: 'account.link.podbor', icon: 'grid' },
   { href: '/vin', labelKey: 'account.link.vin', icon: 'spark' },

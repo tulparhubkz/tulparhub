@@ -29,6 +29,15 @@ const ru = {
   'track.pay.failed': 'Ошибка оплаты',
   'track.pay.refunded': 'Возврат',
   'track.fromSuccess': 'Отследить заказ',
+  'myorders.title': 'Мои заказы',
+  'myorders.loginTitle': 'Войдите в аккаунт',
+  'myorders.loginText': 'Войдите, чтобы видеть свои заказы и их статусы.',
+  'myorders.loginBtn': 'Войти',
+  'myorders.empty': 'Заказов пока нет.',
+  'myorders.emptyCta': 'Перейти в каталог',
+  'myorders.guestHint': 'Оформляли заказ без входа? Найдите его по номеру:',
+  'myorders.pos': 'поз.',
+  'myorders.invoice': 'Счёт',
 }
 
 type K = keyof typeof ru
@@ -61,6 +70,15 @@ const kz: Record<K, string> = {
   'track.pay.failed': 'Төлем қатесі',
   'track.pay.refunded': 'Қайтарым',
   'track.fromSuccess': 'Тапсырысты қадағалау',
+  'myorders.title': 'Менің тапсырыстарым',
+  'myorders.loginTitle': 'Аккаунтқа кіріңіз',
+  'myorders.loginText': 'Тапсырыстарыңыз бен олардың мәртебелерін көру үшін кіріңіз.',
+  'myorders.loginBtn': 'Кіру',
+  'myorders.empty': 'Әзірге тапсырыс жоқ.',
+  'myorders.emptyCta': 'Каталогқа өту',
+  'myorders.guestHint': 'Кірмей тапсырыс бердіңіз бе? Оны нөмірі бойынша табыңыз:',
+  'myorders.pos': 'поз.',
+  'myorders.invoice': 'Шот',
 }
 
 const en: Record<K, string> = {
@@ -91,6 +109,15 @@ const en: Record<K, string> = {
   'track.pay.failed': 'Payment failed',
   'track.pay.refunded': 'Refunded',
   'track.fromSuccess': 'Track order',
+  'myorders.title': 'My orders',
+  'myorders.loginTitle': 'Sign in',
+  'myorders.loginText': 'Sign in to see your orders and their statuses.',
+  'myorders.loginBtn': 'Sign in',
+  'myorders.empty': 'No orders yet.',
+  'myorders.emptyCta': 'Go to catalog',
+  'myorders.guestHint': 'Ordered as a guest? Find it by order number:',
+  'myorders.pos': 'items',
+  'myorders.invoice': 'Invoice',
 }
 
 export const track: Record<Lang, Record<K, string>> = { RU: ru, KZ: kz, EN: en }
