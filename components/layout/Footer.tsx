@@ -7,7 +7,7 @@ export function Footer() {
       <div className="container foot-grid">
         <div className="foot-brand">
           <Link href="/">
-            <Image src="/logo.png" alt="TulparHub" width={160} height={58} style={{ objectFit: 'contain' }} />
+            <Image src="/logo.png" alt="TulparHub" width={150} height={100} style={{ objectFit: 'contain' }} />
           </Link>
           <p className="foot-tag">Грузовые запчасти и аренда спецтехники · с 2026 года.</p>
           <div className="foot-trust">
