@@ -249,7 +249,19 @@ export default function CatalogInner() {
             </div>
 
             {loading ? (
-              <div style={{ padding:'4rem 0', textAlign:'center', color:'var(--ink-3)' }}>Загрузка…</div>
+              <div className="plp-grid2">
+                {Array.from({ length: 12 }).map((_, i) => (
+                  <div key={i} className="skel-card" aria-hidden="true">
+                    <div className="skel skel-img" />
+                    <div className="skel-body">
+                      <div className="skel skel-line" style={{ width:'40%' }} />
+                      <div className="skel skel-line" style={{ width:'90%' }} />
+                      <div className="skel skel-line" style={{ width:'70%' }} />
+                      <div className="skel skel-line" style={{ width:'55%', height:22, marginTop:6 }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : parts.length === 0 ? (
               <div style={{ padding:'4rem 0', textAlign:'center', color:'var(--ink-3)' }}>
                 <p style={{ marginBottom:12 }}>Товары не найдены.</p>
