@@ -1,6 +1,7 @@
 import { db } from '@/lib/db'
 import { orders, orderItems, parts } from '@/lib/db/schema'
 import { inArray, eq, desc } from 'drizzle-orm'
+import { phoneDigits } from '@/lib/validation'
 
 export const ORDER_STATUSES = ['new', 'confirmed', 'shipped', 'done', 'cancelled'] as const
 export type OrderStatus = (typeof ORDER_STATUSES)[number]
@@ -113,10 +114,6 @@ export async function createOrder(input: OrderInput): Promise<CreatedOrder> {
   throw new Error('createOrder: could not allocate a unique invoice number')
 }
 
-function phoneDigits(s: string): string {
-  return (s ?? '').replace(/\D/g, '')
-}
-
 export interface TrackedOrder {
   invoiceNumber: string
   createdAt: string // ISO — serializable across the server-action boundary
@@ -156,6 +153,15 @@ export async function trackOrderByInvoice(invoiceNumber: string, phone: string):
     total: o.total,
     items: its.map((it) => ({ name: it.name, oem: it.oem, qty: it.qty, price: it.price })),
   }
+}
+
+/** Full order + line items by UUID — for the invoice document (id is unguessable). */
+export async function getOrderWithItems(id: string) {
+  if (!id || id.length < 30) return null // UUIDs only; cheap junk filter
+  const [o] = await db.select().from(orders).where(eq(orders.id, id))
+  if (!o) return null
+  const items = await db.select().from(orderItems).where(eq(orderItems.orderId, o.id))
+  return { ...o, items }
 }
 
 export interface OrderLineItem {

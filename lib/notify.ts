@@ -37,6 +37,7 @@ export interface OrderNotification {
   total: number
   name: string
   phone: string
+  email?: string | null
   payment?: string | null
   delivery?: string | null
   company?: string | null
@@ -49,7 +50,7 @@ export interface OrderNotification {
 export function formatOrderMessage(o: OrderNotification): string {
   const lines = [
     `🧾 <b>Новый заказ ${esc(o.invoiceNumber)}</b> — <b>${fmtKZT(o.total)}</b>`,
-    `👤 ${esc(o.name)} · ${esc(o.phone)}`,
+    `👤 ${esc(o.name)} · ${esc(o.phone)}${o.email ? ` · ${esc(o.email)}` : ''}`,
   ]
   if (o.company) lines.push(`🏢 ${esc(o.company)}${o.bin ? ` · БИН ${esc(o.bin)}` : ''}`)
   const meta = [o.payment, o.delivery, o.city].filter(Boolean).map(esc).join(' · ')
