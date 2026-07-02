@@ -2,7 +2,6 @@
 import { useState } from 'react'
 import { useRouter } from '@/i18n/navigation'
 import { Crumbs } from '@/components/ui/Crumbs'
-import { ToastHost, type ToastItem } from '@/components/ui/Toast'
 import { RentalCard } from '@/components/rental/RentalCard'
 import { BookingSheet } from '@/components/rental/BookingSheet'
 import { rental } from '@/lib/data'
@@ -15,10 +14,6 @@ export default function RentalPage() {
   const [typeFilter, setTypeFilter] = useState('all')
   const [withOp, setWithOp]         = useState('any')
   const [selected, setSelected]     = useState<RentalUnit | null>(null)
-  const [toasts, setToasts]         = useState<ToastItem[]>([])
-
-  const addToast = (msg: string) =>
-    setToasts((t) => [...t, { id: Date.now(), msg, icon: 'check' }])
 
   const items = rental.filter((r) => {
     if (typeFilter !== 'all' && r.type !== typeFilter) return false
@@ -107,11 +102,8 @@ export default function RentalPage() {
         <BookingSheet
           item={selected}
           onClose={() => setSelected(null)}
-          onSubmit={(msg) => addToast(msg)}
         />
       )}
-
-      <ToastHost toasts={toasts} onClear={(id) => setToasts((t) => t.filter((x) => x.id !== id))} />
     </main>
   )
 }

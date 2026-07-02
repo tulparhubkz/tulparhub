@@ -47,6 +47,7 @@ const RENTAL_PERIOD_KEYS: TranslationKey[] = ['home.rent.shift', 'home.rent.day'
 
 function RentalSlideshow() {
   const t = useT()
+  const router = useRouter()
   const [cur, setCur] = useState(0)
 
   useEffect(() => {
@@ -57,13 +58,16 @@ function RentalSlideshow() {
   const slide = RENTAL_SLIDES[cur]
 
   return (
-    <div style={{
-      borderRadius: 16,
-      overflow: 'hidden',
-      background: 'var(--surf)',
-      border: '1.5px solid var(--line)',
-      boxShadow: 'var(--shadow-sm)',
-    }}>
+    <div
+      onClick={() => router.push('/rental')}
+      style={{
+        borderRadius: 16,
+        overflow: 'hidden',
+        background: 'var(--surf)',
+        border: '1.5px solid var(--line)',
+        boxShadow: 'var(--shadow-sm)',
+        cursor: 'pointer',
+      }}>
       {/* Chip */}
       <div style={{ background: 'var(--surf-2)', fontSize: 11, fontWeight: 600, color: 'var(--ink-2)', padding: '6px 14px', borderBottom: '1px solid var(--line)' }}>
         {t('home.slides.chip')}
@@ -98,7 +102,7 @@ function RentalSlideshow() {
           {RENTAL_SLIDES.map((_, i) => (
             <button
               key={i}
-              onClick={() => setCur(i)}
+              onClick={(e) => { e.stopPropagation(); setCur(i) }}
               style={{
                 width: i === cur ? 18 : 6, height: 6,
                 borderRadius: 3,
