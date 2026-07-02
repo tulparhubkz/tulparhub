@@ -62,6 +62,21 @@ async function stockByPart(ids: string[]) {
   return map
 }
 
+// Article numbers are typed every which way — "91-00254", "91 00254", "9100254".
+// Compare both sides with everything but letters/digits stripped, against OEM,
+// the vendor SKU and cross numbers. 20k rows scan fine without an index; the
+// scale-up path is a generated normalized column + pg_trgm.
+function articleCond(q: string): SQL | undefined {
+  const norm = q.toUpperCase().replace(/[^A-ZА-ЯЁ0-9]/g, '')
+  if (norm.length < 3) return undefined // too short — would over-match
+  const like = `%${norm}%`
+  return or(
+    sql`regexp_replace(upper(coalesce(${parts.oem}, '')), '[^A-ZА-ЯЁ0-9]', '', 'g') like ${like}`,
+    sql`regexp_replace(upper(${parts.vendorSku}), '[^A-ZА-ЯЁ0-9]', '', 'g') like ${like}`,
+    sql`exists (select 1 from unnest(coalesce(${parts.cross}, '{}')) as cn where regexp_replace(upper(cn), '[^A-ZА-ЯЁ0-9]', '', 'g') like ${like})`,
+  )
+}
+
 export interface PartFilters {
   system?: string
   brand?: string // truck brand id
@@ -108,7 +123,7 @@ export async function listParts(f: PartFilters) {
       words.length > 1
         ? and(...words.map((w) => ilike(parts.name, `%${w}%`)))!
         : ilike(parts.name, `%${clean}%`)
-    conds.push(or(nameCond, ilike(parts.oem, `%${clean}%`))!)
+    conds.push(or(nameCond, ilike(parts.oem, `%${clean}%`), articleCond(clean))!)
   }
 
   if (f.inStock) {
@@ -162,7 +177,7 @@ export async function searchPartsLite(q: string, limit = 8) {
       and(
         eq(parts.active, true),
         gt(parts.price, 0),
-        or(ilike(parts.name, `%${q}%`), ilike(parts.oem, `%${q}%`), arrayContains(parts.cross, [q])),
+        or(ilike(parts.name, `%${q}%`), ilike(parts.oem, `%${q}%`), arrayContains(parts.cross, [q]), articleCond(q)),
       ),
     )
     .limit(limit)
