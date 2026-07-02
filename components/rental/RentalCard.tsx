@@ -10,7 +10,7 @@ import type { RentalUnit } from '@/types'
 export function RentalCard({ item, onBook }: { item: RentalUnit; onBook: () => void }) {
   const t = useT()
   return (
-    <div className="rcard">
+    <div className="rcard" onClick={onBook} style={{ cursor: 'pointer' }}>
       <div className="rcard-img">
         <Placeholder label={item.img} ratio="16/10" />
         <div className="rcard-badges">
@@ -36,7 +36,9 @@ export function RentalCard({ item, onBook }: { item: RentalUnit; onBook: () => v
           <div className="rcard-loc"><Ico name="pin" size={12} /> {item.city} · {item.delivery}</div>
           <div className="rcard-actions">
             <Btn variant="primary" size="sm" iconRight="arrow" onClick={onBook}>{t('rcard.book')}</Btn>
-            <button className="rcard-call"><Ico name="phone" size={12} /></button>
+            <a className="rcard-call" href="tel:+77000000000" onClick={(e) => e.stopPropagation()} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Ico name="phone" size={12} />
+            </a>
           </div>
         </div>
       </div>
