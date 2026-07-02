@@ -52,7 +52,6 @@ export function CityModal({ onClose }: { onClose: () => void }) {
               <Ico name="pin" size={16} />
               <div>
                 <div className="city-card-name">{c.name}</div>
-                <div className="city-card-sub">{c.country} · {c.currency}</div>
               </div>
               {city === c.name && <Ico name="check" size={16} />}
             </button>

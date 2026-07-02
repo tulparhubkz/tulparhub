@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from '@/i18n/navigation'
 import Image from 'next/image'
 import { fmtKZT } from '@/lib/utils'
+import { warehouseCity } from '@/lib/data'
 import { useCart } from '@/store/cart'
 import { useWishlist } from '@/store/wishlist'
 import { useT } from '@/lib/i18n'
@@ -36,13 +37,15 @@ function usePartImage(oem: string, name: string) {
 export function ProductCard({ part, b2b = false }: { part: any; b2b?: boolean }) {
   const router = useRouter()
   const t = useT()
-  const { items, addItem } = useCart()
+  const { items, addItem, city } = useCart()
   const toggle = useWishlist((s) => s.toggle)
   const inWish = useWishlist((s) => s.items.some((i) => i.id === part.id))
   const inCart = items.some((i) => i.id === part.id)
   const price = b2b ? part.price_b2b || part.price : part.price
   const stockMap: Record<string, number> = part.stock ?? {}
   const totalQty = Object.values(stockMap).reduce((a: number, b: number) => a + b, 0)
+  // Availability relative to the city the user picked in the header.
+  const localQty = stockMap[warehouseCity(city)] ?? 0
   const isOEM = (part.type || '').toUpperCase() === 'OEM'
   const imgUrl = usePartImage(part.oem ?? '', part.name ?? '')
 
@@ -64,8 +67,10 @@ export function ProductCard({ part, b2b = false }: { part: any; b2b?: boolean })
       <div className="card-body">
         <div className="card-badges">
           <span className={`badge ${isOEM ? 'oem' : 'analog'}`}>{isOEM ? 'OEM' : t('pdp.badge.analog')}</span>
-          {totalQty > 0 ? (
-            <span className="badge stock"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg> {t('catalog.filt.inStock')}</span>
+          {localQty > 0 ? (
+            <span className="badge stock"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg> {t('catalog.filt.inStock')} · {city}</span>
+          ) : totalQty > 0 ? (
+            <span className="badge" style={{ background: '#eef2ff', color: '#4338ca' }}>{t('card.fromWh')}</span>
           ) : (
             <span className="badge" style={{ background: 'var(--surf-2)', color: 'var(--ink-3)' }}>{t('pdp.badge.onOrder')}</span>
           )}

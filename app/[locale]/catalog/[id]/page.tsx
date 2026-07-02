@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { useCart } from '@/store/cart'
 import { useWishlist } from '@/store/wishlist'
 import { fmtKZT } from '@/lib/utils'
+import { warehouseCity } from '@/lib/data'
 import { useT, type TranslationKey } from '@/lib/i18n'
 
 function parseSpecs(name: string, brand: string): Record<string, string> {
@@ -150,7 +151,7 @@ export default function PDPPage() {
   const [b2b, setB2b]         = useState(false)
   const [activeThumb, setActiveThumb] = useState(0)
   const [imgUrl, setImgUrl]   = useState<string | null>(null)
-  const { items, addItem }    = useCart()
+  const { items, addItem, city: myCity } = useCart()
   const wlToggle = useWishlist(s => s.toggle)
   const inWish   = useWishlist(s => s.items.some(i => i.id === id))
 
@@ -275,6 +276,8 @@ export default function PDPPage() {
         .stock-row .qty-av{font-weight:600;color:var(--ok)}
         .stock-row .qty-av.low{color:var(--gold)}
         .stock-row .eta{color:var(--ink-3);font-size:13px;min-width:96px;text-align:right}
+        .stock-row.mine{background:var(--surf-2);border-radius:8px;margin:0 -8px;padding-left:8px;padding-right:8px}
+        .stock-row.mine .wh{font-weight:700}
         .pdp-sections{margin-top:46px;border-top:1px solid var(--line)}
         .psec{padding:34px 0;border-bottom:1px solid var(--line)}
         .psec h2{font-size:20px;font-weight:700;letter-spacing:-.01em;margin-bottom:20px}
@@ -476,7 +479,7 @@ export default function PDPPage() {
                 <div className="stock-list">
                   <h4>{t('pdp.stockTitle')}</h4>
                   {stockEntries.map(([city, q]) => (
-                    <div key={city} className="stock-row">
+                    <div key={city} className={`stock-row${city === warehouseCity(myCity) ? ' mine' : ''}`}>
                       <span className="wh">
                         <HouseIcon />
                         {city === 'Алматы' ? `Алматы${t('pdp.centralSuffix')}` : city}
