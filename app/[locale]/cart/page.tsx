@@ -27,6 +27,8 @@ export default function CartPage() {
   const emailRef = useRef<HTMLInputElement>(null)
   const companyRef = useRef<HTMLInputElement>(null)
   const binRef   = useRef<HTMLInputElement>(null)
+  const esfRef   = useRef<HTMLInputElement>(null)
+  const mgrRef   = useRef<HTMLInputElement>(null)
 
   const addToast = (msg: string, icon: 'check' | 'info' = 'check') =>
     setToasts((t) => [...t, { id: Date.now(), msg, icon }])
@@ -41,6 +43,11 @@ export default function CartPage() {
     if (!isValidPhone(phone)) { addToast(t('cart.toast.badPhone'), 'info'); return }
     if (email && !isValidEmail(email)) { addToast(t('cart.toast.badEmail'), 'info'); return }
     setSubmitting(true)
+    // B2B service flags travel in the order comment so ops sees them.
+    const notes = [
+      b2b && esfRef.current?.checked ? 'ЭСФ через 1С' : null,
+      b2b && mgrRef.current?.checked ? 'Нужен персональный менеджер' : null,
+    ].filter(Boolean).join(' · ')
     try {
       const result = await submitOrder({
         kind:     'order',
@@ -51,6 +58,7 @@ export default function CartPage() {
         delivery,
         company:  companyRef.current?.value,
         bin:      binRef.current?.value,
+        comment:  notes || undefined,
         items:    items.map(({ id, oem, name, qty, price }) => ({ id, oem, name, qty, price })),
       })
       if (result.ok) {
@@ -75,8 +83,7 @@ export default function CartPage() {
   const subtotal = items.reduce((a, c) => a + c.price * c.qty, 0)
   const vat = Math.round(subtotal * 12 / 112)
   const deliveryCost = delivery === 'pickup' ? 0 : subtotal >= 30000 ? 0 : 2500
-  const discount = Math.round(subtotal * 0.03)
-  const total = subtotal + deliveryCost - discount
+  const total = subtotal + deliveryCost
 
   if (items.length === 0) {
     return (
@@ -121,7 +128,6 @@ export default function CartPage() {
             <div className="cart-section">
               <div className="cart-section-head">
                 <h3>1. {t('cart.sec.items')}</h3>
-                <button className="link" onClick={() => addToast(t('cart.toast.saved'))}>{t('cart.saveCart')}</button>
               </div>
               <div className="cart-items">
                 {items.map((item) => (
@@ -218,22 +224,12 @@ export default function CartPage() {
                   <div className="b2b-row"><label>{t('cart.contactPerson')}</label><input ref={nameRef} placeholder={t('cart.namePlaceholder')} /></div>
                   <div className="b2b-row"><label>{t('cart.phone')}</label><input ref={phoneRef} type="tel" placeholder="+7 (700) 000-00-00" /></div>
                   <div className="b2b-row"><label>{t('cart.email')}</label><input ref={emailRef} type="email" placeholder="mail@example.com" title={t('cart.emailNote')} /></div>
-                  <div className="b2b-row"><label>{t('cart.companyName')}</label><input ref={companyRef} defaultValue="ТОО «АлматыСпецТранс»" /></div>
-                  <div className="b2b-row"><label>{t('cart.bin')}</label><input ref={binRef} defaultValue="200140012345" /></div>
-                  <div className="b2b-row"><label>{t('cart.iik')}</label><input defaultValue="KZ496010131000123456" /></div>
-                  <div className="b2b-row"><label>{t('cart.bank')}</label><input defaultValue="АО «Народный Банк Казахстана»" /></div>
-                  <div className="b2b-row b2b-row-full"><label>{t('cart.legalAddress')}</label><input defaultValue="г. Алматы, ул. Толе би 286/4, оф. 12" /></div>
-                  <div className="b2b-row b2b-row-full">
-                    <label>{t('cart.supplyContract')}</label>
-                    <div className="b2b-upload">
-                      <button>{t('cart.uploadPdf')}</button>
-                      <span>{t('cart.offerNote')}</span>
-                    </div>
-                  </div>
+                  <div className="b2b-row"><label>{t('cart.companyName')}</label><input ref={companyRef} placeholder="ТОО «Компания»" /></div>
+                  <div className="b2b-row"><label>{t('cart.bin')}</label><input ref={binRef} placeholder="000000000000" inputMode="numeric" /></div>
                 </div>
                 <div className="b2b-checks">
-                  <label className="filt-toggle"><input type="checkbox" defaultChecked /><span>{t('cart.esf')}</span></label>
-                  <label className="filt-toggle"><input type="checkbox" /><span>{t('cart.assignManager')}</span></label>
+                  <label className="filt-toggle"><input ref={esfRef} type="checkbox" defaultChecked /><span>{t('cart.esf')}</span></label>
+                  <label className="filt-toggle"><input ref={mgrRef} type="checkbox" /><span>{t('cart.assignManager')}</span></label>
                 </div>
               </div>
             )}
@@ -246,7 +242,6 @@ export default function CartPage() {
               <div className="sum-row"><span>{t('cart.sum.goods')} · {items.reduce((a, c) => a + c.qty, 0)} {t('cart.pcs')}</span><b>{fmtKZT(subtotal)}</b></div>
               <div className="sum-row sum-sub"><span>{t('cart.sum.vat')}</span><b>{fmtKZT(vat)}</b></div>
               <div className="sum-row"><span>{t('cart.sum.delivery')}</span><b>{deliveryCost === 0 ? t('cart.free') : fmtKZT(deliveryCost)}</b></div>
-              <div className="sum-row sum-sub"><span>{t('cart.sum.discount')}</span><b>−{fmtKZT(discount)}</b></div>
               <div className="sum-grand"><span>{t('cart.sum.grand')}</span><b>{fmtKZT(total)}</b></div>
               <Btn
                 variant="primary" size="lg" full iconRight="arrow"
@@ -260,17 +255,6 @@ export default function CartPage() {
                 <li><Ico name="check" size={12} /> {t('cart.trust2')}</li>
                 <li><Ico name="check" size={12} /> {t('cart.trust3')}</li>
               </ul>
-            </div>
-            <div className="cart-promo">
-              <Ico name="bolt" size={14} />
-              <div>
-                <b>{t('cart.promo.title')}</b>
-                <span>{t('cart.promo.sub')}</span>
-                <div className="promo-row">
-                  <input placeholder="PARK15" />
-                  <button>{t('cart.promo.apply')}</button>
-                </div>
-              </div>
             </div>
           </aside>
         </div>

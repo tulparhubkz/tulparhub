@@ -10,6 +10,7 @@ import { useGarage } from '@/store/garage'
 import { useT, LOCALES, LOCALE_LABELS } from '@/lib/i18n'
 import { fmtKZT } from '@/lib/utils'
 import { CityModal } from './CityModal'
+import { CallbackModal } from './CallbackModal'
 import { GaragePanel } from '@/components/garage/GaragePanel'
 import { useSession } from 'next-auth/react'
 
@@ -28,6 +29,7 @@ export function Header() {
   const [showResults, setShowResults] = useState(false)
   const [showCity, setShowCity]     = useState(false)
   const [showGarage, setShowGarage] = useState(false)
+  const [showCallback, setShowCallback] = useState(false)
   const [searchTab, setSearchTab]   = useState<'article' | 'vin' | 'model'>('article')
   const { city }                    = useCart()
   const t                           = useT()
@@ -89,7 +91,7 @@ export function Header() {
                 <Ico name="phone" size={13} />
                 <span>+7 (700) 000-00-00</span>
               </a>
-              <button type="button" className="callback">{t('header.callback')}</button>
+              <button type="button" className="callback" onClick={() => setShowCallback(true)}>{t('header.callback')}</button>
             </div>
           </div>
         </div>
@@ -216,6 +218,7 @@ export function Header() {
       </header>
 
       {showCity && <CityModal onClose={() => setShowCity(false)} />}
+      {showCallback && <CallbackModal onClose={() => setShowCallback(false)} />}
       {showGarage && <GaragePanel onClose={() => setShowGarage(false)} />}
     </>
   )

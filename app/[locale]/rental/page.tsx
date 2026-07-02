@@ -54,11 +54,6 @@ export default function RentalPage() {
             <h1>{t('rental.title')}</h1>
             <p>{t('rental.sub')}</p>
           </div>
-          <div className="rental-trust">
-            <div><b>240+</b><span>{t('rental.trust1')}</span></div>
-            <div><b>4 ч.</b><span>{t('rental.trust2')}</span></div>
-            <div><b>99,1%</b><span>{t('rental.trust3')}</span></div>
-          </div>
         </header>
 
         {/* Filter bar */}
