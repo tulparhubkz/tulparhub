@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { Link, useRouter, usePathname } from '@/i18n/navigation'
 import Image from 'next/image'
 import { useLocale } from 'next-intl'
@@ -27,6 +27,7 @@ export function Header() {
   const [search, setSearch]       = useState('')
   const [results, setResults]     = useState<SearchResults | null>(null)
   const [showResults, setShowResults] = useState(false)
+  const [highlight, setHighlight]     = useState(-1)
   const [showCity, setShowCity]     = useState(false)
   const [showGarage, setShowGarage] = useState(false)
   const [showCallback, setShowCallback] = useState(false)
@@ -37,20 +38,26 @@ export function Header() {
   const { vehicles }                = useGarage()
   const cartCount                 = useCartCount()
   const debounceRef               = useRef<ReturnType<typeof setTimeout>>()
+  const abortRef                  = useRef<AbortController>()
   const { data: session }         = useSession()
   const user                      = session?.user
 
   useEffect(() => {
     const q = search.trim()
+    setHighlight(-1)
     if (q.length < 2) { setResults(null); return }
     clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(async () => {
+      abortRef.current?.abort()
+      const ctrl = new AbortController()
+      abortRef.current = ctrl
       try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`)
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`, { signal: ctrl.signal })
+        if (!res.ok) { setResults(null); return }
         const data = await res.json()
         setResults(data)
       } catch {}
-    }, 300)
+    }, 200)
     return () => clearTimeout(debounceRef.current)
   }, [search])
 
@@ -67,6 +74,42 @@ export function Header() {
   const hasResults = results && (
     results.parts.length > 0 || results.systems.length > 0 || results.brands.length > 0
   )
+
+  // Flattened, ordered list of navigable suggestions (parts → categories → brands)
+  // so arrow keys can move a single highlight index across all groups.
+  const flatItems = useMemo(
+    () =>
+      results
+        ? [
+            ...results.parts.map((p) => `/catalog/${p.id}`),
+            ...results.systems.map((s) => s.href),
+            ...results.brands.map((b) => b.href),
+          ]
+        : [],
+    [results],
+  )
+
+  const go = (href: string) => { setShowResults(false); setHighlight(-1); router.push(href) }
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showResults || !hasResults) {
+      if (e.key === 'Enter') handleSearch()
+      return
+    }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setHighlight((i) => Math.min(i + 1, flatItems.length - 1))
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setHighlight((i) => Math.max(i - 1, -1))
+    } else if (e.key === 'Enter') {
+      if (highlight >= 0 && flatItems[highlight]) go(flatItems[highlight])
+      else handleSearch()
+    } else if (e.key === 'Escape') {
+      setShowResults(false)
+      setHighlight(-1)
+    }
+  }
 
   return (
     <>
@@ -109,8 +152,13 @@ export function Header() {
               onChange={(e) => { setSearch(e.target.value); setShowResults(true) }}
               onFocus={() => setShowResults(true)}
               onBlur={() => setTimeout(() => setShowResults(false), 200)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              onKeyDown={onKeyDown}
               placeholder={t('search.placeholder')}
+              role="combobox"
+              aria-expanded={!!(showResults && hasResults)}
+              aria-controls="search-results"
+              aria-autocomplete="list"
+              aria-activedescendant={highlight >= 0 ? `sr-opt-${highlight}` : undefined}
             />
             <div className="search-tabs">
               {([['article', 'search.tab.article'], ['vin', 'search.tab.vin'], ['model', 'search.tab.model']] as const).map(([id, key]) => (
@@ -120,40 +168,49 @@ export function Header() {
             <button type="button" className="search-go" onClick={handleSearch}>{t('search.go')}</button>
 
             {showResults && hasResults && (
-              <div className="search-results">
+              <div className="search-results" id="search-results" role="listbox">
                 {results!.parts.length > 0 && (
                   <div className="sr-group">
                     <div className="sr-head">{t('search.group.parts')}</div>
-                    {results!.parts.map((p) => (
-                      <button key={p.id} className="sr-row" onMouseDown={() => { setShowResults(false); router.push(`/catalog/${p.id}`) }}>
-                        <div className="sr-thumb" style={{ width: 36, height: 36, background: '#f0f2f5', borderRadius: 4, flexShrink: 0 }} />
-                        <div className="sr-meta">
-                          <div className="sr-name">{p.name}</div>
-                          <div className="sr-oem">{p.oem}</div>
-                        </div>
-                        <div className="sr-price">{fmtKZT(p.price)}</div>
-                      </button>
-                    ))}
+                    {results!.parts.map((p, i) => {
+                      const idx = i
+                      return (
+                        <button key={p.id} id={`sr-opt-${idx}`} role="option" aria-selected={highlight === idx} className={`sr-row${highlight === idx ? ' on' : ''}`} onMouseEnter={() => setHighlight(idx)} onMouseDown={() => go(`/catalog/${p.id}`)}>
+                          <div className="sr-thumb" style={{ width: 36, height: 36, background: '#f0f2f5', borderRadius: 4, flexShrink: 0 }} />
+                          <div className="sr-meta">
+                            <div className="sr-name">{p.name}</div>
+                            <div className="sr-oem">{p.oem}</div>
+                          </div>
+                          <div className="sr-price">{fmtKZT(p.price)}</div>
+                        </button>
+                      )
+                    })}
                   </div>
                 )}
                 {results!.systems.length > 0 && (
                   <div className="sr-group">
                     <div className="sr-head">{t('search.group.categories')}</div>
-                    {results!.systems.map((s) => (
-                      <button key={s.id} className="sr-row" onMouseDown={() => { setShowResults(false); router.push(s.href) }}>
-                        <div className="sr-meta"><div className="sr-name">{s.label}</div></div>
-                      </button>
-                    ))}
+                    {results!.systems.map((s, i) => {
+                      const idx = results!.parts.length + i
+                      return (
+                        <button key={s.id} id={`sr-opt-${idx}`} role="option" aria-selected={highlight === idx} className={`sr-row${highlight === idx ? ' on' : ''}`} onMouseEnter={() => setHighlight(idx)} onMouseDown={() => go(s.href)}>
+                          <div className="sr-meta"><div className="sr-name">{s.label}</div></div>
+                        </button>
+                      )
+                    })}
                   </div>
                 )}
                 {results!.brands.length > 0 && (
                   <div className="sr-group">
                     <div className="sr-head">{t('search.group.brands')}</div>
-                    {results!.brands.map((b) => (
-                      <button key={b.id} className="sr-row" onMouseDown={() => { setShowResults(false); router.push(b.href) }}>
-                        <div className="sr-meta"><div className="sr-name">{b.label}</div></div>
-                      </button>
-                    ))}
+                    {results!.brands.map((b, i) => {
+                      const idx = results!.parts.length + results!.systems.length + i
+                      return (
+                        <button key={b.id} id={`sr-opt-${idx}`} role="option" aria-selected={highlight === idx} className={`sr-row${highlight === idx ? ' on' : ''}`} onMouseEnter={() => setHighlight(idx)} onMouseDown={() => go(b.href)}>
+                          <div className="sr-meta"><div className="sr-name">{b.label}</div></div>
+                        </button>
+                      )
+                    })}
                   </div>
                 )}
                 <div className="sr-foot">
