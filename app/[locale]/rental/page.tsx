@@ -1,7 +1,6 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from '@/i18n/navigation'
-import { Ico } from '@/components/ui/Ico'
 import { Crumbs } from '@/components/ui/Crumbs'
 import { ToastHost, type ToastItem } from '@/components/ui/Toast'
 import { RentalCard } from '@/components/rental/RentalCard'
@@ -78,20 +77,6 @@ export default function RentalPage() {
               {OP_PILLS.map(([k, l]) => (
                 <button key={k} className={withOp === k ? 'on' : ''} onClick={() => setWithOp(k)}>{l}</button>
               ))}
-            </div>
-          </div>
-          <div className="rfb-group">
-            <span className="rfb-lbl">{t('rental.filter.when')}</span>
-            <div className="rfb-date">
-              <Ico name="cal" size={14} />
-              <input type="text" defaultValue={t('rental.when.default')} />
-            </div>
-          </div>
-          <div className="rfb-group">
-            <span className="rfb-lbl">{t('rental.filter.where')}</span>
-            <div className="rfb-date">
-              <Ico name="pin" size={14} />
-              <input type="text" defaultValue={t('rental.where.default')} />
             </div>
           </div>
         </div>

@@ -616,15 +616,20 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .rental-trust div { display: flex; flex-direction: column; }
 .rental-trust b { font-size: 22px; font-weight: 700; color: var(--ink); }
 .rental-trust span { font-size: 11px; color: var(--ink-3); }
-.rental-filterbar { display: flex; gap: 24px; flex-wrap: wrap; padding: 16px 20px; background: var(--surf); border: 1.5px solid var(--line); border-radius: var(--radius-xl); margin-bottom: 24px; }
-.rfb-group { display: flex; align-items: center; gap: 8px; }
+.rental-filterbar { display: flex; gap: 20px 32px; flex-wrap: wrap; padding: 16px 20px; background: var(--surf); border: 1.5px solid var(--line); border-radius: var(--radius-xl); margin-bottom: 24px; }
+.rfb-group { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0; }
 .rfb-lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--ink-3); white-space: nowrap; }
-.rfb-pills { display: flex; gap: 4px; flex-wrap: wrap; }
-.rfb-pills button { padding: 5px 12px; border-radius: 99px; border: 1.5px solid var(--line-2); background: var(--surf); font-size: 12px; font-weight: 500; color: var(--ink-2); cursor: pointer; }
+.rfb-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.rfb-pills button { padding: 7px 14px; border-radius: 99px; border: 1.5px solid var(--line-2); background: var(--surf); font-size: 13px; font-weight: 500; color: var(--ink-2); cursor: pointer; white-space: nowrap; }
 .rfb-pills button.on { background: var(--ink); color: #fff; border-color: var(--ink); }
 .rfb-pills button:hover:not(.on) { border-color: var(--accent); color: var(--accent); }
-.rfb-date { display: flex; align-items: center; gap: 8px; border: 1.5px solid var(--line-2); border-radius: var(--radius-lg); padding: 5px 12px; color: var(--ink-2); font-size: 12px; }
-.rfb-date input { border: none; background: none; font-size: 12px; color: var(--ink); outline: none; font-family: inherit; width: 140px; }
+@media (max-width: 600px) {
+  /* Stacked groups; pills swipe horizontally in one row instead of wrapping raggedly. */
+  .rental-filterbar { flex-direction: column; gap: 14px; padding: 14px 0 14px 16px; }
+  .rfb-group { width: 100%; }
+  .rfb-pills { width: 100%; flex-wrap: nowrap; overflow-x: auto; padding-right: 16px; padding-bottom: 2px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .rfb-pills::-webkit-scrollbar { display: none; }
+}
 .rental-info { font-size: 13px; color: var(--ink-2); margin-bottom: 16px; }
 .rental-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
 .rcard { background: var(--surf); border: 1.5px solid var(--line); border-radius: var(--radius-xl); overflow: hidden; transition: all 0.15s; }
