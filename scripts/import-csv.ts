@@ -171,9 +171,6 @@ async function main() {
     .values({ vendorId: VENDOR_ID, source: 'csv' })
     .returning({ id: syncRuns.id })
 
-  // Mark this vendor's parts inactive; the upsert re-activates the ones present.
-  await db.update(parts).set({ active: false }).where(eq(parts.vendorId, VENDOR_ID))
-
   const rl = readline.createInterface({
     input: fs.createReadStream(CSV_PATH, { encoding: 'utf8' }),
     crlfDelay: Infinity,
@@ -239,11 +236,21 @@ async function main() {
       }
     }
 
-    console.log(`Parsed ${read} sellable rows. Upserting…`)
-    await upsertParts(partRows)
-    console.log(`  ✓ parts: ${partRows.length}`)
-    await upsertStock(stockRows)
-    console.log(`  ✓ stock rows: ${stockRows.length}`)
+    // Deduplicate on the conflict keys (a repeated SKU in the export would make
+    // ON CONFLICT DO UPDATE hit the same row twice in one INSERT and abort).
+    // Last occurrence wins, same as re-running the import.
+    const uniqParts = Array.from(new Map(partRows.map((r) => [r.id, r])).values())
+    const uniqStock = Array.from(new Map(stockRows.map((r) => [`${r.partId} ${r.city}`, r])).values())
+
+    // Only now that the whole file parsed cleanly, retire this vendor's parts;
+    // the upsert re-activates the ones still present. Doing this before parsing
+    // meant a corrupt CSV left the entire storefront empty.
+    console.log(`Parsed ${read} sellable rows (${uniqParts.length} unique). Upserting…`)
+    await db.update(parts).set({ active: false }).where(eq(parts.vendorId, VENDOR_ID))
+    await upsertParts(uniqParts)
+    console.log(`  ✓ parts: ${uniqParts.length}`)
+    await upsertStock(uniqStock)
+    console.log(`  ✓ stock rows: ${uniqStock.length}`)
 
     await db
       .update(syncRuns)
@@ -251,8 +258,8 @@ async function main() {
         finishedAt: new Date(),
         status: 'success',
         rowsRead: read,
-        partsUpserted: partRows.length,
-        stockUpserted: stockRows.length,
+        partsUpserted: uniqParts.length,
+        stockUpserted: uniqStock.length,
       })
       .where(eq(syncRuns.id, run.id))
 
