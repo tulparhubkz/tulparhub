@@ -67,7 +67,7 @@ export default function CartPage() {
         const q = new URLSearchParams({ num: result.invoiceNumber ?? '', phone, pay, total: String(result.total ?? ''), id: result.orderId ?? '' })
         router.push(`/order-success?${q}`)
       } else {
-        addToast(result.message, 'info')
+        addToast(t(result.message, result.params), 'info')
       }
     } catch {
       addToast(t('cart.toast.connError'), 'info')

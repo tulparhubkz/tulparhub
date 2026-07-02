@@ -26,8 +26,8 @@ export function CallbackModal({ onClose }: { onClose: () => void }) {
     setLoading(true)
     try {
       const res = await submitOrder({ kind: 'callback', name, phone, city })
-      if (res.ok) setDone(res.message)
-      else setError(res.message)
+      if (res.ok) setDone(t(res.message, res.params))
+      else setError(t(res.message, res.params))
     } catch {
       setError(t('cart.toast.connError'))
     } finally {
