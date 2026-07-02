@@ -51,9 +51,17 @@ function genInvoice(): string {
  * survives later catalog edits. Returns the goods total (delivery/discount are
  * not persisted yet — see issue #15 follow-ups).
  */
+const MAX_ITEMS = 100
+const MAX_QTY = 9_999
+
 export async function createOrder(input: OrderInput): Promise<CreatedOrder> {
-  const clean = (input.items ?? []).filter((i) => i && i.id && i.qty > 0)
+  // Quantities must be sane integers: fractional/huge values would either be
+  // rejected by the integer column or overflow the int4 total.
+  const clean = (input.items ?? []).filter(
+    (i) => i && i.id && Number.isInteger(i.qty) && i.qty > 0 && i.qty <= MAX_QTY,
+  )
   if (clean.length === 0) throw new Error('createOrder: empty order')
+  if (clean.length > MAX_ITEMS) throw new Error(`createOrder: too many line items (${clean.length})`)
 
   // Re-price from the DB; fall back to the client value only if the part is gone.
   const ids = Array.from(new Set(clean.map((i) => i.id)))
