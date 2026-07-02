@@ -1,14 +1,16 @@
 import { notFound } from 'next/navigation'
 import { getOrderWithItems } from '@/lib/services/orders'
+import { auth } from '@/lib/auth'
 import { fmtKZT } from '@/lib/utils'
 import { PrintButton } from './PrintButton'
 
 export const dynamic = 'force-dynamic'
 
 // Financial document — intentionally Russian-only (KZ B2B standard), regardless
-// of UI locale. Access control for MVP: the order id is an unguessable UUID.
-// Supplier requisites come from env; placeholders make the doc obviously a
-// draft until the real ones are configured (CEO).
+// of UI locale. Access control (#67): guest orders are reachable by their
+// unguessable UUID; orders placed by a signed-in user additionally require that
+// user's session (or an admin). Supplier requisites come from env; placeholders
+// make the doc obviously a draft until the real ones are configured (CEO).
 const SUPPLIER = {
   name: process.env.INVOICE_COMPANY ?? 'ТОО «TulparHub» (реквизиты не настроены)',
   bin: process.env.INVOICE_BIN ?? '____________',
@@ -27,6 +29,17 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
   const { id } = await params
   const order = await getOrderWithItems(id)
   if (!order) notFound()
+
+  if (order.userId) {
+    let viewer: { id?: string; role?: string } | undefined
+    try {
+      viewer = (await auth())?.user as { id?: string; role?: string } | undefined
+    } catch {
+      /* auth not configured — treated as signed out */
+    }
+    // 404, not 403: an outsider must not learn that the id exists.
+    if (!viewer || (viewer.id !== order.userId && viewer.role !== 'admin')) notFound()
+  }
 
   const vat = Math.round(order.total * 12 / 112)
 
