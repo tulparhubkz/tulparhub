@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createLead } from '@/lib/services/leads'
+import { rateLimit, clientIpFrom } from '@/lib/rateLimit'
 import { z } from 'zod'
 
 // Real orders go through the submitOrder server action (app/actions.ts), which
@@ -31,6 +32,14 @@ const LeadSchema = z.object({
 })
 
 export async function POST(req: NextRequest) {
+  // Shares the checkout bucket with submitOrder: both persist leads/orders (#68).
+  if (!rateLimit(`submit:${clientIpFrom(req.headers)}`, { limit: 5, windowMs: 60_000 })) {
+    return NextResponse.json(
+      { ok: false, error: 'Слишком много заявок подряд. Подождите минуту и попробуйте снова.' },
+      { status: 429 },
+    )
+  }
+
   let body: unknown
   try {
     body = await req.json()
