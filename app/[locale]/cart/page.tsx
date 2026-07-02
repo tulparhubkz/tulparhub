@@ -64,7 +64,10 @@ export default function CartPage() {
       })
       if (result.ok) {
         clearCart()
-        const q = new URLSearchParams({ num: result.invoiceNumber ?? '', phone, pay, total: String(result.total ?? ''), id: result.orderId ?? '' })
+        // The order UUID doubles as the invoice link — keep it out of the URL
+        // (browser history / referrers) and hand it over via sessionStorage (#67).
+        if (result.orderId) sessionStorage.setItem('th-last-order', result.orderId)
+        const q = new URLSearchParams({ num: result.invoiceNumber ?? '', phone, pay, total: String(result.total ?? '') })
         router.push(`/order-success?${q}`)
       } else {
         addToast(t(result.message, result.params), 'info')
