@@ -219,6 +219,14 @@ export const rental: RentalUnit[] = [
   },
 ]
 
+// Warehouse names in part_stock come from the vendor feed and don't always
+// match the storefront city names (the selector says «Орал», the feed says
+// «Уральск»). Map a selected city to its warehouse name before stock lookups.
+const WAREHOUSE_ALIASES: Record<string, string> = { 'Орал': 'Уральск' }
+export function warehouseCity(city: string): string {
+  return WAREHOUSE_ALIASES[city] ?? city
+}
+
 export const cities: City[] = [
   { id: 'almaty',       name: 'Алматы',         country: 'KZ', currency: 'KZT', symbol: '₸' },
   { id: 'astana',       name: 'Астана',          country: 'KZ', currency: 'KZT', symbol: '₸' },

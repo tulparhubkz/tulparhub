@@ -16,7 +16,7 @@ import { submitOrder } from '@/app/actions'
 export default function CartPage() {
   const router = useRouter()
   const t = useT()
-  const { items, setQty, clearCart } = useCart()
+  const { items, setQty, clearCart, city } = useCart()
   const [b2b, setB2b]         = useState(true)
   const [pay, setPay]         = useState('invoice')
   const [delivery, setDelivery] = useState('courier')
@@ -54,6 +54,7 @@ export default function CartPage() {
         name,
         phone,
         email,
+        city,
         payment:  pay,
         delivery,
         company:  companyRef.current?.value,
