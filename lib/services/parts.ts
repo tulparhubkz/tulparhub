@@ -23,8 +23,40 @@ const PAGE_SIZE = 24
 // Map a Drizzle part row (+ its stock) to the JSON shape the storefront expects
 // (snake_case price_b2b, nested part_stock — same contract the old Supabase
 // queries produced, so the frontend keeps working unchanged).
+export interface PartStockEntry {
+  city: string
+  qty: number
+}
+
+export interface PartDTO {
+  id: string
+  oem: string | null
+  name: string
+  brand: string | null
+  type: string
+  category: string | null
+  fits: string[]
+  price: number
+  price_b2b: number | null // wholesale — null unless the viewer is b2b/admin (#49)
+  price_usd: number | null
+  vat: number
+  eta: string | null
+  img: string | null
+  specs: Record<string, string>
+  cross: string[]
+  rating: number | null
+  reviews: number
+  part_stock: PartStockEntry[]
+}
+
+/** Options threaded from the API routes; `b2b` = viewer may see wholesale prices. */
+export interface PartViewOpts {
+  b2b?: boolean
+}
+
 type PartRow = typeof parts.$inferSelect
-function toDTO(p: PartRow, stock: { city: string; qty: number }[]) {
+// Exported for unit tests — pure row→DTO mapping.
+export function toDTO(p: PartRow, stock: PartStockEntry[], opts: PartViewOpts = {}): PartDTO {
   return {
     id: p.id,
     oem: p.oem,
@@ -34,7 +66,7 @@ function toDTO(p: PartRow, stock: { city: string; qty: number }[]) {
     category: p.category,
     fits: p.fits ?? [],
     price: p.price,
-    price_b2b: p.priceB2b,
+    price_b2b: opts.b2b ? p.priceB2b : null,
     price_usd: p.priceUsd,
     vat: p.vat,
     eta: p.eta,
@@ -90,7 +122,7 @@ export interface PartFilters {
   page?: number
 }
 
-export async function listParts(f: PartFilters) {
+export async function listParts(f: PartFilters, opts: PartViewOpts = {}) {
   const page = Math.max(1, f.page ?? 1)
   const conds: SQL[] = [eq(parts.active, true)]
 
@@ -156,16 +188,16 @@ export async function listParts(f: PartFilters) {
     .offset((page - 1) * PAGE_SIZE)
 
   const stock = await stockByPart(rows.map((r) => r.id))
-  const items = rows.map((r) => toDTO(r, stock.get(r.id) ?? []))
+  const items = rows.map((r) => toDTO(r, stock.get(r.id) ?? [], opts))
 
   return { items, total, page, limit: PAGE_SIZE }
 }
 
-export async function getPart(id: string) {
+export async function getPart(id: string, opts: PartViewOpts = {}) {
   const [row] = await db.select().from(parts).where(eq(parts.id, id)).limit(1)
   if (!row) return null
   const stock = await stockByPart([id])
-  return toDTO(row, stock.get(id) ?? [])
+  return toDTO(row, stock.get(id) ?? [], opts)
 }
 
 // Lightweight typeahead used by the search box.

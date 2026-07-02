@@ -60,7 +60,7 @@ export default function CartPage() {
         company:  companyRef.current?.value,
         bin:      binRef.current?.value,
         comment:  notes || undefined,
-        items:    items.map(({ id, oem, name, qty, price }) => ({ id, oem, name, qty, price })),
+        items:    items.map(({ id, oem, name, qty, price }) => ({ id, oem: oem ?? '', name, qty, price })),
       })
       if (result.ok) {
         clearCart()
@@ -136,7 +136,7 @@ export default function CartPage() {
               <div className="cart-items">
                 {items.map((item) => (
                   <div key={item.id} className="cart-item">
-                    <div className="ci-thumb"><Placeholder label={item.img} ratio="1" /></div>
+                    <div className="ci-thumb"><Placeholder label={item.img ?? undefined} ratio="1" /></div>
                     <div className="ci-meta">
                       <div className="ci-oem">{item.oem}</div>
                       <div className="ci-name">{item.name}</div>

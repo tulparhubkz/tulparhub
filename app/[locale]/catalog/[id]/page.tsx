@@ -215,8 +215,10 @@ export default function PDPPage() {
     </div>
   )
 
-  const price    = b2b ? (part.price_b2b || part.price) : part.price
-  const priceB2b = part.price_b2b || Math.round(part.price * 0.82)
+  // Wholesale price is only present in the DTO for b2b/admin sessions (#49);
+  // never invent one — no price_b2b means the retail price applies.
+  const priceB2b = part.price_b2b ?? null
+  const price    = b2b && priceB2b ? priceB2b : part.price
   const stock    = part.stock as Record<string, number> ?? {}
   const totalQty = Object.values(stock).reduce((a: number, b: number) => a + b, 0)
   const inCart   = items.some(i => i.id === part.id)
@@ -440,7 +442,7 @@ export default function PDPPage() {
                   <div className="price-now">{fmtKZT(price)}</div>
                   <div className="price-meta">
                     {t('pdp.priceMeta')}
-                    {!b2b && priceB2b < part.price && (
+                    {!b2b && priceB2b != null && priceB2b < part.price && (
                       <> · <b>{t('pdp.bulkPre')}{fmtKZT(priceB2b)}</b></>
                     )}
                   </div>
@@ -559,7 +561,7 @@ export default function PDPPage() {
                 <div className="aname">{part.name.split(' ').slice(0, 5).join(' ')}</div>
                 <div className="abrand">{part.brand}</div>
                 <div className="afoot">
-                  <span className="aprice">{fmtKZT(b2b ? priceB2b : part.price)}</span>
+                  <span className="aprice">{fmtKZT(price)}</span>
                   <button
                     className="abuy"
                     onClick={() => addItem({ ...part, stock }, 1)}
@@ -572,7 +574,7 @@ export default function PDPPage() {
               {/* Analogs from DB */}
               {analogs.map((a) => {
                 const aSpecs = parseSpecs(a.name, a.brand)
-                const aPrice = b2b ? (a.price_b2b || Math.round(a.price * 0.82)) : a.price
+                const aPrice = b2b ? (a.price_b2b || a.price) : a.price
                 const aSeg   = aSpecs['Сегмент'] || 'Бюджет'
                 return (
                   <div
