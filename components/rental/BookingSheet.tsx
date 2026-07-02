@@ -26,15 +26,18 @@ export function BookingSheet({ item, onClose, onSubmit }: BookingSheetProps) {
   const t = useT()
   const [from, setFrom] = useState(() => toISO(new Date()))
   const [to, setTo] = useState(() => toISO(new Date(Date.now() + 3 * DAY_MS)))
+  const [withOp, setWithOp] = useState(true)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const nameRef    = useRef<HTMLInputElement>(null)
   const phoneRef   = useRef<HTMLInputElement>(null)
   const addressRef = useRef<HTMLInputElement>(null)
+  const fuelRef    = useRef<HTMLInputElement>(null)
+  const cascoRef   = useRef<HTMLInputElement>(null)
 
   const days = Math.max(1, Math.round((new Date(to).getTime() - new Date(from).getTime()) / DAY_MS))
   const rateTotal = item.rates.day * days
-  const operatorTotal = OPERATOR_RATE * days
+  const operatorTotal = withOp ? OPERATOR_RATE * days : 0
   const grand = rateTotal + operatorTotal
 
   const handleSubmit = async () => {
@@ -55,7 +58,12 @@ export function BookingSheet({ item, onClose, onSubmit }: BookingSheetProps) {
         address:   addressRef.current?.value ?? '',
         date_from: from,
         date_to:   to,
-        comment:   `Аренда: ${item.name} · ${days} дн.`,
+        comment:   [
+          `Аренда: ${item.name} · ${days} дн.`,
+          withOp ? 'с оператором' : 'без оператора',
+          fuelRef.current?.checked ? 'топливо в счёт' : null,
+          cascoRef.current?.checked ? 'каско' : null,
+        ].filter(Boolean).join(' · '),
       })
       if (result.ok) {
         onSubmit(result.message)
@@ -110,9 +118,9 @@ export function BookingSheet({ item, onClose, onSubmit }: BookingSheetProps) {
             <div className="sheet-row">
               <label>{t('bs.extras')}</label>
               <div className="sheet-extras">
-                <label className="filt-toggle"><input type="checkbox" defaultChecked /><span>{t('bs.extra1')}</span></label>
-                <label className="filt-toggle"><input type="checkbox" defaultChecked /><span>{t('bs.extra2')}</span></label>
-                <label className="filt-toggle"><input type="checkbox" /><span>{t('bs.extra3')}</span></label>
+                <label className="filt-toggle"><input type="checkbox" checked={withOp} onChange={(e) => setWithOp(e.target.checked)} /><span>{t('bs.extra1')}</span></label>
+                <label className="filt-toggle"><input ref={fuelRef} type="checkbox" defaultChecked /><span>{t('bs.extra2')}</span></label>
+                <label className="filt-toggle"><input ref={cascoRef} type="checkbox" /><span>{t('bs.extra3')}</span></label>
               </div>
             </div>
           </div>
@@ -121,7 +129,7 @@ export function BookingSheet({ item, onClose, onSubmit }: BookingSheetProps) {
         <div className="sheet-foot">
           <div className="sheet-total">
             <div><span>{t('bs.rate')} · {days} {t('bs.daysShort')}</span><b>{fmtKZT(rateTotal)}</b></div>
-            <div><span>{t('bs.op')} · {days} {t('bs.daysShort')}</span><b>{fmtKZT(operatorTotal)}</b></div>
+            {withOp && <div><span>{t('bs.op')} · {days} {t('bs.daysShort')}</span><b>{fmtKZT(operatorTotal)}</b></div>}
             <div><span>{t('cart.sum.delivery')}</span><b>0 ₸</b></div>
             <div className="sheet-grand"><span>{t('cart.summary.title')}</span><b>{fmtKZT(grand)}</b></div>
           </div>
@@ -134,7 +142,6 @@ export function BookingSheet({ item, onClose, onSubmit }: BookingSheetProps) {
             <Btn variant="primary" size="lg" iconRight="arrow" onClick={handleSubmit} disabled={loading}>
               {loading ? t('cart.submitting') : t('bs.confirm')}
             </Btn>
-            <button className="sheet-link">{t('bs.contract')}</button>
           </div>
         </div>
       </div>

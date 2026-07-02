@@ -4,7 +4,7 @@ import type { Lang } from '../config'
 const ru = {
   'rental.crumb': 'Аренда спецтехники',
   'rental.eyebrow': 'Аренда',
-  'rental.title': 'Спецтехника в аренду — 240+ единиц',
+  'rental.title': 'Спецтехника в аренду',
   'rental.sub': 'Экскаваторы, погрузчики, самосвалы, краны, катки. Прозрачные тарифы за смену, сутки, неделю, месяц.',
   'rental.trust1': 'единиц парка',
   'rental.trust2': 'средняя подача',
@@ -42,7 +42,7 @@ type K = keyof typeof ru
 const kz: Record<K, string> = {
   'rental.crumb': 'Арнайы техника жалдау',
   'rental.eyebrow': 'Жалдау',
-  'rental.title': 'Жалға арнайы техника — 240+ бірлік',
+  'rental.title': 'Жалға арнайы техника',
   'rental.sub': 'Экскаваторлар, тиегіштер, самосвалдар, крандар, катоктар. Смена, тәулік, апта, ай үшін ашық тарифтер.',
   'rental.trust1': 'парк бірлігі',
   'rental.trust2': 'орташа жеткізу',
@@ -78,7 +78,7 @@ const kz: Record<K, string> = {
 const en: Record<K, string> = {
   'rental.crumb': 'Equipment rental',
   'rental.eyebrow': 'Rental',
-  'rental.title': 'Heavy equipment for rent — 240+ units',
+  'rental.title': 'Heavy equipment for rent',
   'rental.sub': 'Excavators, loaders, dump trucks, cranes, rollers. Transparent rates per shift, day, week, month.',
   'rental.trust1': 'fleet units',
   'rental.trust2': 'average delivery',
