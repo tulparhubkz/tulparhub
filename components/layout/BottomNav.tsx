@@ -11,8 +11,16 @@ export function BottomNav() {
   const cartCount = useCartCount()
   const t = useT()
 
-  const active = (href: string) =>
-    href === '/' ? pathname === '/' : pathname.startsWith(href)
+  // Every route maps to exactly one tab, so the bar always shows where you are:
+  // catalog-family pages light Каталог, checkout pages light Корзина, the home
+  // page lights Главная, and everything reached from the Меню hub lights Меню.
+  const tabFor = (path: string): string => {
+    if (path === '/') return '/'
+    if (/^\/(catalog|podbor|parts-brands)/.test(path)) return '/catalog'
+    if (/^\/(cart|order-success)/.test(path)) return '/cart'
+    return '/account'
+  }
+  const active = (href: string) => tabFor(pathname) === href
 
   return (
     <nav className="bottomnav" aria-label={t('bottomnav.aria')}>

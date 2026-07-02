@@ -181,7 +181,9 @@ body {
 .search-tabs { display: flex; gap: 2px; padding: 0 8px; border-left: 1px solid var(--line); }
 .search-tabs button { background: none; border: none; font-size: 12px; color: var(--ink-3); cursor: pointer; padding: 4px 8px; border-radius: var(--radius); }
 .search-tabs button.on { background: var(--surf); color: var(--accent); font-weight: 600; }
-.search-go { padding: 8px 16px; background: var(--accent); color: #fff; border: none; border-radius: 0 var(--radius-lg) var(--radius-lg) 0; font-size: 13px; font-weight: 600; cursor: pointer; margin: -1px -1px -1px 0; }
+/* Stretch to the pill's full height and sit flush over its 1.5px border, so the
+   button never floats misaligned inside the rounded search box. */
+.search-go { align-self: stretch; flex-shrink: 0; padding: 0 16px; background: var(--accent); color: #fff; border: none; border-radius: 0 var(--radius-lg) var(--radius-lg) 0; font-size: 13px; font-weight: 600; cursor: pointer; margin: -1.5px -1.5px -1.5px 0; }
 .search-go:hover { background: var(--accent-deep); }
 
 .search-results {
@@ -672,7 +674,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .sheet-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .sheet-period { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink); }
 .sheet-period > div { display: flex; align-items: center; gap: 6px; background: var(--surf-2); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 7px 10px; }
-.sheet-period-tag { background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; }
+.sheet-period-tag { background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
+.sheet-period input[type='date'] { flex: 1; min-width: 0; background: var(--surf-2); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 7px 10px; font-size: 13px; color: var(--ink); font-family: inherit; }
 .sheet-extras { display: flex; flex-direction: column; gap: 8px; }
 .sheet-foot { border-top: 1px solid var(--line); padding-top: 16px; }
 .sheet-total { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }

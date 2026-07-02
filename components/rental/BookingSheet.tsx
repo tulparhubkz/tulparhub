@@ -5,6 +5,7 @@ import { Ico } from '@/components/ui/Ico'
 import { Placeholder } from '@/components/ui/Placeholder'
 import { fmtKZT } from '@/lib/utils'
 import { useT } from '@/lib/i18n'
+import { isValidPhone } from '@/lib/validation'
 import { submitOrder } from '@/app/actions'
 import type { RentalUnit } from '@/types'
 
@@ -14,34 +15,56 @@ interface BookingSheetProps {
   onSubmit: (msg: string) => void
 }
 
+const DAY_MS = 86400000
+const OPERATOR_RATE = 10000 // ₸/смена
+
+function toISO(d: Date) {
+  return d.toISOString().slice(0, 10)
+}
+
 export function BookingSheet({ item, onClose, onSubmit }: BookingSheetProps) {
   const t = useT()
-  const days = 3
-  const total = item.rates.day * days
+  const [from, setFrom] = useState(() => toISO(new Date()))
+  const [to, setTo] = useState(() => toISO(new Date(Date.now() + 3 * DAY_MS)))
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
   const nameRef    = useRef<HTMLInputElement>(null)
   const phoneRef   = useRef<HTMLInputElement>(null)
   const addressRef = useRef<HTMLInputElement>(null)
-  const [loading, setLoading] = useState(false)
+
+  const days = Math.max(1, Math.round((new Date(to).getTime() - new Date(from).getTime()) / DAY_MS))
+  const rateTotal = item.rates.day * days
+  const operatorTotal = OPERATOR_RATE * days
+  const grand = rateTotal + operatorTotal
 
   const handleSubmit = async () => {
     if (loading) return
+    const name  = nameRef.current?.value?.trim()
+    const phone = phoneRef.current?.value?.trim()
+    if (!name)  { setError(t('cart.toast.enterName')); return }
+    if (!phone) { setError(t('cart.toast.enterPhone')); return }
+    if (!isValidPhone(phone)) { setError(t('cart.toast.badPhone')); return }
+    setError('')
     setLoading(true)
     try {
       const result = await submitOrder({
         kind:      'booking',
-        name:      nameRef.current?.value ?? t('bs.defaultName'),
-        phone:     phoneRef.current?.value ?? '',
+        name,
+        phone,
         unit_id:   item.id,
         address:   addressRef.current?.value ?? '',
-        date_from: '2026-06-25',
-        date_to:   '2026-06-28',
-        comment:   `Аренда: ${item.name}`,
+        date_from: from,
+        date_to:   to,
+        comment:   `Аренда: ${item.name} · ${days} дн.`,
       })
-      onSubmit(result.message)
-      onClose()
+      if (result.ok) {
+        onSubmit(result.message)
+        onClose()
+      } else {
+        setError(result.message)
+      }
     } catch {
-      onSubmit(t('bs.error'))
-      onClose()
+      setError(t('bs.error'))
     } finally {
       setLoading(false)
     }
@@ -64,15 +87,15 @@ export function BookingSheet({ item, onClose, onSubmit }: BookingSheetProps) {
             <div className="sheet-row">
               <label>{t('bs.period')}</label>
               <div className="sheet-period">
-                <div><Ico name="cal" size={14} /> {t('bs.dateFrom')}</div>
+                <input type="date" value={from} max={to} onChange={(e) => e.target.value && setFrom(e.target.value)} />
                 <span>→</span>
-                <div><Ico name="cal" size={14} /> {t('bs.dateTo')}</div>
-                <span className="sheet-period-tag">{t('bs.days3')}</span>
+                <input type="date" value={to} min={from} onChange={(e) => e.target.value && setTo(e.target.value)} />
+                <span className="sheet-period-tag">{days} {t('bs.daysShort')}</span>
               </div>
             </div>
             <div className="sheet-row">
               <label>{t('bs.address')}</label>
-              <input ref={addressRef} type="text" placeholder={t('bs.addressPh')} defaultValue="Алматы, мкр. Думан, 18" />
+              <input ref={addressRef} type="text" placeholder={t('bs.addressPh')} />
             </div>
             <div className="sheet-row sheet-row-2">
               <div>
@@ -81,7 +104,7 @@ export function BookingSheet({ item, onClose, onSubmit }: BookingSheetProps) {
               </div>
               <div>
                 <label>{t('bs.phone')}</label>
-                <input ref={phoneRef} type="text" placeholder="+7 (___) ___-__-__" />
+                <input ref={phoneRef} type="tel" placeholder="+7 (___) ___-__-__" />
               </div>
             </div>
             <div className="sheet-row">
@@ -97,11 +120,16 @@ export function BookingSheet({ item, onClose, onSubmit }: BookingSheetProps) {
 
         <div className="sheet-foot">
           <div className="sheet-total">
-            <div><span>{t('bs.rate3')}</span><b>{fmtKZT(total)}</b></div>
-            <div><span>{t('bs.op3')}</span><b>{fmtKZT(30000)}</b></div>
+            <div><span>{t('bs.rate')} · {days} {t('bs.daysShort')}</span><b>{fmtKZT(rateTotal)}</b></div>
+            <div><span>{t('bs.op')} · {days} {t('bs.daysShort')}</span><b>{fmtKZT(operatorTotal)}</b></div>
             <div><span>{t('cart.sum.delivery')}</span><b>0 ₸</b></div>
-            <div className="sheet-grand"><span>{t('cart.summary.title')}</span><b>{fmtKZT(total + 30000)}</b></div>
+            <div className="sheet-grand"><span>{t('cart.summary.title')}</span><b>{fmtKZT(grand)}</b></div>
           </div>
+          {error && (
+            <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 8, padding: '9px 12px', color: '#dc2626', fontSize: 13, marginBottom: 10 }}>
+              {error}
+            </div>
+          )}
           <div className="sheet-actions">
             <Btn variant="primary" size="lg" iconRight="arrow" onClick={handleSubmit} disabled={loading}>
               {loading ? t('cart.submitting') : t('bs.confirm')}
