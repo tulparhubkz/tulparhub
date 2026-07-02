@@ -4,8 +4,10 @@ import { createLead } from '@/lib/services/leads'
 import { createOrder, trackOrderByInvoice, type TrackedOrder } from '@/lib/services/orders'
 import { notifyOps, formatOrderMessage, formatLeadMessage } from '@/lib/notify'
 import { isValidPhone, isValidEmail } from '@/lib/validation'
+import { rateLimit, clientIpFrom } from '@/lib/rateLimit'
 import { auth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
+import { headers } from 'next/headers'
 import type { TranslationKey } from '@/lib/i18n/dictionaries'
 
 // Results carry a translation key (+ ICU params), not prose — the UI runs in
@@ -38,6 +40,10 @@ export interface OrderPayload {
 }
 
 export async function submitOrder(payload: OrderPayload): Promise<ActionResult> {
+  // Per-IP throttle: spam must not reach the DB or the ops Telegram chat (#68).
+  if (!rateLimit(`submit:${clientIpFrom(headers())}`, { limit: 5, windowMs: 60_000 })) {
+    return { ok: false, message: 'act.rateLimited' }
+  }
   if (!payload.name?.trim() || !payload.phone?.trim()) {
     return { ok: false, message: 'act.fillNamePhone' }
   }
@@ -159,6 +165,10 @@ export async function trackOrder(
   invoiceNumber: string,
   phone: string,
 ): Promise<{ found: boolean; order?: TrackedOrder }> {
+  // Same shape as a miss — a rate-limited prober learns nothing (#68).
+  if (!rateLimit(`track:${clientIpFrom(headers())}`, { limit: 20, windowMs: 60_000 })) {
+    return { found: false }
+  }
   try {
     const order = await trackOrderByInvoice(invoiceNumber, phone)
     return order ? { found: true, order } : { found: false }
