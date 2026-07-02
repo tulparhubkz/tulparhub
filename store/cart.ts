@@ -1,13 +1,13 @@
 'use client'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { CartItem, Part } from '@/types'
+import type { CartItem, CardPart } from '@/types'
 import { useCartPopup } from './cartPopup'
 
 interface CartStore {
   items: CartItem[]
   city: string
-  addItem: (part: Part, qty?: number) => void
+  addItem: (part: CardPart, qty?: number) => void
   removeItem: (id: string) => void
   setQty: (id: string, qty: number) => void
   clearCart: () => void
@@ -30,8 +30,8 @@ export const useCart = create<CartStore>()(
         useCartPopup.getState().show({
           id: part.id,
           name: part.name,
-          oem: part.oem,
-          brand: part.brand,
+          oem: part.oem ?? '',
+          brand: part.brand ?? '',
           price: part.price,
           qty,
           img: part.img ?? undefined,

@@ -7,6 +7,7 @@ import { warehouseCity } from '@/lib/data'
 import { useCart } from '@/store/cart'
 import { useWishlist } from '@/store/wishlist'
 import { useT } from '@/lib/i18n'
+import type { CardPart } from '@/types'
 
 // Shared product card (the Autopiter-style ".card"). Used by the catalog,
 // wishlist and brand pages so there is one card to maintain.
@@ -34,7 +35,7 @@ function usePartImage(oem: string, name: string) {
   return url
 }
 
-export function ProductCard({ part, b2b = false }: { part: any; b2b?: boolean }) {
+export function ProductCard({ part, b2b = false }: { part: CardPart; b2b?: boolean }) {
   const router = useRouter()
   const t = useT()
   const { items, addItem, city } = useCart()
