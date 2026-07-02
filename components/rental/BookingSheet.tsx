@@ -66,9 +66,9 @@ export function BookingSheet({ item, onClose }: BookingSheetProps) {
         ].filter(Boolean).join(' · '),
       })
       if (result.ok) {
-        setDone(result.message) // in-sheet confirmation — a toast is too easy to miss
+        setDone(t(result.message, result.params)) // in-sheet confirmation — a toast is too easy to miss
       } else {
-        setError(result.message)
+        setError(t(result.message, result.params))
       }
     } catch {
       setError(t('bs.error'))

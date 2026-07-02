@@ -8,6 +8,18 @@ import { rateLimit, clientIpFrom } from '@/lib/rateLimit'
 import { auth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 import { headers } from 'next/headers'
+import type { TranslationKey } from '@/lib/i18n/dictionaries'
+
+// Results carry a translation key (+ ICU params), not prose — the UI runs in
+// three locales and renders them via t(message, params). See issue #69.
+export interface ActionResult {
+  ok: boolean
+  message: TranslationKey
+  params?: Record<string, string>
+  invoiceNumber?: string
+  total?: number
+  orderId?: string
+}
 
 export interface OrderPayload {
   kind: 'order' | 'callback' | 'booking' | 'quote'
@@ -27,26 +39,26 @@ export interface OrderPayload {
   address?: string
 }
 
-export async function submitOrder(payload: OrderPayload): Promise<{ ok: boolean; message: string; invoiceNumber?: string; total?: number; orderId?: string }> {
+export async function submitOrder(payload: OrderPayload): Promise<ActionResult> {
   // Per-IP throttle: spam must not reach the DB or the ops Telegram chat (#68).
   if (!rateLimit(`submit:${clientIpFrom(headers())}`, { limit: 5, windowMs: 60_000 })) {
-    return { ok: false, message: 'Слишком много заявок подряд. Подождите минуту и попробуйте снова.' }
+    return { ok: false, message: 'act.rateLimited' }
   }
   if (!payload.name?.trim() || !payload.phone?.trim()) {
-    return { ok: false, message: 'Заполните имя и телефон' }
+    return { ok: false, message: 'act.fillNamePhone' }
   }
   if (!isValidPhone(payload.phone)) {
-    return { ok: false, message: 'Введите корректный номер телефона' }
+    return { ok: false, message: 'act.badPhone' }
   }
   if (payload.email?.trim() && !isValidEmail(payload.email)) {
-    return { ok: false, message: 'Введите корректный email' }
+    return { ok: false, message: 'act.badEmail' }
   }
 
   // Real orders are persisted to orders/order_items; failures are surfaced so a
   // customer never sees "accepted" for an order that wasn't saved.
   if (payload.kind === 'order') {
     if (!payload.items?.length) {
-      return { ok: false, message: 'Корзина пуста' }
+      return { ok: false, message: 'act.emptyCart' }
     }
     // Attach the signed-in user if there is a session (guest checkout otherwise).
     let userId: string | null = null
@@ -93,14 +105,15 @@ export async function submitOrder(payload: OrderPayload): Promise<{ ok: boolean;
       revalidatePath('/')
       return {
         ok: true,
-        message: `Заказ принят. Счёт ${order.invoiceNumber} сформирован.`,
+        message: 'act.orderAccepted',
+        params: { num: order.invoiceNumber },
         invoiceNumber: order.invoiceNumber,
         total: order.total,
         orderId: order.id,
       }
     } catch (err) {
       console.error('[submitOrder] order error:', err)
-      return { ok: false, message: 'Не удалось оформить заказ. Попробуйте ещё раз или позвоните нам.' }
+      return { ok: false, message: 'act.orderFailed' }
     }
   }
 
@@ -139,13 +152,13 @@ export async function submitOrder(payload: OrderPayload): Promise<{ ok: boolean;
 
   revalidatePath('/')
 
-  const messages: Record<string, string> = {
-    callback: 'Заявка принята. Перезвоним в течение 12 минут.',
-    booking:  'Заявка на аренду отправлена. Менеджер свяжется через 15 минут.',
-    quote:    'Запрос цены отправлен. Коммерческое предложение — в течение 1 часа.',
+  const messages: Record<string, TranslationKey> = {
+    callback: 'act.callbackOk',
+    booking:  'act.bookingOk',
+    quote:    'act.quoteOk',
   }
 
-  return { ok: true, message: messages[payload.kind] ?? 'Заявка принята.' }
+  return { ok: true, message: messages[payload.kind] ?? 'act.leadOk' }
 }
 
 export async function trackOrder(
