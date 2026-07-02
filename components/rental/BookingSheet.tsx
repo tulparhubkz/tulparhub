@@ -5,14 +5,13 @@ import { Ico } from '@/components/ui/Ico'
 import { Placeholder } from '@/components/ui/Placeholder'
 import { fmtKZT } from '@/lib/utils'
 import { useT } from '@/lib/i18n'
-import { isValidPhone } from '@/lib/validation'
+import { isValidPhone, formatPhoneInput } from '@/lib/validation'
 import { submitOrder } from '@/app/actions'
 import type { RentalUnit } from '@/types'
 
 interface BookingSheetProps {
   item: RentalUnit
   onClose: () => void
-  onSubmit: (msg: string) => void
 }
 
 const DAY_MS = 86400000
@@ -22,12 +21,13 @@ function toISO(d: Date) {
   return d.toISOString().slice(0, 10)
 }
 
-export function BookingSheet({ item, onClose, onSubmit }: BookingSheetProps) {
+export function BookingSheet({ item, onClose }: BookingSheetProps) {
   const t = useT()
   const [from, setFrom] = useState(() => toISO(new Date()))
   const [to, setTo] = useState(() => toISO(new Date(Date.now() + 3 * DAY_MS)))
   const [withOp, setWithOp] = useState(true)
   const [error, setError] = useState('')
+  const [done, setDone] = useState('')
   const [loading, setLoading] = useState(false)
   const nameRef    = useRef<HTMLInputElement>(null)
   const phoneRef   = useRef<HTMLInputElement>(null)
@@ -66,8 +66,7 @@ export function BookingSheet({ item, onClose, onSubmit }: BookingSheetProps) {
         ].filter(Boolean).join(' · '),
       })
       if (result.ok) {
-        onSubmit(result.message)
-        onClose()
+        setDone(result.message) // in-sheet confirmation — a toast is too easy to miss
       } else {
         setError(result.message)
       }
@@ -89,6 +88,17 @@ export function BookingSheet({ item, onClose, onSubmit }: BookingSheetProps) {
           <button onClick={onClose}><Ico name="close" size={16} /></button>
         </div>
 
+        {done ? (
+          <div style={{ padding: '36px 20px', textAlign: 'center' }}>
+            <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+            </div>
+            <h3 style={{ fontSize: 19, fontWeight: 800, marginBottom: 8 }}>{t('bs.doneTitle')}</h3>
+            <p style={{ fontSize: 14, color: 'var(--ink-2)', lineHeight: 1.6, maxWidth: 340, margin: '0 auto 20px' }}>{done}</p>
+            <Btn variant="primary" size="lg" onClick={onClose}>{t('bs.doneClose')}</Btn>
+          </div>
+        ) : (
+        <>
         <div className="sheet-body">
           <div className="sheet-img"><Placeholder label={item.img} ratio="16/9" /></div>
           <div className="sheet-form">
@@ -112,7 +122,7 @@ export function BookingSheet({ item, onClose, onSubmit }: BookingSheetProps) {
               </div>
               <div>
                 <label>{t('bs.phone')}</label>
-                <input ref={phoneRef} type="tel" placeholder="+7 (___) ___-__-__" />
+                <input ref={phoneRef} type="tel" placeholder="+7 (___) ___-__-__" onChange={(e) => { e.target.value = formatPhoneInput(e.target.value) }} />
               </div>
             </div>
             <div className="sheet-row">
@@ -144,6 +154,8 @@ export function BookingSheet({ item, onClose, onSubmit }: BookingSheetProps) {
             </Btn>
           </div>
         </div>
+        </>
+        )}
       </div>
     </div>
   )

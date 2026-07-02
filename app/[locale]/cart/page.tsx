@@ -10,7 +10,7 @@ import { ToastHost, type ToastItem } from '@/components/ui/Toast'
 import { useCart } from '@/store/cart'
 import { fmtKZT } from '@/lib/utils'
 import { useT } from '@/lib/i18n'
-import { isValidPhone, isValidEmail } from '@/lib/validation'
+import { isValidPhone, isValidEmail, formatPhoneInput } from '@/lib/validation'
 import { submitOrder } from '@/app/actions'
 
 export default function CartPage() {
@@ -211,7 +211,7 @@ export default function CartPage() {
                 <h3>4. {t('cart.sec.contact')}</h3>
                 <div className="b2b-grid">
                   <div className="b2b-row"><label>{t('cart.name')}</label><input ref={nameRef} placeholder={t('cart.namePlaceholder')} /></div>
-                  <div className="b2b-row"><label>{t('cart.phone')}</label><input ref={phoneRef} type="tel" placeholder="+7 (700) 000-00-00" /></div>
+                  <div className="b2b-row"><label>{t('cart.phone')}</label><input ref={phoneRef} type="tel" placeholder="+7 (700) 000-00-00" onChange={(e) => { e.target.value = formatPhoneInput(e.target.value) }} /></div>
                   <div className="b2b-row"><label>{t('cart.email')}</label><input ref={emailRef} type="email" placeholder="mail@example.com" title={t('cart.emailNote')} /></div>
                 </div>
               </div>
@@ -223,7 +223,7 @@ export default function CartPage() {
                 <h3>4. {t('cart.sec.company')}</h3>
                 <div className="b2b-grid">
                   <div className="b2b-row"><label>{t('cart.contactPerson')}</label><input ref={nameRef} placeholder={t('cart.namePlaceholder')} /></div>
-                  <div className="b2b-row"><label>{t('cart.phone')}</label><input ref={phoneRef} type="tel" placeholder="+7 (700) 000-00-00" /></div>
+                  <div className="b2b-row"><label>{t('cart.phone')}</label><input ref={phoneRef} type="tel" placeholder="+7 (700) 000-00-00" onChange={(e) => { e.target.value = formatPhoneInput(e.target.value) }} /></div>
                   <div className="b2b-row"><label>{t('cart.email')}</label><input ref={emailRef} type="email" placeholder="mail@example.com" title={t('cart.emailNote')} /></div>
                   <div className="b2b-row"><label>{t('cart.companyName')}</label><input ref={companyRef} placeholder="ТОО «Компания»" /></div>
                   <div className="b2b-row"><label>{t('cart.bin')}</label><input ref={binRef} placeholder="000000000000" inputMode="numeric" /></div>
