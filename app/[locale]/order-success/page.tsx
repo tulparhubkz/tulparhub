@@ -1,7 +1,7 @@
 'use client'
 import { useSearchParams } from 'next/navigation'
 import { useRouter } from '@/i18n/navigation'
-import { Suspense } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { Link } from '@/i18n/navigation'
 import { fmtKZT } from '@/lib/utils'
 import { useT } from '@/lib/i18n'
@@ -14,7 +14,12 @@ function OrderSuccessInner() {
   const phone  = params.get('phone') ?? ''
   const pay    = params.get('pay') ?? 'invoice'
   const total  = Number(params.get('total') ?? '') || 0
-  const orderId = params.get('id') ?? ''
+  // Invoice UUID arrives via sessionStorage, not the URL (#67) — read after
+  // mount so server and first client render agree.
+  const [orderId, setOrderId] = useState('')
+  useEffect(() => {
+    setOrderId(sessionStorage.getItem('th-last-order') ?? '')
+  }, [])
 
   const isInvoice = pay === 'invoice'
   const isKaspi   = pay === 'kaspi-qr' || pay === 'kaspi-rs'
