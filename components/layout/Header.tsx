@@ -45,7 +45,7 @@ export function Header() {
   useEffect(() => {
     const q = search.trim()
     setHighlight(-1)
-    if (q.length < 2) { setResults(null); return }
+    if (q.length < 3) { setResults(null); return }
     clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(async () => {
       abortRef.current?.abort()
@@ -58,7 +58,7 @@ export function Header() {
         setResults(data)
       } catch {}
     }, 200)
-    return () => clearTimeout(debounceRef.current)
+    return () => { clearTimeout(debounceRef.current); abortRef.current?.abort() }
   }, [search])
 
   const handleSearch = () => {
@@ -149,11 +149,12 @@ export function Header() {
             <div className="search-prefix"><Ico name="search" size={16} /></div>
             <input
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setShowResults(true) }}
+              onChange={(e) => { setSearch(e.target.value); setResults(null); setHighlight(-1); setShowResults(true) }}
               onFocus={() => setShowResults(true)}
               onBlur={() => setTimeout(() => setShowResults(false), 200)}
               onKeyDown={onKeyDown}
               placeholder={t('search.placeholder')}
+              aria-label={t('search.placeholder')}
               role="combobox"
               aria-expanded={!!(showResults && hasResults)}
               aria-controls="search-results"
@@ -175,7 +176,7 @@ export function Header() {
                     {results!.parts.map((p, i) => {
                       const idx = i
                       return (
-                        <button key={p.id} id={`sr-opt-${idx}`} role="option" aria-selected={highlight === idx} className={`sr-row${highlight === idx ? ' on' : ''}`} onMouseEnter={() => setHighlight(idx)} onMouseDown={() => go(`/catalog/${p.id}`)}>
+                        <button key={p.id} id={`sr-opt-${idx}`} type="button" role="option" tabIndex={-1} aria-selected={highlight === idx} className={`sr-row${highlight === idx ? ' on' : ''}`} onMouseEnter={() => setHighlight(idx)} onMouseDown={() => go(`/catalog/${p.id}`)}>
                           <div className="sr-thumb" style={{ width: 36, height: 36, background: '#f0f2f5', borderRadius: 4, flexShrink: 0 }} />
                           <div className="sr-meta">
                             <div className="sr-name">{p.name}</div>
@@ -193,7 +194,7 @@ export function Header() {
                     {results!.systems.map((s, i) => {
                       const idx = results!.parts.length + i
                       return (
-                        <button key={s.id} id={`sr-opt-${idx}`} role="option" aria-selected={highlight === idx} className={`sr-row${highlight === idx ? ' on' : ''}`} onMouseEnter={() => setHighlight(idx)} onMouseDown={() => go(s.href)}>
+                        <button key={s.id} id={`sr-opt-${idx}`} type="button" role="option" tabIndex={-1} aria-selected={highlight === idx} className={`sr-row${highlight === idx ? ' on' : ''}`} onMouseEnter={() => setHighlight(idx)} onMouseDown={() => go(s.href)}>
                           <div className="sr-meta"><div className="sr-name">{s.label}</div></div>
                         </button>
                       )
@@ -206,7 +207,7 @@ export function Header() {
                     {results!.brands.map((b, i) => {
                       const idx = results!.parts.length + results!.systems.length + i
                       return (
-                        <button key={b.id} id={`sr-opt-${idx}`} role="option" aria-selected={highlight === idx} className={`sr-row${highlight === idx ? ' on' : ''}`} onMouseEnter={() => setHighlight(idx)} onMouseDown={() => go(b.href)}>
+                        <button key={b.id} id={`sr-opt-${idx}`} type="button" role="option" tabIndex={-1} aria-selected={highlight === idx} className={`sr-row${highlight === idx ? ' on' : ''}`} onMouseEnter={() => setHighlight(idx)} onMouseDown={() => go(b.href)}>
                           <div className="sr-meta"><div className="sr-name">{b.label}</div></div>
                         </button>
                       )
