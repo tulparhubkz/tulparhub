@@ -463,7 +463,7 @@ export default function PDPPage() {
                   />
                   <button onClick={() => setQty(qty + 1)}>+</button>
                 </div>
-                <button className="btn-buy" onClick={() => addItem({ ...part, stock }, qty)}>
+                <button className="btn-buy" onClick={() => addItem({ ...part, stock }, qty, { b2b })}>
                   <CartIcon />
                   {inCart ? t('pdp.addMore') : t('pdp.addToCart')}
                 </button>
@@ -564,7 +564,7 @@ export default function PDPPage() {
                   <span className="aprice">{fmtKZT(price)}</span>
                   <button
                     className="abuy"
-                    onClick={() => addItem({ ...part, stock }, 1)}
+                    onClick={() => addItem({ ...part, stock }, 1, { b2b })}
                   >
                     <CartIcon />
                   </button>
@@ -589,7 +589,7 @@ export default function PDPPage() {
                       <span className="aprice">{fmtKZT(aPrice)}</span>
                       <button
                         className="abuy"
-                        onClick={e => { e.stopPropagation(); addItem({ ...a, stock: a.stock }, 1) }}
+                        onClick={e => { e.stopPropagation(); addItem({ ...a, stock: a.stock }, 1, { b2b }) }}
                       >
                         <CartIcon />
                       </button>
@@ -617,7 +617,7 @@ export default function PDPPage() {
       {/* Sticky add-to-cart bar (mobile only) */}
       <div className="pdp-buybar">
         <div className="bb-price">{fmtKZT(price)}</div>
-        <button className="bb-add" onClick={() => addItem({ ...part, stock }, qty)}>
+        <button className="bb-add" onClick={() => addItem({ ...part, stock }, qty, { b2b })}>
           <CartIcon />
           {inCart ? t('pdp.addMore') : t('pdp.addToCart')}
         </button>

@@ -7,7 +7,8 @@ import { useCartPopup } from './cartPopup'
 interface CartStore {
   items: CartItem[]
   city: string
-  addItem: (part: CardPart, qty?: number) => void
+  /** opts.b2b: the buyer was looking at the wholesale price — show it in the popup too. */
+  addItem: (part: CardPart, qty?: number, opts?: { b2b?: boolean }) => void
   removeItem: (id: string) => void
   setQty: (id: string, qty: number) => void
   clearCart: () => void
@@ -19,7 +20,7 @@ export const useCart = create<CartStore>()(
     (set) => ({
       items: [],
       city: 'Алматы',
-      addItem: (part, qty = 1) => {
+      addItem: (part, qty = 1, opts) => {
         set((s) => {
           const existing = s.items.find((i) => i.id === part.id)
           if (existing) {
@@ -32,7 +33,7 @@ export const useCart = create<CartStore>()(
           name: part.name,
           oem: part.oem ?? '',
           brand: part.brand ?? '',
-          price: part.price,
+          price: opts?.b2b && part.price_b2b ? part.price_b2b : part.price,
           qty,
           img: part.img ?? undefined,
         })

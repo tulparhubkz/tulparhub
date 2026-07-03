@@ -23,6 +23,8 @@ export interface ActionResult {
 
 export interface OrderPayload {
   kind: 'order' | 'callback' | 'booking' | 'quote'
+  /** Buyer asked for B2B pricing (ЮЛ toggle). Only honored for b2b/admin sessions. */
+  b2b?: boolean
   name: string
   phone: string
   email?: string
@@ -63,17 +65,23 @@ export async function submitOrder(payload: OrderPayload): Promise<ActionResult> 
     // Attach the signed-in user if there is a session (guest checkout otherwise).
     let userId: string | null = null
     let sessionEmail: string | null = null
+    let sessionRole: string | null = null
     try {
       const session = await auth()
       userId = session?.user?.id ?? null
       sessionEmail = session?.user?.email ?? null
+      sessionRole = (session?.user as { role?: string } | undefined)?.role ?? null
     } catch {
       /* auth not configured / no session — proceed as guest */
     }
+    // Wholesale pricing: the client toggle alone is not enough — the session
+    // role must allow it, same rule as the catalog DTO (#49).
+    const b2bPricing = payload.b2b === true && (sessionRole === 'b2b' || sessionRole === 'admin')
 
     try {
       const order = await createOrder({
         userId,
+        b2b: b2bPricing,
         name:     payload.name.trim(),
         phone:    payload.phone.trim(),
         email:    payload.email?.trim() || sessionEmail || null,

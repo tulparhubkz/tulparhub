@@ -82,6 +82,28 @@ describe('createOrder — server-side re-pricing', () => {
     expect(items[0].orderId).toBe('order-uuid-1')
   })
 
+  it('prices at price_b2b for wholesale buyers, retail otherwise', async () => {
+    const row = { id: 'main:A1', oem: null, name: 'Сцепление', price: 2_135_695, priceB2b: 1_708_527 }
+    const item = { id: 'main:A1', name: 'Сцепление', qty: 1, price: 1 }
+
+    h.selectQueue.push([row])
+    const wholesale = await createOrder({ name: 'ТОО', phone: '+77001234567', b2b: true, items: [item] })
+    expect(wholesale.total).toBe(1_708_527)
+
+    h.selectQueue.push([row])
+    const retail = await createOrder({ name: 'И', phone: '+77001234567', items: [item] }) // no b2b flag
+    expect(retail.total).toBe(2_135_695)
+  })
+
+  it('falls back to retail for b2b buyers when the part has no wholesale price', async () => {
+    h.selectQueue.push([{ id: 'main:A1', oem: null, name: 'Деталь', price: 5_000, priceB2b: null }])
+    const res = await createOrder({
+      name: 'ТОО', phone: '+77001234567', b2b: true,
+      items: [{ id: 'main:A1', name: 'Деталь', qty: 2, price: 1 }],
+    })
+    expect(res.total).toBe(10_000)
+  })
+
   it('falls back to the client price only when the part is gone from the catalog', async () => {
     h.selectQueue.push([]) // part not found
     const res = await createOrder({
