@@ -5,6 +5,7 @@ import { useT } from '@/lib/i18n'
 import { isValidPhone, formatPhoneInput } from '@/lib/validation'
 import { submitOrder } from '@/app/actions'
 import { useCart } from '@/store/cart'
+import { reachGoal } from '@/lib/analytics'
 
 export function CallbackModal({ onClose }: { onClose: () => void }) {
   const t = useT()
@@ -26,7 +27,10 @@ export function CallbackModal({ onClose }: { onClose: () => void }) {
     setLoading(true)
     try {
       const res = await submitOrder({ kind: 'callback', name, phone, city })
-      if (res.ok) setDone(res.message)
+      if (res.ok) {
+        reachGoal('LEAD_SUBMIT', { kind: 'callback' })
+        setDone(res.message)
+      }
       else setError(res.message)
     } catch {
       setError(t('cart.toast.connError'))
