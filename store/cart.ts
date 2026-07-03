@@ -3,6 +3,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { CartItem, Part } from '@/types'
 import { useCartPopup } from './cartPopup'
+import { reachGoal, ecommerce, partProduct } from '@/lib/analytics'
 
 interface CartStore {
   items: CartItem[]
@@ -36,15 +37,30 @@ export const useCart = create<CartStore>()(
           qty,
           img: part.img ?? undefined,
         })
+        reachGoal('ADD_TO_CART', { id: part.id, qty })
+        ecommerce('add', [partProduct(part, qty)])
       },
       removeItem: (id) =>
-        set((s) => ({ items: s.items.filter((i) => i.id !== id) })),
+        set((s) => {
+          const item = s.items.find((i) => i.id === id)
+          if (item) {
+            reachGoal('REMOVE_FROM_CART', { id })
+            ecommerce('remove', [partProduct(item, item.qty)])
+          }
+          return { items: s.items.filter((i) => i.id !== id) }
+        }),
       setQty: (id, qty) =>
-        set((s) => ({
-          items: qty === 0
-            ? s.items.filter((i) => i.id !== id)
-            : s.items.map((i) => i.id === id ? { ...i, qty } : i),
-        })),
+        set((s) => {
+          if (qty === 0) {
+            const item = s.items.find((i) => i.id === id)
+            if (item) {
+              reachGoal('REMOVE_FROM_CART', { id })
+              ecommerce('remove', [partProduct(item, item.qty)])
+            }
+            return { items: s.items.filter((i) => i.id !== id) }
+          }
+          return { items: s.items.map((i) => (i.id === id ? { ...i, qty } : i)) }
+        }),
       clearCart: () => set({ items: [] }),
       setCity: (city) => set({ city }),
     }),

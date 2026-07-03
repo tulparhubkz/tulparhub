@@ -4,6 +4,7 @@ import { Link, useRouter, usePathname } from '@/i18n/navigation'
 import Image from 'next/image'
 import { useLocale } from 'next-intl'
 import { Ico } from '@/components/ui/Ico'
+import { reachGoal } from '@/lib/analytics'
 import { useCart, useCartCount } from '@/store/cart'
 import { useWishlist } from '@/store/wishlist'
 import { useGarage } from '@/store/garage'
@@ -56,6 +57,10 @@ export function Header() {
 
   const handleSearch = () => {
     if (!search.trim()) return
+    reachGoal(
+      searchTab === 'vin' ? 'SEARCH_VIN' : searchTab === 'model' ? 'SEARCH_MODEL' : 'SEARCH',
+      { q: search.trim() },
+    )
     setShowResults(false)
     if (searchTab === 'vin') {
       router.push(`/catalog?vin=${encodeURIComponent(search)}`)
