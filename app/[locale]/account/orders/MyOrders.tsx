@@ -22,7 +22,8 @@ const PAY_KEY: Record<string, TranslationKey> = {
 interface Item { id: string; name: string; oem: string | null; qty: number; price: number }
 interface Order {
   id: string; invoiceNumber: string; createdAt: string | Date
-  status: string; paymentStatus: string; total: number; deliveryCost: number | null; items: Item[]
+  status: string; paymentStatus: string; total: number
+  delivery: string | null; deliveryCost: number | null; items: Item[]
 }
 
 function fmtDate(d: string | Date) {
@@ -108,10 +109,10 @@ export function MyOrders({ signedIn, orders }: { signedIn: boolean; orders: Orde
                         <span className="pr">×{it.qty} · {fmtKZT(it.price * it.qty)}</span>
                       </div>
                     ))}
-                    {o.deliveryCost !== null && (
+                    {(o.deliveryCost !== null || o.delivery === 'freight') && (
                       <div className="mo-item mo-delivery">
                         <span className="nm">{t('track.delivery')}</span>
-                        <span className="pr">{o.deliveryCost === 0 ? t('cart.free') : fmtKZT(o.deliveryCost)}</span>
+                        <span className="pr">{o.deliveryCost === null ? t('cart.byCalc') : o.deliveryCost === 0 ? t('cart.free') : fmtKZT(o.deliveryCost)}</span>
                       </div>
                     )}
                     <div className="mo-links">

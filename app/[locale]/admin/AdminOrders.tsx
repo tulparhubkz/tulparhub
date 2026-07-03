@@ -103,7 +103,7 @@ export function AdminOrders({ orders, adminEmail }: { orders: Order[]; adminEmai
                       <div><span>Телефон</span><b>{o.customerPhone}</b></div>
                       {o.customerEmail && <div><span>Email</span><b>{o.customerEmail}</b></div>}
                       {o.city && <div><span>Город</span><b>{o.city}</b></div>}
-                      {o.delivery && <div><span>Доставка</span><b>{o.delivery}{o.deliveryCost != null ? ` · ${fmtKZT(o.deliveryCost)}` : ''}</b></div>}
+                      {o.delivery && <div><span>Доставка</span><b>{o.delivery}{o.deliveryCost === null ? (o.delivery === 'freight' ? ' · по расчёту' : '') : o.deliveryCost === 0 ? ' · бесплатно' : ` · ${fmtKZT(o.deliveryCost)}`}</b></div>}
                     </div>
                     <div className="adm-controls">
                       <label>
