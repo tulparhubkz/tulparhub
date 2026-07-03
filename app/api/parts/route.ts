@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
     priceMax: Number.isFinite(Number(sp.get('priceMax'))) && sp.get('priceMax') ? Number(sp.get('priceMax')) : undefined,
     sort: sp.get('sort') ?? 'popular',
     page: Math.max(1, Number(sp.get('page') ?? 1)),
+    ids: sp.get('ids')?.split(',').map((s) => s.trim()).filter(Boolean),
   }, { b2b: await isB2bViewer() })
 
   return NextResponse.json(result)

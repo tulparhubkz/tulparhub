@@ -11,8 +11,22 @@ interface CartStore {
   addItem: (part: CardPart, qty?: number, opts?: { b2b?: boolean }) => void
   removeItem: (id: string) => void
   setQty: (id: string, qty: number) => void
+  /** Merge fresh catalog data into stored items (price refresh — see below). */
+  refreshItems: (fresh: CardPart[]) => void
   clearCart: () => void
   setCity: (city: string) => void
+}
+
+// Persisted cart items go stale: prices change between visits, and a guest who
+// signs in as B2B has items captured with price_b2b: null. Refresh money- and
+// availability-fields from the API while keeping qty and unknown items as-is.
+export function mergeCartItems(items: CartItem[], fresh: CardPart[]): CartItem[] {
+  const byId = new Map(fresh.map((p) => [p.id, p]))
+  return items.map((i) => {
+    const p = byId.get(i.id)
+    if (!p) return i // part gone/inactive — keep the stored snapshot
+    return { ...i, price: p.price, price_b2b: p.price_b2b, eta: p.eta, stock: p.stock ?? i.stock }
+  })
 }
 
 export const useCart = create<CartStore>()(
@@ -46,6 +60,7 @@ export const useCart = create<CartStore>()(
             ? s.items.filter((i) => i.id !== id)
             : s.items.map((i) => i.id === id ? { ...i, qty } : i),
         })),
+      refreshItems: (fresh) => set((s) => ({ items: mergeCartItems(s.items, fresh) })),
       clearCart: () => set({ items: [] }),
       setCity: (city) => set({ city }),
     }),
