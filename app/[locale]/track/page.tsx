@@ -56,6 +56,15 @@ function TrackInner() {
 
   const cancelled = order?.status === 'cancelled'
   const stepIdx = order ? FLOW.indexOf(order.status as (typeof FLOW)[number]) : -1
+  // Same rule as the invoice: charged → amount, 0 → free, freight w/o cost →
+  // manager-calc, pre-migration (null, non-freight) → hidden.
+  const deliveryDisplay = !order
+    ? null
+    : order.deliveryCost === null
+      ? (order.delivery === 'freight' ? t('cart.byCalc') : null)
+      : order.deliveryCost === 0
+        ? t('cart.free')
+        : fmtKZT(order.deliveryCost)
 
   return (
     <>
@@ -99,6 +108,7 @@ function TrackInner() {
         .trk-item .nm { color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
         .trk-item .q { color: var(--ink-3); flex-shrink: 0; }
         .trk-item .p { font-weight: 700; color: var(--ink); flex-shrink: 0; }
+        .trk-delivery { display: flex; justify-content: space-between; font-size: 13px; color: var(--ink-2); margin-bottom: 10px; }
         .trk-total { display: flex; justify-content: space-between; border-top: 1.5px solid var(--line); padding-top: 12px; font-size: 15px; color: var(--ink-2); }
         .trk-total b { color: var(--ink); font-weight: 800; }
         .trk-again { background: none; border: none; color: var(--accent); font-size: 14px; font-weight: 600; cursor: pointer; padding: 0; align-self: center; }
@@ -181,6 +191,12 @@ function TrackInner() {
                     </div>
                   ))}
                 </div>
+                {deliveryDisplay && (
+                  <div className="trk-delivery">
+                    <span>{t('track.delivery')}</span>
+                    <span>{deliveryDisplay}</span>
+                  </div>
+                )}
                 <div className="trk-total">
                   <span>{t('track.total')}</span>
                   <b>{fmtKZT(order.total)}</b>

@@ -43,6 +43,18 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
 
   const vat = Math.round(order.total * 12 / 112)
 
+  // Delivery display (RU-only doc). A charged cost becomes a line in the items
+  // table so the row-sum stays equal to Итого/К оплате; free/manager-calc are
+  // notes only. Pre-migration orders (null cost, non-freight) show nothing.
+  const DELIVERY_LABEL: Record<string, string> = {
+    pickup: 'Самовывоз', courier: 'Курьер', sdek: 'СДЭК', freight: 'Грузоперевозка',
+  }
+  const deliveryLabel = DELIVERY_LABEL[order.delivery ?? ''] ?? 'Доставка'
+  const deliveryAmount = typeof order.deliveryCost === 'number' && order.deliveryCost > 0 ? order.deliveryCost : null
+  const deliveryFree = order.deliveryCost === 0
+  const deliveryByManager = order.deliveryCost === null && order.delivery === 'freight'
+  const lineCount = order.items.length + (deliveryAmount !== null ? 1 : 0)
+
   return (
     <main className="inv">
       <style>{`
@@ -142,17 +154,29 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
               <td className="money">{fmtKZT(it.price * it.qty)}</td>
             </tr>
           ))}
+          {deliveryAmount !== null && (
+            <tr>
+              <td className="num">{order.items.length + 1}</td>
+              <td>Доставка ({deliveryLabel})</td>
+              <td className="qty">1</td>
+              <td className="qty">усл</td>
+              <td className="money">{fmtKZT(deliveryAmount)}</td>
+              <td className="money">{fmtKZT(deliveryAmount)}</td>
+            </tr>
+          )}
         </tbody>
       </table>
 
       <div className="inv-totals">
+        {deliveryFree && <div>Доставка ({deliveryLabel}): бесплатно</div>}
+        {deliveryByManager && <div>Доставка ({deliveryLabel}): рассчитывается отдельно</div>}
         <div>Итого: {fmtKZT(order.total)}</div>
         <div>В том числе НДС 12%: {fmtKZT(vat)}</div>
         <div><b>К оплате: {fmtKZT(order.total)}</b></div>
       </div>
 
       <div className="inv-note">
-        Всего наименований {order.items.length}, на сумму {fmtKZT(order.total)}.<br />
+        Всего наименований {lineCount}, на сумму {fmtKZT(order.total)}.<br />
         Оплата данного счёта означает согласие с условиями поставки. Счёт действителен в течение 3 (трёх)
         банковских дней. Товар отпускается после поступления оплаты на расчётный счёт Поставщика.
       </div>

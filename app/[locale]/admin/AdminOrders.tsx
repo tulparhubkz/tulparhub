@@ -19,7 +19,7 @@ interface OrderItem { id: string; name: string; oem: string | null; qty: number;
 interface Order {
   id: string; invoiceNumber: string; createdAt: string | Date
   customerName: string; customerPhone: string; customerEmail: string | null
-  company: string | null; city: string | null; delivery: string | null; paymentProvider: string | null
+  company: string | null; city: string | null; delivery: string | null; deliveryCost: number | null; paymentProvider: string | null
   status: string; paymentStatus: string; total: number; items: OrderItem[]
 }
 
@@ -103,7 +103,7 @@ export function AdminOrders({ orders, adminEmail }: { orders: Order[]; adminEmai
                       <div><span>Телефон</span><b>{o.customerPhone}</b></div>
                       {o.customerEmail && <div><span>Email</span><b>{o.customerEmail}</b></div>}
                       {o.city && <div><span>Город</span><b>{o.city}</b></div>}
-                      {o.delivery && <div><span>Доставка</span><b>{o.delivery}</b></div>}
+                      {o.delivery && <div><span>Доставка</span><b>{o.delivery}{o.deliveryCost != null ? ` · ${fmtKZT(o.deliveryCost)}` : ''}</b></div>}
                     </div>
                     <div className="adm-controls">
                       <label>

@@ -2,6 +2,7 @@ import { db } from '@/lib/db'
 import { orders, orderItems, parts } from '@/lib/db/schema'
 import { inArray, eq, desc } from 'drizzle-orm'
 import { phoneDigits } from '@/lib/validation'
+import { deliveryCost } from '@/lib/services/delivery'
 
 export const ORDER_STATUSES = ['new', 'confirmed', 'shipped', 'done', 'cancelled'] as const
 export type OrderStatus = (typeof ORDER_STATUSES)[number]
@@ -50,8 +51,9 @@ function genInvoice(): string {
  *
  * Line items are re-priced from the catalog so the stored total never trusts a
  * client-supplied price. `name`/`oem` are snapshotted onto the line item so it
- * survives later catalog edits. Returns the goods total (delivery/discount are
- * not persisted yet — see issue #15 follow-ups).
+ * survives later catalog edits. Delivery is priced server-side from the same
+ * tariff the cart uses and folded into `total`; `deliveryCost` is null when the
+ * method is manager-calc (freight/unknown). Returns the grand total.
  */
 const MAX_ITEMS = 100
 const MAX_QTY = 9_999
@@ -85,7 +87,10 @@ export async function createOrder(input: OrderInput): Promise<CreatedOrder> {
       price: catalogPrice ?? i.price ?? 0,
     }
   })
-  const total = lineItems.reduce((a, c) => a + c.price * c.qty, 0)
+  const goodsTotal = lineItems.reduce((a, c) => a + c.price * c.qty, 0)
+  // Same tariff the cart shows; null (freight/unknown) adds nothing to the total.
+  const dCost = deliveryCost(input.delivery, goodsTotal)
+  const total = goodsTotal + (dCost ?? 0)
 
   // Insert atomically; retry on the (rare) invoice-number collision.
   for (let attempt = 0; attempt < 5; attempt++) {
@@ -101,6 +106,7 @@ export async function createOrder(input: OrderInput): Promise<CreatedOrder> {
             paymentStatus: 'pending',
             paymentProvider: input.payment ?? null,
             total,
+            deliveryCost: dCost,
             customerName: input.name,
             customerPhone: input.phone,
             customerEmail: input.email ?? null,
@@ -133,6 +139,7 @@ export interface TrackedOrder {
   paymentStatus: string
   paymentProvider: string | null
   delivery: string | null
+  deliveryCost: number | null
   city: string | null
   total: number
   items: Array<{ name: string; oem: string | null; qty: number; price: number }>
@@ -161,6 +168,7 @@ export async function trackOrderByInvoice(invoiceNumber: string, phone: string):
     paymentStatus: o.paymentStatus,
     paymentProvider: o.paymentProvider,
     delivery: o.delivery,
+    deliveryCost: o.deliveryCost,
     city: o.city,
     total: o.total,
     items: its.map((it) => ({ name: it.name, oem: it.oem, qty: it.qty, price: it.price })),
@@ -194,6 +202,7 @@ export interface OrderListItem {
   company: string | null
   city: string | null
   delivery: string | null
+  deliveryCost: number | null
   paymentProvider: string | null
   status: string
   paymentStatus: string
@@ -244,6 +253,7 @@ async function attachItems(os: (typeof orders.$inferSelect)[]): Promise<OrderLis
     company: o.company,
     city: o.city,
     delivery: o.delivery,
+    deliveryCost: o.deliveryCost,
     paymentProvider: o.paymentProvider,
     status: o.status,
     paymentStatus: o.paymentStatus,
