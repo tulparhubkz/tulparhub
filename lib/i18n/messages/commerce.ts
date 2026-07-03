@@ -153,6 +153,11 @@ const ru = {
   'act.quoteOk': 'Запрос цены отправлен. Коммерческое предложение — в течение 1 часа.',
   'act.leadOk': 'Заявка принята.',
   'act.rateLimited': 'Слишком много заявок подряд. Подождите минуту и попробуйте снова.',
+  // Guest→account conversion on order-success (#48)
+  'success.claim.offer': 'Войдите, чтобы отслеживать этот заказ в «Моих заказах» — история сохранится за аккаунтом.',
+  'success.claim.btn': 'Сохранить заказ в аккаунте',
+  'success.claim.done': 'Заказ привязан к вашему аккаунту',
+  'success.claim.myOrders': 'Мои заказы',
 }
 
 type K = keyof typeof ru
@@ -297,6 +302,10 @@ const kz: Record<K, string> = {
   'act.quoteOk': 'Баға сұрауы жіберілді. Коммерциялық ұсыныс — 1 сағат ішінде.',
   'act.leadOk': 'Өтінім қабылданды.',
   'act.rateLimited': 'Өтінімдер тым көп. Бір минут күтіп, қайталап көріңіз.',
+  'success.claim.offer': 'Бұл тапсырысты «Менің тапсырыстарым» бөлімінде бақылау үшін кіріңіз — тарих аккаунтта сақталады.',
+  'success.claim.btn': 'Тапсырысты аккаунтта сақтау',
+  'success.claim.done': 'Тапсырыс аккаунтыңызға байланды',
+  'success.claim.myOrders': 'Менің тапсырыстарым',
 }
 
 const en: Record<K, string> = {
@@ -439,6 +448,10 @@ const en: Record<K, string> = {
   'act.quoteOk': 'Quote request sent. You will receive a commercial offer within 1 hour.',
   'act.leadOk': 'Request received.',
   'act.rateLimited': 'Too many requests. Please wait a minute and try again.',
+  'success.claim.offer': 'Sign in to track this order in “My orders” — your history stays with the account.',
+  'success.claim.btn': 'Save this order to an account',
+  'success.claim.done': 'Order linked to your account',
+  'success.claim.myOrders': 'My orders',
 }
 
 export const commerce: Record<Lang, Record<K, string>> = { RU: ru, KZ: kz, EN: en }

@@ -1,7 +1,7 @@
 'use server'
 
 import { createLead } from '@/lib/services/leads'
-import { createOrder, trackOrderByInvoice, type TrackedOrder } from '@/lib/services/orders'
+import { createOrder, trackOrderByInvoice, attachOrderToUser, type TrackedOrder } from '@/lib/services/orders'
 import { notifyOps, formatOrderMessage, formatLeadMessage } from '@/lib/notify'
 import { isValidPhone, isValidEmail } from '@/lib/validation'
 import { rateLimit, clientIpFrom } from '@/lib/rateLimit'
@@ -167,6 +167,35 @@ export async function submitOrder(payload: OrderPayload): Promise<ActionResult> 
   }
 
   return { ok: true, message: messages[payload.kind] ?? 'act.leadOk' }
+}
+
+/**
+ * Attach the just-placed guest order to the signed-in account (#48). The UUID
+ * comes from the buyer's own sessionStorage; "taken" and "not found" collapse
+ * into one code so the action can't be used to probe order ids.
+ */
+export async function claimOrder(
+  orderId: string,
+): Promise<{ ok: boolean; code: 'claimed' | 'already' | 'unauthenticated' | 'unavailable' }> {
+  let userId: string | null = null
+  try {
+    userId = (await auth())?.user?.id ?? null
+  } catch {
+    /* auth not configured — treated as signed out */
+  }
+  if (!userId) return { ok: false, code: 'unauthenticated' }
+
+  try {
+    const res = await attachOrderToUser(orderId, userId)
+    if (res === 'claimed' || res === 'already') {
+      revalidatePath('/account/orders')
+      return { ok: true, code: res }
+    }
+    return { ok: false, code: 'unavailable' }
+  } catch (err) {
+    console.error('[claimOrder] error:', err)
+    return { ok: false, code: 'unavailable' }
+  }
 }
 
 export async function trackOrder(

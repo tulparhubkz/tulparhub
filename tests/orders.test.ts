@@ -6,6 +6,8 @@ import { orders as ordersTable, orderItems as orderItemsTable } from '@/lib/db/s
 const h = vi.hoisted(() => ({
   selectQueue: [] as unknown[][],
   selectCalls: 0,
+  updateQueue: [] as unknown[][], // rows "affected" by the next db.update().returning()
+  updateCalls: 0,
   inserted: [] as Array<{ table: unknown; values: unknown }>,
   failReturningTimes: 0, // simulate unique_violation on the order insert N times
 }))
@@ -40,20 +42,31 @@ vi.mock('@/lib/db', () => {
       },
     }),
   }
+  const update = () => {
+    h.updateCalls++
+    return {
+      set: () => ({
+        where: () => ({ returning: () => Promise.resolve(h.updateQueue.shift() ?? []) }),
+      }),
+    }
+  }
   return {
     db: {
       select,
+      update,
       transaction: async (fn: (t: typeof tx) => Promise<unknown>) => fn(tx),
     },
   }
 })
 
-import { createOrder, trackOrderByInvoice } from '@/lib/services/orders'
+import { createOrder, trackOrderByInvoice, attachOrderToUser } from '@/lib/services/orders'
 
 beforeEach(() => {
   h.selectQueue.length = 0
   h.inserted.length = 0
   h.selectCalls = 0
+  h.updateQueue.length = 0
+  h.updateCalls = 0
   h.failReturningTimes = 0
 })
 
@@ -168,6 +181,38 @@ describe('createOrder — delivery cost in the total', () => {
     })
     expect(res.total).toBe(20_000) // no delivery folded in
     expect(insertedOrder().deliveryCost).toBeNull()
+  })
+})
+
+describe('attachOrderToUser — guest→account claim (#48)', () => {
+  const UUID = '11111111-2222-3333-4444-555555555555'
+
+  it('claims a guest order atomically', async () => {
+    h.updateQueue.push([{ id: UUID }]) // conditional UPDATE hit the row
+    expect(await attachOrderToUser(UUID, 'user-1')).toBe('claimed')
+    expect(h.selectCalls).toBe(0) // no fallback lookup needed
+  })
+
+  it('is idempotent for the same owner', async () => {
+    h.updateQueue.push([]) // user_id already set → conditional UPDATE misses
+    h.selectQueue.push([{ userId: 'user-1' }])
+    expect(await attachOrderToUser(UUID, 'user-1')).toBe('already')
+  })
+
+  it('refuses an order owned by someone else', async () => {
+    h.updateQueue.push([])
+    h.selectQueue.push([{ userId: 'someone-else' }])
+    expect(await attachOrderToUser(UUID, 'user-1')).toBe('taken')
+  })
+
+  it('reports notfound for unknown ids, and rejects junk without touching the db', async () => {
+    h.updateQueue.push([])
+    h.selectQueue.push([])
+    expect(await attachOrderToUser(UUID, 'user-1')).toBe('notfound')
+
+    const calls = h.updateCalls
+    expect(await attachOrderToUser('short-id', 'user-1')).toBe('notfound')
+    expect(h.updateCalls).toBe(calls) // junk id short-circuits
   })
 })
 
