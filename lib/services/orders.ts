@@ -18,6 +18,8 @@ export interface OrderItemInput {
 
 export interface OrderInput {
   userId?: string | null
+  /** Price line items at price_b2b. Caller must verify the session role — never trust the client. */
+  b2b?: boolean
   name: string
   phone: string
   email?: string | null
@@ -64,21 +66,23 @@ export async function createOrder(input: OrderInput): Promise<CreatedOrder> {
   if (clean.length > MAX_ITEMS) throw new Error(`createOrder: too many line items (${clean.length})`)
 
   // Re-price from the DB; fall back to the client value only if the part is gone.
+  // B2B buyers get the wholesale price where the feed has one (retail otherwise).
   const ids = Array.from(new Set(clean.map((i) => i.id)))
   const rows = await db
-    .select({ id: parts.id, oem: parts.oem, name: parts.name, price: parts.price })
+    .select({ id: parts.id, oem: parts.oem, name: parts.name, price: parts.price, priceB2b: parts.priceB2b })
     .from(parts)
     .where(inArray(parts.id, ids))
   const byId = new Map(rows.map((r) => [r.id, r]))
 
   const lineItems = clean.map((i) => {
     const p = byId.get(i.id)
+    const catalogPrice = p ? (input.b2b && p.priceB2b ? p.priceB2b : p.price) : null
     return {
       partId: p?.id ?? null,
       oem: p?.oem ?? i.oem ?? null,
       name: p?.name ?? i.name,
       qty: i.qty,
-      price: p?.price ?? i.price ?? 0,
+      price: catalogPrice ?? i.price ?? 0,
     }
   })
   const total = lineItems.reduce((a, c) => a + c.price * c.qty, 0)

@@ -33,6 +33,11 @@ export default function CartPage() {
   const addToast = (msg: string, icon: 'check' | 'info' = 'check') =>
     setToasts((t) => [...t, { id: Date.now(), msg, icon }])
 
+  // ЮЛ buyers see the wholesale price where the feed has one. The server
+  // re-prices with the same rule and additionally checks the session role.
+  const unitPrice = (i: { price: number; price_b2b?: number | null }) =>
+    b2b && i.price_b2b ? i.price_b2b : i.price
+
   const handleCheckout = async () => {
     if (submitting) return
     const name  = nameRef.current?.value?.trim()
@@ -51,6 +56,7 @@ export default function CartPage() {
     try {
       const result = await submitOrder({
         kind:     'order',
+        b2b,
         name,
         phone,
         email,
@@ -60,7 +66,7 @@ export default function CartPage() {
         company:  companyRef.current?.value,
         bin:      binRef.current?.value,
         comment:  notes || undefined,
-        items:    items.map(({ id, oem, name, qty, price }) => ({ id, oem: oem ?? '', name, qty, price })),
+        items:    items.map((i) => ({ id: i.id, oem: i.oem ?? '', name: i.name, qty: i.qty, price: unitPrice(i) })),
       })
       if (result.ok) {
         clearCart()
@@ -84,7 +90,7 @@ export default function CartPage() {
     { label: t('cart.crumb') },
   ]
 
-  const subtotal = items.reduce((a, c) => a + c.price * c.qty, 0)
+  const subtotal = items.reduce((a, c) => a + unitPrice(c) * c.qty, 0)
   const vat = Math.round(subtotal * 12 / 112)
   const deliveryCost = delivery === 'pickup' ? 0 : subtotal >= 30000 ? 0 : 2500
   const total = subtotal + deliveryCost
@@ -149,8 +155,8 @@ export default function CartPage() {
                       <button onClick={() => setQty(item.id, item.qty + 1)}><Ico name="plus" size={12} /></button>
                     </div>
                     <div className="ci-price">
-                      <b>{fmtKZT(item.price * item.qty)}</b>
-                      <span>{fmtKZT(item.price)} {t('cart.perPc')}</span>
+                      <b>{fmtKZT(unitPrice(item) * item.qty)}</b>
+                      <span>{fmtKZT(unitPrice(item))} {t('cart.perPc')}</span>
                     </div>
                     <button className="ci-remove" onClick={() => setQty(item.id, 0)}><Ico name="close" size={14} /></button>
                   </div>
