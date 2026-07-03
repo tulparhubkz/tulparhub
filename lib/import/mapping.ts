@@ -98,3 +98,18 @@ export function detectFits(name: string): string[] {
 export function num(v: string | undefined): number {
   return Math.floor(parseFloat((v ?? '').replace(',', '.')) || 0)
 }
+
+// Feed prices are occasionally mangled (extra digits, swapped columns): the
+// live catalog had a 5.3M ₸ piston whose wholesale price was 78k. Flag pairs
+// an operator should eyeball — never block the import over them. The 10×
+// threshold is deliberately loose: 4–8× markup on cheap parts is real.
+export const PRICE_RATIO_LIMIT = 10
+
+export function priceWarning(retail: number, b2b: number | null | undefined): string | null {
+  if (!b2b || b2b <= 0 || retail <= 0) return null
+  if (b2b > retail) return `опт ${b2b} выше розницы ${retail}`
+  if (retail / b2b > PRICE_RATIO_LIMIT) {
+    return `розница ${retail} в ${Math.round(retail / b2b)}× выше опта ${b2b}`
+  }
+  return null
+}

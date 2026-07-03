@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { detectCategory, detectFits, num, CATEGORIES } from '@/lib/import/mapping'
+import { detectCategory, detectFits, num, priceWarning, CATEGORIES } from '@/lib/import/mapping'
 
 describe('detectCategory', () => {
   it('classifies by keyword in the part name', () => {
@@ -52,6 +52,22 @@ describe('detectFits', () => {
   it('does not tag KAMAZ parts as MAZ (regression: "камаз" contains "маз ")', () => {
     expect(detectFits('Диск сцепления КАМАЗ 65115')).not.toContain('MAZ')
     expect(detectFits('Фара МАЗ 5336')).toEqual(['MAZ']) // real MAZ still detected
+  })
+})
+
+describe('priceWarning — mangled feed prices', () => {
+  it('flags retail more than 10x the wholesale price', () => {
+    expect(priceWarning(5_302_182, 77_616)).toMatch(/68×/) // the real DAF piston case
+    expect(priceWarning(14_945, 17)).toMatch(/879×/)
+  })
+  it('flags wholesale above retail', () => {
+    expect(priceWarning(1_575, 1_728)).toMatch(/выше розницы/)
+  })
+  it('accepts ordinary markups and missing wholesale', () => {
+    expect(priceWarning(2_135_695, 1_708_527)).toBeNull() // ~1.25x
+    expect(priceWarning(38, 9)).toBeNull() // 4.2x on a cheap part — plausible
+    expect(priceWarning(5_000, null)).toBeNull()
+    expect(priceWarning(5_000, 0)).toBeNull()
   })
 })
 
