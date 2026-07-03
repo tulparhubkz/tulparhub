@@ -234,7 +234,8 @@ export const orders = pgTable(
     paymentStatus: text('payment_status').notNull().default('pending'), // pending | paid | failed | refunded
     paymentProvider: text('payment_provider'),
     paymentRef: text('payment_ref'),
-    total: integer('total').notNull().default(0), // KZT
+    total: integer('total').notNull().default(0), // KZT — grand total, goods + delivery
+    deliveryCost: integer('delivery_cost'), // KZT; null = manager-calc / not captured
     currency: text('currency').notNull().default('KZT'),
     // Customer snapshot (guests have no user row)
     customerName: text('customer_name').notNull(),

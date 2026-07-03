@@ -134,6 +134,43 @@ describe('createOrder — server-side re-pricing', () => {
   })
 })
 
+describe('createOrder — delivery cost in the total', () => {
+  const part = { id: 'main:A1', oem: null, name: 'Деталь', price: 10_000, priceB2b: null }
+  const insertedOrder = () =>
+    h.inserted.find((i) => i.table === ordersTable)?.values as { total: number; deliveryCost: number | null }
+
+  it('adds the courier fee below the free-shipping threshold', async () => {
+    h.selectQueue.push([part]) // goods = 10 000 (< 30 000)
+    const res = await createOrder({
+      name: 'Иван', phone: '+77001234567', delivery: 'courier',
+      items: [{ id: 'main:A1', name: 'Деталь', qty: 1, price: 1 }],
+    })
+    expect(res.total).toBe(12_500) // 10 000 goods + 2 500 courier
+    expect(insertedOrder().total).toBe(12_500)
+    expect(insertedOrder().deliveryCost).toBe(2_500)
+  })
+
+  it('charges nothing for courier once goods reach the free threshold', async () => {
+    h.selectQueue.push([part]) // goods = 40 000 (>= 30 000)
+    const res = await createOrder({
+      name: 'Иван', phone: '+77001234567', delivery: 'courier',
+      items: [{ id: 'main:A1', name: 'Деталь', qty: 4, price: 1 }],
+    })
+    expect(res.total).toBe(40_000)
+    expect(insertedOrder().deliveryCost).toBe(0)
+  })
+
+  it('stores null delivery cost for freight (manager-calc) and leaves total at goods', async () => {
+    h.selectQueue.push([part])
+    const res = await createOrder({
+      name: 'Иван', phone: '+77001234567', delivery: 'freight',
+      items: [{ id: 'main:A1', name: 'Деталь', qty: 2, price: 1 }],
+    })
+    expect(res.total).toBe(20_000) // no delivery folded in
+    expect(insertedOrder().deliveryCost).toBeNull()
+  })
+})
+
 describe('trackOrderByInvoice — anti-enumeration', () => {
   const orderRow = {
     id: 'order-uuid-1',
@@ -143,6 +180,7 @@ describe('trackOrderByInvoice — anti-enumeration', () => {
     paymentStatus: 'pending',
     paymentProvider: 'invoice',
     delivery: 'courier',
+    deliveryCost: 2_500,
     city: 'Алматы',
     total: 100_000,
     customerPhone: '+7 (700) 123-45-67',
@@ -189,7 +227,7 @@ describe('trackOrderByInvoice — anti-enumeration', () => {
     const res = await trackOrderByInvoice('TH-2026-123456', '87001234567')
     expect(res).not.toBeNull()
     expect(Object.keys(res!).sort()).toEqual(
-      ['city', 'createdAt', 'delivery', 'invoiceNumber', 'items', 'paymentProvider', 'paymentStatus', 'status', 'total'].sort(),
+      ['city', 'createdAt', 'delivery', 'deliveryCost', 'invoiceNumber', 'items', 'paymentProvider', 'paymentStatus', 'status', 'total'].sort(),
     )
     expect(res!.items[0]).toStrictEqual({ name: 'Фильтр', oem: 'OEM-1', qty: 2, price: 50_000 })
   })

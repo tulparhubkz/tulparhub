@@ -11,6 +11,7 @@ import { useCart } from '@/store/cart'
 import { fmtKZT } from '@/lib/utils'
 import { useT } from '@/lib/i18n'
 import { isValidPhone, isValidEmail, formatPhoneInput } from '@/lib/validation'
+import { deliveryCost } from '@/lib/services/delivery'
 import { submitOrder } from '@/app/actions'
 
 export default function CartPage() {
@@ -92,8 +93,9 @@ export default function CartPage() {
 
   const subtotal = items.reduce((a, c) => a + unitPrice(c) * c.qty, 0)
   const vat = Math.round(subtotal * 12 / 112)
-  const deliveryCost = delivery === 'pickup' ? 0 : subtotal >= 30000 ? 0 : 2500
-  const total = subtotal + deliveryCost
+  // Same tariff the server persists; null = manager-calc (freight/unknown).
+  const dCost = deliveryCost(delivery, subtotal)
+  const total = subtotal + (dCost ?? 0)
 
   if (items.length === 0) {
     return (
@@ -251,7 +253,7 @@ export default function CartPage() {
               <h3>{t('cart.summary.title')}</h3>
               <div className="sum-row"><span>{t('cart.sum.goods')} · {items.reduce((a, c) => a + c.qty, 0)} {t('cart.pcs')}</span><b>{fmtKZT(subtotal)}</b></div>
               <div className="sum-row sum-sub"><span>{t('cart.sum.vat')}</span><b>{fmtKZT(vat)}</b></div>
-              <div className="sum-row"><span>{t('cart.sum.delivery')}</span><b>{deliveryCost === 0 ? t('cart.free') : fmtKZT(deliveryCost)}</b></div>
+              <div className="sum-row"><span>{t('cart.sum.delivery')}</span><b>{dCost === null ? t('cart.byCalc') : dCost === 0 ? t('cart.free') : fmtKZT(dCost)}</b></div>
               <div className="sum-grand"><span>{t('cart.sum.grand')}</span><b>{fmtKZT(total)}</b></div>
               <Btn
                 variant="primary" size="lg" full iconRight="arrow"
