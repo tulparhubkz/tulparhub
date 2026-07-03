@@ -120,11 +120,17 @@ export interface PartFilters {
   priceMax?: number
   sort?: string
   page?: number
+  ids?: string[] // exact-id lookup (cart price refresh); capped at MAX_IDS
 }
+
+const MAX_IDS = 100 // matches the order line-item cap
 
 export async function listParts(f: PartFilters, opts: PartViewOpts = {}) {
   const page = Math.max(1, f.page ?? 1)
+  const ids = f.ids?.slice(0, MAX_IDS)
   const conds: SQL[] = [eq(parts.active, true)]
+
+  if (ids?.length) conds.push(inArray(parts.id, ids))
 
   if (f.priceMax != null) conds.push(lte(parts.price, f.priceMax))
   if (f.system) conds.push(eq(parts.category, f.system))
@@ -179,13 +185,15 @@ export async function listParts(f: PartFilters, opts: PartViewOpts = {}) {
     .from(parts)
     .where(where)
 
+  // Exact-id lookups return every requested row on one page.
+  const limit = ids?.length ? ids.length : PAGE_SIZE
   const rows = await db
     .select()
     .from(parts)
     .where(where)
     .orderBy(orderBy)
-    .limit(PAGE_SIZE)
-    .offset((page - 1) * PAGE_SIZE)
+    .limit(limit)
+    .offset(ids?.length ? 0 : (page - 1) * PAGE_SIZE)
 
   const stock = await stockByPart(rows.map((r) => r.id))
   const items = rows.map((r) => toDTO(r, stock.get(r.id) ?? [], opts))

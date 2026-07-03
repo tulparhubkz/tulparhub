@@ -1,5 +1,5 @@
 'use client'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from '@/i18n/navigation'
 import { Link } from '@/i18n/navigation'
 import { Ico } from '@/components/ui/Ico'
@@ -38,6 +38,24 @@ export default function CartPage() {
   // re-prices with the same rule and additionally checks the session role.
   const unitPrice = (i: { price: number; price_b2b?: number | null }) =>
     b2b && i.price_b2b ? i.price_b2b : i.price
+
+  // Persisted items carry the prices from whenever they were added. Refresh
+  // them once per visit: catalog prices move, and a guest who signed in as
+  // B2B needs price_b2b filled in (the session cookie rides along the fetch).
+  useEffect(() => {
+    const ids = useCart.getState().items.map((i) => i.id)
+    if (ids.length === 0) return
+    fetch(`/api/parts?ids=${encodeURIComponent(ids.join(','))}`)
+      .then((r) => r.json())
+      .then((d) => {
+        const fresh = (d.items ?? []).map((p: { part_stock?: { city: string; qty: number }[] } & Record<string, unknown>) => ({
+          ...p,
+          stock: p.part_stock ? Object.fromEntries(p.part_stock.map((s) => [s.city, s.qty])) : {},
+        }))
+        if (fresh.length) useCart.getState().refreshItems(fresh)
+      })
+      .catch(() => { /* offline / API hiccup — stored prices remain */ })
+  }, [])
 
   const handleCheckout = async () => {
     if (submitting) return
