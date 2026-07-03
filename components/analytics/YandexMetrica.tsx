@@ -1,17 +1,23 @@
 'use client'
 import Script from 'next/script'
 import { usePathname } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { trackPageView } from '@/lib/analytics'
 
 const ID = process.env.NEXT_PUBLIC_YANDEX_METRICA_ID
 
 export function YandexMetrica() {
   const pathname = usePathname()
+  const firstRun = useRef(true)
 
-  // defer:true disables Metrica's own auto page-view, so THIS effect owns every
-  // hit (including the first) — no double counting on initial load.
+  // The initial page hit is sent inline by the init script below, where
+  // window.ym is guaranteed to exist. Skip the first effect run so it isn't
+  // double-counted; fire on every subsequent client-side navigation.
   useEffect(() => {
+    if (firstRun.current) {
+      firstRun.current = false
+      return
+    }
     if (ID) trackPageView(pathname)
   }, [pathname])
 
@@ -37,6 +43,7 @@ export function YandexMetrica() {
               webvisor:true,
               ecommerce:"dataLayer"
             });
+            ym(${Number(ID)}, "hit", window.location.pathname);
           `,
         }}
       />

@@ -58,7 +58,7 @@ export function ecommerce(
   window.dataLayer = window.dataLayer || []
   const payload: Record<string, unknown> = { products }
   if (actionField) payload.actionField = actionField
-  window.dataLayer.push({ ecommerce: { [event]: payload } })
+  window.dataLayer.push({ ecommerce: { currencyCode: 'KZT', [event]: payload } })
 }
 
 export function partProduct(
