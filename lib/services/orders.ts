@@ -1,6 +1,6 @@
 import { db } from '@/lib/db'
 import { orders, orderItems, parts } from '@/lib/db/schema'
-import { inArray, eq, desc } from 'drizzle-orm'
+import { inArray, eq, desc, and, isNull } from 'drizzle-orm'
 import { phoneDigits } from '@/lib/validation'
 import { deliveryCost } from '@/lib/services/delivery'
 
@@ -173,6 +173,28 @@ export async function trackOrderByInvoice(invoiceNumber: string, phone: string):
     total: o.total,
     items: its.map((it) => ({ name: it.name, oem: it.oem, qty: it.qty, price: it.price })),
   }
+}
+
+export type ClaimResult = 'claimed' | 'already' | 'taken' | 'notfound'
+
+/**
+ * Attach a guest order to a signed-in user (#48). Possession of the
+ * unguessable order UUID — it only lives in the buyer's own browser session —
+ * is the proof of ownership, the same trust base as the invoice link.
+ * The claim itself is atomic: only orders with no user can be taken.
+ */
+export async function attachOrderToUser(orderId: string, userId: string): Promise<ClaimResult> {
+  if (!orderId || orderId.length < 30 || !userId) return 'notfound'
+  const claimed = await db
+    .update(orders)
+    .set({ userId })
+    .where(and(eq(orders.id, orderId), isNull(orders.userId)))
+    .returning({ id: orders.id })
+  if (claimed.length > 0) return 'claimed'
+
+  const [o] = await db.select({ userId: orders.userId }).from(orders).where(eq(orders.id, orderId))
+  if (!o) return 'notfound'
+  return o.userId === userId ? 'already' : 'taken'
 }
 
 /** Full order + line items by UUID — for the invoice document (id is unguessable). */
