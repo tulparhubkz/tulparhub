@@ -38,4 +38,7 @@ COPY --from=builder /app/node_modules/pg ./node_modules/pg
 USER nextjs
 EXPOSE 3000
 ENV PORT=3000 HOSTNAME=0.0.0.0
-CMD ["node", "server.js"]
+# Apply pending migrations before serving, so every Docker deploy (Render + VPS)
+# is schema-current. The VPS compose file sets the same command; this makes it
+# the default for platforms (Render) that run the image directly.
+CMD ["sh", "-c", "node lib/db/migrate.mjs && node server.js"]
