@@ -20,7 +20,7 @@ export function isValidEmail(s: string | null | undefined): boolean {
 /**
  * Progressive input mask: "+7 (700) 123-45-67". Accepts 8/7/+7 prefixes and
  * bare local numbers; returns '' when the field is cleared so it stays
- * clearable. Use in onChange: e.target.value = formatPhoneInput(e.target.value).
+ * clearable. Prefer phoneInputValue(e) in onChange — it also handles Backspace.
  */
 export function formatPhoneInput(raw: string): string {
   let d = raw.replace(/\D/g, '')
@@ -36,4 +36,24 @@ export function formatPhoneInput(raw: string): string {
   if (p.length > 6) out += '-' + p.slice(6, 8)
   if (p.length > 8) out += '-' + p.slice(8, 10)
   return out
+}
+
+/**
+ * Next value for a masked phone input, delete-aware. Backspace over a mask
+ * character (")", "-", space) removes only that character — re-formatting
+ * would immediately re-append it and the field would get stuck. When that
+ * happens, drop the digit before it as the user intended.
+ * Usage: onChange={(e) => { e.target.value = phoneInputValue(e) }}
+ *    or: onChange={(e) => setPhone(phoneInputValue(e))}
+ */
+export function phoneInputValue(e: { target: { value: string }; nativeEvent?: unknown }): string {
+  const raw = e.target.value
+  const inputType = (e.nativeEvent as { inputType?: unknown } | undefined)?.inputType
+  const deleting = typeof inputType === 'string' && inputType.startsWith('delete')
+  const formatted = formatPhoneInput(raw)
+  if (deleting && formatted.length > raw.length) {
+    // The formatter grew the value back — only a mask char was deleted.
+    return formatPhoneInput(raw.replace(/\D+$/, '').slice(0, -1))
+  }
+  return formatted
 }

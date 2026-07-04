@@ -2,7 +2,7 @@
 import { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { fmtKZT } from '@/lib/utils'
-import { formatPhoneInput } from '@/lib/validation'
+import { phoneInputValue } from '@/lib/validation'
 import { useT, type TranslationKey } from '@/lib/i18n'
 import { trackOrder } from '@/app/actions'
 import type { TrackedOrder } from '@/lib/services/orders'
@@ -141,7 +141,7 @@ function TrackInner() {
                   <input
                     type="tel"
                     value={phone}
-                    onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
+                    onChange={(e) => setPhone(phoneInputValue(e))}
                     placeholder={t('track.phonePh')}
                     required
                   />
