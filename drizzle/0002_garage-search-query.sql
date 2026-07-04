@@ -1,0 +1,1 @@
+ALTER TABLE "garage" ADD COLUMN "search_query" text;

@@ -2,6 +2,16 @@
 
 import { createLead } from '@/lib/services/leads'
 import { createOrder, trackOrderByInvoice, attachOrderToUser, type TrackedOrder } from '@/lib/services/orders'
+import {
+  listVehicles,
+  importVehicles,
+  addVehicle as addVehicleSvc,
+  updateVehicle as updateVehicleSvc,
+  removeVehicle as removeVehicleSvc,
+  MAX_VEHICLES,
+  type GarageVehicleDTO,
+  type GarageVehicleInput,
+} from '@/lib/services/garage'
 import { notifyOps, formatOrderMessage, formatLeadMessage } from '@/lib/notify'
 import { isValidPhone, isValidEmail } from '@/lib/validation'
 import { rateLimit, clientIpFrom } from '@/lib/rateLimit'
@@ -212,6 +222,74 @@ export async function trackOrder(
   } catch (err) {
     console.error('[trackOrder] error:', err)
     return { found: false } // uniform response — no enumeration, no error detail
+  }
+}
+
+/* ── My Garage (#17) — server storage for signed-in users ──────────────────
+   Guests keep the localStorage garage; these actions all no-op with
+   { signedIn: false } / { ok: false } when there is no session. */
+
+async function garageUserId(): Promise<string | null> {
+  try {
+    return (await auth())?.user?.id ?? null
+  } catch {
+    return null // auth not configured — treated as signed out
+  }
+}
+
+/**
+ * One-shot sync on page load: pushes the guest's localStorage vehicles into
+ * the account (deduped by VIN, capped) and returns the server list, which
+ * becomes the source of truth for the session.
+ */
+export async function syncGarage(
+  local: GarageVehicleInput[],
+): Promise<{ signedIn: boolean; vehicles?: GarageVehicleDTO[] }> {
+  const userId = await garageUserId()
+  if (!userId) return { signedIn: false }
+  try {
+    const vehicles = await importVehicles(userId, (local ?? []).slice(0, MAX_VEHICLES))
+    return { signedIn: true, vehicles }
+  } catch (err) {
+    console.error('[syncGarage] error:', err)
+    return { signedIn: true, vehicles: await listVehicles(userId).catch(() => []) }
+  }
+}
+
+export async function addGarageVehicle(input: GarageVehicleInput): Promise<{ ok: boolean }> {
+  const userId = await garageUserId()
+  if (!userId) return { ok: false }
+  try {
+    return { ok: (await addVehicleSvc(userId, input)) !== null }
+  } catch (err) {
+    console.error('[addGarageVehicle] error:', err)
+    return { ok: false }
+  }
+}
+
+export async function updateGarageVehicle(
+  id: string,
+  data: { name?: string; note?: string },
+): Promise<{ ok: boolean }> {
+  const userId = await garageUserId()
+  if (!userId) return { ok: false }
+  try {
+    return { ok: await updateVehicleSvc(userId, id, data) }
+  } catch (err) {
+    console.error('[updateGarageVehicle] error:', err)
+    return { ok: false }
+  }
+}
+
+export async function removeGarageVehicle(id: string): Promise<{ ok: boolean }> {
+  const userId = await garageUserId()
+  if (!userId) return { ok: false }
+  try {
+    await removeVehicleSvc(userId, id)
+    return { ok: true }
+  } catch (err) {
+    console.error('[removeGarageVehicle] error:', err)
+    return { ok: false }
   }
 }
 
