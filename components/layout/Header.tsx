@@ -42,6 +42,12 @@ export function Header() {
   const { data: session }         = useSession()
   const user                      = session?.user
 
+  // Signed in → adopt the account garage (and import any localStorage
+  // vehicles into it, #17). Guests never hit the server.
+  useEffect(() => {
+    if (user?.id) void useGarage.getState().syncWithServer()
+  }, [user?.id])
+
   useEffect(() => {
     const q = search.trim()
     setHighlight(-1)

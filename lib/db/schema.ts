@@ -291,7 +291,11 @@ export const leads = pgTable('leads', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
-// User's saved vehicles ("My Garage").
+// User's saved vehicles ("My Garage"). Guests keep a localStorage copy; rows
+// here belong to signed-in users and are imported from localStorage on first
+// sign-in (#17). `search_query` is the decoded "brand model" string used by
+// the catalog search — persisted because NHTSA-decoded VINs can't be
+// re-derived offline.
 export const garage = pgTable(
   'garage',
   {
@@ -302,6 +306,7 @@ export const garage = pgTable(
     vin: text('vin').notNull(),
     name: text('name').notNull(),
     note: text('note').default(''),
+    searchQuery: text('search_query'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({
