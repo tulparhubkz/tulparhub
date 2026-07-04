@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { phoneDigits, isValidPhone, isValidEmail, formatPhoneInput } from '@/lib/validation'
+import { phoneDigits, isValidPhone, isValidEmail, formatPhoneInput, phoneInputValue } from '@/lib/validation'
 
 describe('phoneDigits', () => {
   it('strips everything but digits', () => {
@@ -67,5 +67,42 @@ describe('formatPhoneInput', () => {
   it('returns empty string when cleared', () => {
     expect(formatPhoneInput('')).toBe('')
     expect(formatPhoneInput('+')).toBe('')
+  })
+})
+
+describe('phoneInputValue — delete-aware mask', () => {
+  const typing = (value: string) => ({ target: { value }, nativeEvent: { inputType: 'insertText' } })
+  const backspace = (value: string) => ({ target: { value }, nativeEvent: { inputType: 'deleteContentBackward' } })
+
+  it('formats normally while typing', () => {
+    expect(phoneInputValue(typing('+7 (700'))).toBe('+7 (700)') // ")" appended after 3rd digit
+    expect(phoneInputValue(typing('+77001234567'))).toBe('+7 (700) 123-45-67')
+  })
+
+  it('backspace over ")" deletes the digit before it instead of getting stuck', () => {
+    // Field showed "+7 (700)", Backspace removed ")" → browser gives "+7 (700".
+    // Plain re-formatting would restore ")" forever; the digit must go too.
+    expect(phoneInputValue(backspace('+7 (700'))).toBe('+7 (70')
+  })
+
+  it('backspace over a digit just reformats', () => {
+    // "+7 (700) 1" → Backspace removed "1" → trailing space is dropped
+    expect(phoneInputValue(backspace('+7 (700) '))).toBe('+7 (700)')
+    // …and the next Backspace walks through ")" correctly again
+    expect(phoneInputValue(backspace('+7 (700'))).toBe('+7 (70')
+  })
+
+  it('can delete all the way down to an empty field', () => {
+    let v = '+7 (700)'
+    const seq: string[] = []
+    while (v !== '') {
+      v = phoneInputValue(backspace(v.slice(0, -1))) // simulate Backspace on the tail
+      seq.push(v)
+    }
+    expect(seq).toEqual(['+7 (70', '+7 (7', '+7', ''])
+  })
+
+  it('works without a nativeEvent (paste, programmatic set)', () => {
+    expect(phoneInputValue({ target: { value: '87001234567' } })).toBe('+7 (700) 123-45-67')
   })
 })

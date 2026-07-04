@@ -2,7 +2,7 @@
 import { useRef, useState } from 'react'
 import { Ico } from '@/components/ui/Ico'
 import { useT } from '@/lib/i18n'
-import { isValidPhone, formatPhoneInput } from '@/lib/validation'
+import { isValidPhone, phoneInputValue } from '@/lib/validation'
 import { submitOrder } from '@/app/actions'
 import { useCart } from '@/store/cart'
 
@@ -60,7 +60,7 @@ export function CallbackModal({ onClose }: { onClose: () => void }) {
             <label style={{ display: 'flex', flexDirection: 'column', gap: 5, fontSize: 13, color: 'var(--ink-2)' }}>
               {t('bs.phone')}
               <input ref={phoneRef} type="tel" placeholder="+7 (700) 000-00-00"
-                onChange={(e) => { e.target.value = formatPhoneInput(e.target.value) }}
+                onChange={(e) => { e.target.value = phoneInputValue(e) }}
                 style={{ padding: '11px 13px', border: '1.5px solid var(--line-2)', borderRadius: 10, fontSize: 15 }} />
             </label>
             {error && (
