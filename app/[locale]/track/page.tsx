@@ -2,6 +2,7 @@
 import { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { fmtKZT } from '@/lib/utils'
+import { Ico } from '@/components/ui/Ico'
 import { phoneInputValue } from '@/lib/validation'
 import { useT, type TranslationKey } from '@/lib/i18n'
 import { trackOrder } from '@/app/actions'
@@ -22,7 +23,7 @@ const PAY_KEY: Record<string, TranslationKey> = {
   failed: 'track.pay.failed',
   refunded: 'track.pay.refunded',
 }
-const STEP_ICONS = ['✅', '📞', '📦', '🏁']
+const STEP_ICONS = ['check', 'phone', 'box', 'flag'] as const
 
 function TrackInner() {
   const t = useT()
@@ -97,8 +98,8 @@ function TrackInner() {
         .trk-step:last-child { padding-bottom: 0; }
         .trk-step:not(:last-child)::before { content: ''; position: absolute; left: 17px; top: 38px; bottom: 0; width: 2px; background: var(--line); }
         .trk-step.on:not(:last-child)::before { background: #16a34a; }
-        .trk-dot { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; border: 2px solid var(--line); background: var(--surf-2); filter: grayscale(1); opacity: .55; }
-        .trk-step.on .trk-dot { background: #f0fdf4; border-color: #16a34a; filter: none; opacity: 1; }
+        .trk-dot { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--ink-3); flex-shrink: 0; border: 2px solid var(--line); background: var(--surf-2); opacity: .55; }
+        .trk-step.on .trk-dot { background: #f0fdf4; border-color: #16a34a; color: #16a34a; opacity: 1; }
         .trk-step-label { padding-top: 8px; font-size: 14px; font-weight: 600; color: var(--ink-3); }
         .trk-step.on .trk-step-label { color: var(--ink); }
         .trk-items { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
@@ -172,7 +173,7 @@ function TrackInner() {
                 <div className="trk-steps">
                   {FLOW.map((s, i) => (
                     <div key={s} className={`trk-step${!cancelled && i <= stepIdx ? ' on' : ''}`}>
-                      <div className="trk-dot">{STEP_ICONS[i]}</div>
+                      <div className="trk-dot"><Ico name={STEP_ICONS[i]} size={16} stroke={2} /></div>
                       <div className="trk-step-label">{t(STATUS_KEY[s])}</div>
                     </div>
                   ))}

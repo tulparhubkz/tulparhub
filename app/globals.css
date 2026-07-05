@@ -27,6 +27,26 @@
   --shadow-sm: 0 1px 2px rgba(10,26,79,.05);
   --shadow-md: 0 8px 24px -12px rgba(10,26,79,.18), 0 2px 6px rgba(10,26,79,.05);
   --shadow-lg: 0 30px 60px -20px rgba(10,26,79,.25), 0 8px 24px -8px rgba(10,26,79,.12);
+
+  /* Spacing scale — new styles use these; existing values migrate when touched (#70). */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+
+  /* Type scale — same rule: hardcoded px sizes are legacy, not precedent. */
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-md: 15px;
+  --text-lg: 17px;
+  --text-xl: 20px;
+  --text-2xl: 26px;
+  --text-3xl: 32px;
 }
 
 * { box-sizing: border-box; }
@@ -150,10 +170,11 @@ body {
 .hdr-link { color: var(--ink-2); text-decoration: none; cursor: pointer; }
 .hdr-link:hover { color: var(--ink); }
 .hdr-sep { opacity: 0.3; }
-.city-btn { display: flex; align-items: center; gap: 5px; background: none; border: none; color: var(--ink-2); font-size: 12px; cursor: pointer; }
+/* 44px hit area without growing the top bar: padding in, negative margin out. */
+.city-btn { display: flex; align-items: center; gap: 5px; background: none; border: none; color: var(--ink-2); font-size: 12px; cursor: pointer; padding: 13px 8px; margin: -13px 0; }
 .city-btn:hover { color: var(--ink); }
 .lang { display: flex; gap: 2px; }
-.lang button { background: none; border: none; color: var(--ink-3); font-size: 12px; font-weight: 600; cursor: pointer; padding: 6px 8px; border-radius: 3px; }
+.lang button { background: none; border: none; color: var(--ink-3); font-size: 12px; font-weight: 600; cursor: pointer; padding: 13px 13px; margin: -10px 0; border-radius: 3px; }
 .lang button.on { color: var(--accent); }
 .lang button:hover { color: var(--ink); }
 .callback {
@@ -917,8 +938,10 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .card:hover .card-img img { transform: scale(1.04); }
 .card-img .card-glyph { width: 54px; height: 54px; color: #c2ccdb; }
 .card-img .brandchip { position: absolute; top: 10px; left: 10px; background: rgba(255,255,255,.9); backdrop-filter: blur(4px); border: 1px solid var(--line); font-size: 10px; font-weight: 600; color: var(--ink-2); padding: 3px 8px; border-radius: 6px; letter-spacing: .02em; }
-.fav { position: absolute; top: 9px; right: 9px; width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,.85); display: grid; place-items: center; color: var(--ink-3); opacity: 0; transition: .15s; border: none; cursor: pointer; z-index: 2; }
-.card:hover .fav { opacity: 1; }
+.fav { position: absolute; top: 6px; right: 6px; width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,.85); display: grid; place-items: center; color: var(--ink-3); opacity: 0; transition: .15s; border: none; cursor: pointer; z-index: 2; }
+.card:hover .fav, .fav:focus-visible { opacity: 1; }
+/* No hover on touch devices — the wishlist heart must always be visible there. */
+@media (hover: none) { .fav { opacity: 1; } }
 .fav:hover { color: #e53e3e; }
 .fav.active { opacity: 1; color: #e53e3e; }
 .card-body { padding: 14px 15px 15px; display: flex; flex-direction: column; flex: 1; }

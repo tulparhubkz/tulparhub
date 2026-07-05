@@ -45,7 +45,7 @@ export function CallbackModal({ onClose }: { onClose: () => void }) {
 
         {done ? (
           <div style={{ padding: '28px 4px', textAlign: 'center' }}>
-            <div style={{ fontSize: 40, marginBottom: 10 }}>📞</div>
+            <div style={{ marginBottom: 10, color: 'var(--ok)' }}><Ico name="phone" size={40} stroke={1.4} /></div>
             <p style={{ fontSize: 14, color: 'var(--ink-2)', lineHeight: 1.6 }}>{done}</p>
             <button className="btn btn-primary" style={{ marginTop: 18 }} onClick={onClose}>OK</button>
           </div>

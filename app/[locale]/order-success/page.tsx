@@ -5,6 +5,7 @@ import { Suspense, useEffect, useState } from 'react'
 import { Link } from '@/i18n/navigation'
 import { signIn } from 'next-auth/react'
 import { fmtKZT } from '@/lib/utils'
+import { Ico } from '@/components/ui/Ico'
 import { useT } from '@/lib/i18n'
 import { claimOrder } from '@/app/actions'
 
@@ -40,19 +41,19 @@ function OrderSuccessInner() {
 
   const steps = [
     {
-      icon: '✅',
+      icon: 'check',
       title: t('success.step1.title'),
       desc: `${t('success.step1.pre')}${num}${t('success.step1.post')}`,
       done: true,
     },
     {
-      icon: '📞',
+      icon: 'phone',
       title: t('success.step2.title'),
       desc: `${t('success.step2.pre')}${phone || t('success.yourNumber')}${t('success.step2.post')}`,
       done: false,
     },
     {
-      icon: isInvoice ? '📄' : '💳',
+      icon: isInvoice ? 'pdf' : 'card',
       title: isInvoice ? t('success.step3.titleInvoice') : t('success.step3.titlePay'),
       desc: isInvoice
         ? t('success.step3.descInvoice')
@@ -62,7 +63,7 @@ function OrderSuccessInner() {
       done: false,
     },
     {
-      icon: '📦',
+      icon: 'box',
       title: t('success.step4.title'),
       desc: t('success.step4.desc'),
       done: false,
@@ -99,8 +100,8 @@ function OrderSuccessInner() {
         .step-item { display: flex; gap: 16px; align-items: flex-start; padding-bottom: 24px; position: relative; }
         .step-item:last-child { padding-bottom: 0; }
         .step-item:not(:last-child)::before { content: ''; position: absolute; left: 19px; top: 42px; bottom: 0; width: 2px; background: var(--line); }
-        .step-dot { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; border: 2px solid var(--line); background: var(--surf-2); }
-        .step-dot.done { background: #f0fdf4; border-color: #16a34a; }
+        .step-dot { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--ink-3); flex-shrink: 0; border: 2px solid var(--line); background: var(--surf-2); }
+        .step-dot.done { background: #f0fdf4; border-color: #16a34a; color: #16a34a; }
         .step-body { padding-top: 8px; }
         .step-body b { display: block; font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
         .step-body span { font-size: 13px; color: var(--ink-2); line-height: 1.5; }
@@ -186,7 +187,7 @@ function OrderSuccessInner() {
             <div className="step-list">
               {steps.map((s, i) => (
                 <div key={i} className="step-item">
-                  <div className={`step-dot${s.done ? ' done' : ''}`}>{s.icon}</div>
+                  <div className={`step-dot${s.done ? ' done' : ''}`}><Ico name={s.icon} size={17} stroke={2} /></div>
                   <div className="step-body">
                     <b>{s.title}</b>
                     <span>{s.desc}</span>
