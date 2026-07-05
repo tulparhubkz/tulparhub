@@ -45,6 +45,9 @@ const paths: Record<string, React.ReactNode> = {
   bag: <><path d="M6 7h12l-1 14H7L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/></>,
   arrow: <><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></>,
   arrowLeft: <><path d="M19 12H5"/><path d="m11 6-6 6 6 6"/></>,
+  box: <><path d="M21 8 12 3 3 8v8l9 5 9-5V8z"/><path d="m3 8 9 5 9-5"/><path d="M12 13v8"/></>,
+  flag: <><path d="M5 21V4"/><path d="M5 4h13l-2 4 2 4H5"/></>,
+  card: <><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></>,
   barcode: <><path d="M4 5v14"/><path d="M7 5v14"/><path d="M9 5v14"/><path d="M12 5v14"/><path d="M14 5v14"/><path d="M17 5v14"/><path d="M20 5v14"/></>,
   vin: <><rect x="3" y="6" width="18" height="12" rx="1"/><path d="M6 10v4"/><path d="M9 10v4"/><path d="M12 10v4"/><path d="M15 10v4"/><path d="M18 10v4"/></>,
 }
