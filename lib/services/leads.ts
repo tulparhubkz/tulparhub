@@ -1,5 +1,9 @@
 import { db } from '@/lib/db'
 import { leads } from '@/lib/db/schema'
+import { desc, eq } from 'drizzle-orm'
+
+export const LEAD_STATUSES = ['new', 'done'] as const
+export type LeadStatus = (typeof LEAD_STATUSES)[number]
 
 export interface LeadInput {
   kind: string
@@ -17,6 +21,16 @@ export interface LeadInput {
   date_to?: string
   address?: string
   items?: unknown
+}
+
+/** Most-recent leads for the admin panel. */
+export async function listLeads(limit = 200) {
+  return db.select().from(leads).orderBy(desc(leads.createdAt)).limit(limit)
+}
+
+export async function updateLeadStatus(id: string, status: LeadStatus) {
+  if (!LEAD_STATUSES.includes(status)) throw new Error(`updateLeadStatus: invalid status "${status}"`)
+  await db.update(leads).set({ status }).where(eq(leads.id, id))
 }
 
 export async function createLead(input: LeadInput) {

@@ -282,6 +282,7 @@ export const leads = pgTable('leads', {
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
   kind: text('kind').notNull(), // order | callback | booking | quote
+  status: text('status').notNull().default('new'), // new | done — ops workflow in /admin/leads
   name: text('name').notNull(),
   phone: text('phone').notNull(),
   email: text('email'),

@@ -9,6 +9,7 @@ import {
   type PaymentStatus,
 } from '@/lib/services/orders'
 import { updateUserRole, type UserRole } from '@/lib/services/users'
+import { updateLeadStatus, type LeadStatus } from '@/lib/services/leads'
 
 export async function setOrderStatus(id: string, status: OrderStatus) {
   if (!(await getAdmin())) return { ok: false, message: 'Доступ запрещён' }
@@ -18,6 +19,18 @@ export async function setOrderStatus(id: string, status: OrderStatus) {
     return { ok: true }
   } catch (err) {
     console.error('[admin] setOrderStatus error:', err)
+    return { ok: false, message: 'Не удалось обновить статус' }
+  }
+}
+
+export async function setLeadStatus(id: string, status: LeadStatus) {
+  if (!(await getAdmin())) return { ok: false, message: 'Доступ запрещён' }
+  try {
+    await updateLeadStatus(id, status)
+    revalidatePath('/admin/leads')
+    return { ok: true }
+  } catch (err) {
+    console.error('[admin] setLeadStatus error:', err)
     return { ok: false, message: 'Не удалось обновить статус' }
   }
 }
