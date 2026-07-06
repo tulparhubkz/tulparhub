@@ -49,6 +49,14 @@ export function setVisitParams(params: Record<string, unknown>): void {
   ym('params', params)
 }
 
+export function setUserID(userId: string): void {
+  ym('setUserID', userId)
+}
+
+export function userParams(params: Record<string, unknown>): void {
+  ym('userParams', params)
+}
+
 export function ecommerce(
   event: 'detail' | 'add' | 'remove' | 'purchase',
   products: EcommerceProduct[],

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { reachGoal, trackPageView, ecommerce, setVisitParams, partProduct } from '@/lib/analytics'
+import { reachGoal, trackPageView, ecommerce, setVisitParams, setUserID, userParams, partProduct } from '@/lib/analytics'
 
 afterEach(() => {
   vi.unstubAllEnvs()
@@ -59,5 +59,24 @@ describe('ecommerce', () => {
     ;(globalThis as any).window = { dataLayer: [] as unknown[] }
     ecommerce('add', [partProduct({ id: 'p1', name: 'A', price: 1 })])
     expect((globalThis as any).window.dataLayer).toHaveLength(0)
+  })
+})
+
+describe('setUserID / userParams', () => {
+  it('sends the user id', () => {
+    const ym = withMetrica()
+    setUserID('user-123')
+    expect(ym).toHaveBeenCalledWith(99999, 'setUserID', 'user-123')
+  })
+  it('sends user params', () => {
+    const ym = withMetrica()
+    userParams({ role: 'wholesale' })
+    expect(ym).toHaveBeenCalledWith(99999, 'userParams', { role: 'wholesale' })
+  })
+  it('no-ops when the env var is unset', () => {
+    const ym = vi.fn()
+    ;(globalThis as any).window = { ym }
+    setUserID('x'); userParams({ role: 'r' })
+    expect(ym).not.toHaveBeenCalled()
   })
 })
