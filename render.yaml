@@ -20,3 +20,5 @@ services:
         generateValue: true
       - key: DATABASE_POOL_MAX
         value: "5"
+      - key: NEXT_PUBLIC_YANDEX_METRICA_ID
+        sync: false
