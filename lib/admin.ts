@@ -18,3 +18,15 @@ export async function getAdmin(): Promise<AdminSession | null> {
   if (!user || user.role !== 'admin') return null
   return { id: user.id ?? '', email: user.email ?? null, role: user.role }
 }
+
+/** May the current viewer see wholesale (B2B) prices? Guests/retail: no. */
+export async function isB2bViewer(): Promise<boolean> {
+  let session
+  try {
+    session = await auth()
+  } catch {
+    return false // auth not configured / no session
+  }
+  const role = (session?.user as { role?: string } | undefined)?.role
+  return role === 'b2b' || role === 'admin'
+}

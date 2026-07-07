@@ -45,7 +45,7 @@ yarn dev                                          # http://localhost:3000
 | GET | `/api/part-brands` | Производители запчастей с количеством |
 | GET | `/api/rental`, `/api/rental/:id` | Аренда техники |
 | GET | `/api/brands`, `/api/systems`, `/api/cities` | Справочники (из `lib/data`) |
-| POST | `/api/leads` | Заявка (заказ / звонок / бронь / запрос цены) |
+| POST | `/api/leads` | Заявка (звонок / бронь / запрос цены); заказы — через server action `submitOrder` |
 | `/api/auth/*` | Auth.js (Google, email) |
 
 ## Структура
@@ -53,7 +53,7 @@ yarn dev                                          # http://localhost:3000
 ```
 app/            страницы + app/api (Route Handlers) + actions.ts (server actions)
 lib/db/         schema.ts (Drizzle), index.ts (клиент), миграции в drizzle/
-lib/services/   слой доступа к данным (parts, leads, garage) — роуты зовут его, не БД напрямую
+lib/services/   слой доступа к данным (parts, orders, leads) — роуты зовут его, не БД напрямую
 lib/auth.ts     конфиг Auth.js
 lib/data.ts     статические справочники (бренды/модели/города/категории, демо-аренда)
 store/          Zustand-сторы (корзина, избранное, гараж)

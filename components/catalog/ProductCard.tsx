@@ -7,6 +7,7 @@ import { warehouseCity } from '@/lib/data'
 import { useCart } from '@/store/cart'
 import { useWishlist } from '@/store/wishlist'
 import { useT } from '@/lib/i18n'
+import type { CardPart } from '@/types'
 
 // Shared product card (the Autopiter-style ".card"). Used by the catalog,
 // wishlist and brand pages so there is one card to maintain.
@@ -34,7 +35,7 @@ function usePartImage(oem: string, name: string) {
   return url
 }
 
-export function ProductCard({ part, b2b = false }: { part: any; b2b?: boolean }) {
+export function ProductCard({ part, b2b = false }: { part: CardPart; b2b?: boolean }) {
   const router = useRouter()
   const t = useT()
   const { items, addItem, city } = useCart()
@@ -50,7 +51,20 @@ export function ProductCard({ part, b2b = false }: { part: any; b2b?: boolean })
   const imgUrl = usePartImage(part.oem ?? '', part.name ?? '')
 
   return (
-    <div className="card" onClick={() => router.push(`/catalog/${part.id}`)} style={{ cursor: 'pointer' }}>
+    <div
+      className="card"
+      role="link"
+      tabIndex={0}
+      aria-label={part.name}
+      onClick={() => router.push(`/catalog/${part.id}`)}
+      onKeyDown={(e) => {
+        if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault()
+          router.push(`/catalog/${part.id}`)
+        }
+      }}
+      style={{ cursor: 'pointer' }}
+    >
       <div className="card-img">
         {imgUrl ? (
           <Image src={imgUrl} alt={part.name} fill sizes="(max-width:560px) 100vw, 25vw" style={{ objectFit: 'contain', padding: 8 }} unoptimized />
@@ -60,7 +74,12 @@ export function ProductCard({ part, b2b = false }: { part: any; b2b?: boolean })
           </div>
         )}
         <span className="brandchip" style={{ fontFamily: 'var(--font-jetbrains),monospace' }}>{part.brand}</span>
-        <button className={`fav${inWish ? ' active' : ''}`} onClick={(e) => { e.stopPropagation(); toggle({ ...part, stock: stockMap }) }}>
+        <button
+          className={`fav${inWish ? ' active' : ''}`}
+          aria-label={t('wishlist.title')}
+          aria-pressed={inWish}
+          onClick={(e) => { e.stopPropagation(); toggle({ ...part, stock: stockMap }) }}
+        >
           <svg width="16" height="16" viewBox="0 0 24 24" fill={inWish ? '#e53e3e' : 'none'} stroke={inWish ? '#e53e3e' : 'currentColor'} strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
         </button>
       </div>
@@ -83,7 +102,7 @@ export function ProductCard({ part, b2b = false }: { part: any; b2b?: boolean })
             <span className="now">{fmtKZT(price)}</span>
             <span className="unit">{t('pdp.priceMeta')}</span>
           </div>
-          <button className="buy" onClick={(e) => { e.stopPropagation(); addItem({ ...part, stock: stockMap }, 1) }}>
+          <button className="buy" onClick={(e) => { e.stopPropagation(); addItem({ ...part, stock: stockMap }, 1, { b2b }) }}>
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg>
             {inCart ? t('pc.inCart') : t('pdp.addToCart')}
           </button>

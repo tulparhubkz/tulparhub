@@ -11,7 +11,8 @@ import { ToastHost, type ToastItem } from '@/components/ui/Toast'
 import { useCart } from '@/store/cart'
 import { fmtKZT } from '@/lib/utils'
 import { useT } from '@/lib/i18n'
-import { isValidPhone, isValidEmail, formatPhoneInput } from '@/lib/validation'
+import { isValidPhone, isValidEmail, phoneInputValue } from '@/lib/validation'
+import { deliveryCost } from '@/lib/services/delivery'
 import { submitOrder } from '@/app/actions'
 import { reachGoal, ecommerce, partProduct, setVisitParams } from '@/lib/analytics'
 
@@ -46,6 +47,29 @@ export default function CartPage() {
     }
   }, [items.length])
 
+  // ЮЛ buyers see the wholesale price where the feed has one. The server
+  // re-prices with the same rule and additionally checks the session role.
+  const unitPrice = (i: { price: number; price_b2b?: number | null }) =>
+    b2b && i.price_b2b ? i.price_b2b : i.price
+
+  // Persisted items carry the prices from whenever they were added. Refresh
+  // them once per visit: catalog prices move, and a guest who signed in as
+  // B2B needs price_b2b filled in (the session cookie rides along the fetch).
+  useEffect(() => {
+    const ids = useCart.getState().items.map((i) => i.id)
+    if (ids.length === 0) return
+    fetch(`/api/parts?ids=${encodeURIComponent(ids.join(','))}`)
+      .then((r) => r.json())
+      .then((d) => {
+        const fresh = (d.items ?? []).map((p: { part_stock?: { city: string; qty: number }[] } & Record<string, unknown>) => ({
+          ...p,
+          stock: p.part_stock ? Object.fromEntries(p.part_stock.map((s) => [s.city, s.qty])) : {},
+        }))
+        if (fresh.length) useCart.getState().refreshItems(fresh)
+      })
+      .catch(() => { /* offline / API hiccup — stored prices remain */ })
+  }, [])
+
   const handleCheckout = async () => {
     if (submitting) return
     const name  = nameRef.current?.value?.trim()
@@ -64,6 +88,7 @@ export default function CartPage() {
     try {
       const result = await submitOrder({
         kind:     'order',
+        b2b,
         name,
         phone,
         email,
@@ -73,7 +98,7 @@ export default function CartPage() {
         company:  companyRef.current?.value,
         bin:      binRef.current?.value,
         comment:  notes || undefined,
-        items:    items.map(({ id, oem, name, qty, price }) => ({ id, oem, name, qty, price })),
+        items:    items.map((i) => ({ id: i.id, oem: i.oem ?? '', name: i.name, qty: i.qty, price: unitPrice(i) })),
       })
       if (result.ok) {
         setVisitParams({ buyer: b2b ? 'b2b' : 'individual', city, locale })
@@ -88,10 +113,13 @@ export default function CartPage() {
           { id: result.invoiceNumber ?? result.orderId ?? '', revenue: result.total ?? 0 },
         )
         clearCart()
-        const q = new URLSearchParams({ num: result.invoiceNumber ?? '', phone, pay, total: String(result.total ?? ''), id: result.orderId ?? '' })
+        // The order UUID doubles as the invoice link — keep it out of the URL
+        // (browser history / referrers) and hand it over via sessionStorage (#67).
+        if (result.orderId) sessionStorage.setItem('th-last-order', result.orderId)
+        const q = new URLSearchParams({ num: result.invoiceNumber ?? '', phone, pay, total: String(result.total ?? '') })
         router.push(`/order-success?${q}`)
       } else {
-        addToast(result.message, 'info')
+        addToast(t(result.message, result.params), 'info')
       }
     } catch {
       addToast(t('cart.toast.connError'), 'info')
@@ -105,10 +133,11 @@ export default function CartPage() {
     { label: t('cart.crumb') },
   ]
 
-  const subtotal = items.reduce((a, c) => a + c.price * c.qty, 0)
+  const subtotal = items.reduce((a, c) => a + unitPrice(c) * c.qty, 0)
   const vat = Math.round(subtotal * 12 / 112)
-  const deliveryCost = delivery === 'pickup' ? 0 : subtotal >= 30000 ? 0 : 2500
-  const total = subtotal + deliveryCost
+  // Same tariff the server persists; null = manager-calc (freight/unknown).
+  const dCost = deliveryCost(delivery, subtotal)
+  const total = subtotal + (dCost ?? 0)
 
   if (items.length === 0) {
     return (
@@ -157,7 +186,7 @@ export default function CartPage() {
               <div className="cart-items">
                 {items.map((item) => (
                   <div key={item.id} className="cart-item">
-                    <div className="ci-thumb"><Placeholder label={item.img} ratio="1" /></div>
+                    <div className="ci-thumb"><Placeholder label={item.img ?? undefined} ratio="1" /></div>
                     <div className="ci-meta">
                       <div className="ci-oem">{item.oem}</div>
                       <div className="ci-name">{item.name}</div>
@@ -170,8 +199,8 @@ export default function CartPage() {
                       <button onClick={() => setQty(item.id, item.qty + 1)}><Ico name="plus" size={12} /></button>
                     </div>
                     <div className="ci-price">
-                      <b>{fmtKZT(item.price * item.qty)}</b>
-                      <span>{fmtKZT(item.price)} {t('cart.perPc')}</span>
+                      <b>{fmtKZT(unitPrice(item) * item.qty)}</b>
+                      <span>{fmtKZT(unitPrice(item))} {t('cart.perPc')}</span>
                     </div>
                     <button className="ci-remove" onClick={() => setQty(item.id, 0)}><Ico name="close" size={14} /></button>
                   </div>
@@ -235,7 +264,7 @@ export default function CartPage() {
                 <h3>4. {t('cart.sec.contact')}</h3>
                 <div className="b2b-grid">
                   <div className="b2b-row"><label>{t('cart.name')}</label><input ref={nameRef} placeholder={t('cart.namePlaceholder')} /></div>
-                  <div className="b2b-row"><label>{t('cart.phone')}</label><input ref={phoneRef} type="tel" placeholder="+7 (700) 000-00-00" onChange={(e) => { e.target.value = formatPhoneInput(e.target.value) }} /></div>
+                  <div className="b2b-row"><label>{t('cart.phone')}</label><input ref={phoneRef} type="tel" placeholder="+7 (700) 000-00-00" onChange={(e) => { e.target.value = phoneInputValue(e) }} /></div>
                   <div className="b2b-row"><label>{t('cart.email')}</label><input ref={emailRef} type="email" placeholder="mail@example.com" title={t('cart.emailNote')} /></div>
                 </div>
               </div>
@@ -247,7 +276,7 @@ export default function CartPage() {
                 <h3>4. {t('cart.sec.company')}</h3>
                 <div className="b2b-grid">
                   <div className="b2b-row"><label>{t('cart.contactPerson')}</label><input ref={nameRef} placeholder={t('cart.namePlaceholder')} /></div>
-                  <div className="b2b-row"><label>{t('cart.phone')}</label><input ref={phoneRef} type="tel" placeholder="+7 (700) 000-00-00" onChange={(e) => { e.target.value = formatPhoneInput(e.target.value) }} /></div>
+                  <div className="b2b-row"><label>{t('cart.phone')}</label><input ref={phoneRef} type="tel" placeholder="+7 (700) 000-00-00" onChange={(e) => { e.target.value = phoneInputValue(e) }} /></div>
                   <div className="b2b-row"><label>{t('cart.email')}</label><input ref={emailRef} type="email" placeholder="mail@example.com" title={t('cart.emailNote')} /></div>
                   <div className="b2b-row"><label>{t('cart.companyName')}</label><input ref={companyRef} placeholder="ТОО «Компания»" /></div>
                   <div className="b2b-row"><label>{t('cart.bin')}</label><input ref={binRef} placeholder="000000000000" inputMode="numeric" /></div>
@@ -266,7 +295,7 @@ export default function CartPage() {
               <h3>{t('cart.summary.title')}</h3>
               <div className="sum-row"><span>{t('cart.sum.goods')} · {items.reduce((a, c) => a + c.qty, 0)} {t('cart.pcs')}</span><b>{fmtKZT(subtotal)}</b></div>
               <div className="sum-row sum-sub"><span>{t('cart.sum.vat')}</span><b>{fmtKZT(vat)}</b></div>
-              <div className="sum-row"><span>{t('cart.sum.delivery')}</span><b>{deliveryCost === 0 ? t('cart.free') : fmtKZT(deliveryCost)}</b></div>
+              <div className="sum-row"><span>{t('cart.sum.delivery')}</span><b>{dCost === null ? t('cart.byCalc') : dCost === 0 ? t('cart.free') : fmtKZT(dCost)}</b></div>
               <div className="sum-grand"><span>{t('cart.sum.grand')}</span><b>{fmtKZT(total)}</b></div>
               <Btn
                 variant="primary" size="lg" full iconRight="arrow"

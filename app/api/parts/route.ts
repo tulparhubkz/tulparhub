@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { listParts } from '@/lib/services/parts'
+import { isB2bViewer } from '@/lib/admin'
 import { decodeVin, isValidVin } from '@/lib/vinDecoder'
 
 export async function GET(req: NextRequest) {
@@ -21,10 +22,11 @@ export async function GET(req: NextRequest) {
     partBrand: sp.get('partBrand') || undefined,
     oemOnly: sp.get('oemOnly') === '1',
     inStock: sp.get('inStock') === '1',
-    priceMax: sp.get('priceMax') ? Number(sp.get('priceMax')) : undefined,
+    priceMax: Number.isFinite(Number(sp.get('priceMax'))) && sp.get('priceMax') ? Number(sp.get('priceMax')) : undefined,
     sort: sp.get('sort') ?? 'popular',
     page: Math.max(1, Number(sp.get('page') ?? 1)),
-  })
+    ids: sp.get('ids')?.split(',').map((s) => s.trim()).filter(Boolean),
+  }, { b2b: await isB2bViewer() })
 
   return NextResponse.json(result)
 }

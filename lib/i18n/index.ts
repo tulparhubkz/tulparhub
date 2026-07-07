@@ -13,7 +13,7 @@ export const LOCALES = ['ru', 'kz', 'en'] as const
 export type Locale = (typeof LOCALES)[number]
 export const LOCALE_LABELS: Record<Locale, string> = { ru: 'RU', kz: 'KZ', en: 'EN' }
 
-export function useT(): (key: TranslationKey) => string {
+export function useT(): (key: TranslationKey, values?: Record<string, string | number>) => string {
   const t = useTranslations()
-  return t as unknown as (key: TranslationKey) => string
+  return t as unknown as (key: TranslationKey, values?: Record<string, string | number>) => string
 }

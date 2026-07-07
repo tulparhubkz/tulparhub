@@ -1,10 +1,13 @@
 'use client'
 import { useSearchParams } from 'next/navigation'
 import { useRouter } from '@/i18n/navigation'
-import { Suspense } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { Link } from '@/i18n/navigation'
+import { signIn } from 'next-auth/react'
 import { fmtKZT } from '@/lib/utils'
+import { Ico } from '@/components/ui/Ico'
 import { useT } from '@/lib/i18n'
+import { claimOrder } from '@/app/actions'
 
 function OrderSuccessInner() {
   const params = useSearchParams()
@@ -14,26 +17,43 @@ function OrderSuccessInner() {
   const phone  = params.get('phone') ?? ''
   const pay    = params.get('pay') ?? 'invoice'
   const total  = Number(params.get('total') ?? '') || 0
-  const orderId = params.get('id') ?? ''
+  // Invoice UUID arrives via sessionStorage, not the URL (#67) — read after
+  // mount so server and first client render agree.
+  const [orderId, setOrderId] = useState('')
+  // Guest→account conversion (#48): try to attach the order to the session.
+  // Signed out → offer Google sign-in that round-trips back to this page,
+  // where the same effect claims the order. 'hidden' = nothing to offer.
+  const [claim, setClaim] = useState<'hidden' | 'offer' | 'claimed'>('hidden')
+  useEffect(() => {
+    const oid = sessionStorage.getItem('th-last-order') ?? ''
+    setOrderId(oid)
+    if (!oid) return
+    claimOrder(oid)
+      .then((r) => {
+        if (r.ok) setClaim('claimed')
+        else if (r.code === 'unauthenticated') setClaim('offer')
+      })
+      .catch(() => { /* network hiccup — the block simply stays hidden */ })
+  }, [])
 
   const isInvoice = pay === 'invoice'
   const isKaspi   = pay === 'kaspi-qr' || pay === 'kaspi-rs'
 
   const steps = [
     {
-      icon: '✅',
+      icon: 'check',
       title: t('success.step1.title'),
       desc: `${t('success.step1.pre')}${num}${t('success.step1.post')}`,
       done: true,
     },
     {
-      icon: '📞',
+      icon: 'phone',
       title: t('success.step2.title'),
       desc: `${t('success.step2.pre')}${phone || t('success.yourNumber')}${t('success.step2.post')}`,
       done: false,
     },
     {
-      icon: isInvoice ? '📄' : '💳',
+      icon: isInvoice ? 'pdf' : 'card',
       title: isInvoice ? t('success.step3.titleInvoice') : t('success.step3.titlePay'),
       desc: isInvoice
         ? t('success.step3.descInvoice')
@@ -43,7 +63,7 @@ function OrderSuccessInner() {
       done: false,
     },
     {
-      icon: '📦',
+      icon: 'box',
       title: t('success.step4.title'),
       desc: t('success.step4.desc'),
       done: false,
@@ -67,14 +87,21 @@ function OrderSuccessInner() {
         .copy-btn { background: none; border: none; cursor: pointer; color: var(--ink-3); padding: 2px; display: flex; align-items: center; }
         .copy-btn:hover { color: var(--accent); }
 
+        .claim-box { margin-top: 20px; padding: 16px 18px; background: var(--surf-2); border: 1.5px solid var(--line); border-radius: 12px; }
+        .claim-box p { font-size: 13px; color: var(--ink-2); margin-bottom: 12px; }
+        .claim-google { display: inline-flex; align-items: center; justify-content: center; gap: 9px; padding: 11px 20px; border: 1.5px solid var(--line-2); border-radius: 10px; background: #fff; font-size: 14px; font-weight: 600; color: var(--ink); cursor: pointer; }
+        .claim-google:hover { border-color: var(--ink); }
+        .claim-done { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; color: var(--ink-2); background: #f0fdf4; border-color: #bbf7d0; }
+        .claim-done a { color: var(--accent); font-weight: 600; }
+
         .success-steps { background: var(--surf); border: 1.5px solid var(--line); border-radius: 20px; padding: 32px 36px; }
         .success-steps h2 { font-size: 16px; font-weight: 700; color: var(--ink); margin-bottom: 24px; }
         .step-list { display: flex; flex-direction: column; gap: 0; }
         .step-item { display: flex; gap: 16px; align-items: flex-start; padding-bottom: 24px; position: relative; }
         .step-item:last-child { padding-bottom: 0; }
         .step-item:not(:last-child)::before { content: ''; position: absolute; left: 19px; top: 42px; bottom: 0; width: 2px; background: var(--line); }
-        .step-dot { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; border: 2px solid var(--line); background: var(--surf-2); }
-        .step-dot.done { background: #f0fdf4; border-color: #16a34a; }
+        .step-dot { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--ink-3); flex-shrink: 0; border: 2px solid var(--line); background: var(--surf-2); }
+        .step-dot.done { background: #f0fdf4; border-color: #16a34a; color: #16a34a; }
         .step-body { padding-top: 8px; }
         .step-body b { display: block; font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
         .step-body span { font-size: 13px; color: var(--ink-2); line-height: 1.5; }
@@ -135,6 +162,23 @@ function OrderSuccessInner() {
                 </Link>
               </div>
             )}
+
+            {/* Guest→account conversion (#48) */}
+            {claim === 'offer' && (
+              <div className="claim-box">
+                <p>{t('success.claim.offer')}</p>
+                <button type="button" className="claim-google" onClick={() => signIn('google', { callbackUrl: window.location.href })}>
+                  <svg width="16" height="16" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.34A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.97 10.72a5.4 5.4 0 0 1 0-3.44V4.94H.96a9 9 0 0 0 0 8.12l3.01-2.34z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58A9 9 0 0 0 .96 4.94l3.01 2.34C4.68 5.16 6.66 3.58 9 3.58z"/></svg>
+                  {t('success.claim.btn')}
+                </button>
+              </div>
+            )}
+            {claim === 'claimed' && (
+              <div className="claim-box claim-done">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>{t('success.claim.done')} · <Link href="/account/orders">{t('success.claim.myOrders')}</Link></span>
+              </div>
+            )}
           </div>
 
           {/* Steps: что дальше */}
@@ -143,7 +187,7 @@ function OrderSuccessInner() {
             <div className="step-list">
               {steps.map((s, i) => (
                 <div key={i} className="step-item">
-                  <div className={`step-dot${s.done ? ' done' : ''}`}>{s.icon}</div>
+                  <div className={`step-dot${s.done ? ' done' : ''}`}><Ico name={s.icon} size={17} stroke={2} /></div>
                   <div className="step-body">
                     <b>{s.title}</b>
                     <span>{s.desc}</span>

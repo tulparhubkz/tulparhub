@@ -8,6 +8,7 @@ import {
   type OrderStatus,
   type PaymentStatus,
 } from '@/lib/services/orders'
+import { updateUserRole, type UserRole } from '@/lib/services/users'
 
 export async function setOrderStatus(id: string, status: OrderStatus) {
   if (!(await getAdmin())) return { ok: false, message: 'Доступ запрещён' }
@@ -18,6 +19,21 @@ export async function setOrderStatus(id: string, status: OrderStatus) {
   } catch (err) {
     console.error('[admin] setOrderStatus error:', err)
     return { ok: false, message: 'Не удалось обновить статус' }
+  }
+}
+
+export async function setUserRole(id: string, role: UserRole) {
+  const admin = await getAdmin()
+  if (!admin) return { ok: false, message: 'Доступ запрещён' }
+  // Locking yourself out of /admin takes another admin (or the DB) — by design.
+  if (admin.id === id) return { ok: false, message: 'Свою роль менять нельзя — попросите другого админа' }
+  try {
+    await updateUserRole(id, role)
+    revalidatePath('/admin/users')
+    return { ok: true }
+  } catch (err) {
+    console.error('[admin] setUserRole error:', err)
+    return { ok: false, message: 'Не удалось обновить роль' }
   }
 }
 

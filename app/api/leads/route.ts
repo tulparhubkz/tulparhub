@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createLead } from '@/lib/services/leads'
+import { rateLimit, clientIpFrom } from '@/lib/rateLimit'
 import { z } from 'zod'
 
+// Real orders go through the submitOrder server action (app/actions.ts), which
+// persists to orders/order_items with server-side re-pricing. This endpoint
+// only takes lightweight leads — it must not pretend to create orders.
 const LeadSchema = z.object({
-  kind: z.enum(['order', 'callback', 'booking', 'quote', 'rfq']),
+  kind: z.enum(['callback', 'booking', 'quote', 'rfq']),
   name: z.string().min(2).max(100),
   phone: z.string().min(7).max(20),
   email: z.string().email().optional().or(z.literal('')),
@@ -28,6 +32,14 @@ const LeadSchema = z.object({
 })
 
 export async function POST(req: NextRequest) {
+  // Shares the checkout bucket with submitOrder: both persist leads/orders (#68).
+  if (!rateLimit(`submit:${clientIpFrom(req.headers)}`, { limit: 5, windowMs: 60_000 })) {
+    return NextResponse.json(
+      { ok: false, error: 'Слишком много заявок подряд. Подождите минуту и попробуйте снова.' },
+      { status: 429 },
+    )
+  }
+
   let body: unknown
   try {
     body = await req.json()
@@ -49,18 +61,10 @@ export async function POST(req: NextRequest) {
     console.error('[leads] insert failed:', err)
   }
 
-  // Build invoice number for B2B orders
-  const invoiceNumber = payload.kind === 'order'
-    ? `TH-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`
-    : null
-
   return NextResponse.json({
     ok: true,
-    message: payload.kind === 'order'
-      ? `Заказ принят. Счёт ${invoiceNumber} отправлен на email.`
-      : payload.kind === 'booking'
+    message: payload.kind === 'booking'
       ? 'Заявка на аренду принята. Менеджер свяжется в течение 15 минут.'
       : 'Заявка принята. Перезвоним в течение 12 минут.',
-    invoiceNumber,
   })
 }

@@ -141,6 +141,23 @@ const ru = {
   'auth.emailLabel': 'Email',
   'auth.loading': 'Отправляем…',
   'auth.submit': 'Получить ссылку для входа',
+  // Server-action results (app/actions.ts returns these keys; clients render via t())
+  'act.fillNamePhone': 'Заполните имя и телефон',
+  'act.badPhone': 'Введите корректный номер телефона',
+  'act.badEmail': 'Введите корректный email',
+  'act.emptyCart': 'Корзина пуста',
+  'act.orderAccepted': 'Заказ принят. Счёт {num} сформирован.',
+  'act.orderFailed': 'Не удалось оформить заказ. Попробуйте ещё раз или позвоните нам.',
+  'act.callbackOk': 'Заявка принята. Перезвоним в течение 12 минут.',
+  'act.bookingOk': 'Заявка на аренду отправлена. Менеджер свяжется через 15 минут.',
+  'act.quoteOk': 'Запрос цены отправлен. Коммерческое предложение — в течение 1 часа.',
+  'act.leadOk': 'Заявка принята.',
+  'act.rateLimited': 'Слишком много заявок подряд. Подождите минуту и попробуйте снова.',
+  // Guest→account conversion on order-success (#48)
+  'success.claim.offer': 'Войдите, чтобы отслеживать этот заказ в «Моих заказах» — история сохранится за аккаунтом.',
+  'success.claim.btn': 'Сохранить заказ в аккаунте',
+  'success.claim.done': 'Заказ привязан к вашему аккаунту',
+  'success.claim.myOrders': 'Мои заказы',
 }
 
 type K = keyof typeof ru
@@ -274,6 +291,21 @@ const kz: Record<K, string> = {
   'auth.emailLabel': 'Email',
   'auth.loading': 'Жіберілуде…',
   'auth.submit': 'Кіру сілтемесін алу',
+  'act.fillNamePhone': 'Атыңыз бен телефонды толтырыңыз',
+  'act.badPhone': 'Дұрыс телефон нөмірін енгізіңіз',
+  'act.badEmail': 'Дұрыс email енгізіңіз',
+  'act.emptyCart': 'Себет бос',
+  'act.orderAccepted': 'Тапсырыс қабылданды. {num} шоты қалыптастырылды.',
+  'act.orderFailed': 'Тапсырысты рәсімдеу мүмкін болмады. Қайталап көріңіз немесе бізге қоңырау шалыңыз.',
+  'act.callbackOk': 'Өтінім қабылданды. 12 минут ішінде қайта қоңырау шаламыз.',
+  'act.bookingOk': 'Жалға алу өтінімі жіберілді. Менеджер 15 минут ішінде хабарласады.',
+  'act.quoteOk': 'Баға сұрауы жіберілді. Коммерциялық ұсыныс — 1 сағат ішінде.',
+  'act.leadOk': 'Өтінім қабылданды.',
+  'act.rateLimited': 'Өтінімдер тым көп. Бір минут күтіп, қайталап көріңіз.',
+  'success.claim.offer': 'Бұл тапсырысты «Менің тапсырыстарым» бөлімінде бақылау үшін кіріңіз — тарих аккаунтта сақталады.',
+  'success.claim.btn': 'Тапсырысты аккаунтта сақтау',
+  'success.claim.done': 'Тапсырыс аккаунтыңызға байланды',
+  'success.claim.myOrders': 'Менің тапсырыстарым',
 }
 
 const en: Record<K, string> = {
@@ -405,6 +437,21 @@ const en: Record<K, string> = {
   'auth.emailLabel': 'Email',
   'auth.loading': 'Sending…',
   'auth.submit': 'Get a sign-in link',
+  'act.fillNamePhone': 'Please enter your name and phone number',
+  'act.badPhone': 'Please enter a valid phone number',
+  'act.badEmail': 'Please enter a valid email',
+  'act.emptyCart': 'Your cart is empty',
+  'act.orderAccepted': 'Order accepted. Invoice {num} has been generated.',
+  'act.orderFailed': 'Could not place the order. Please try again or give us a call.',
+  'act.callbackOk': 'Request received. We will call you back within 12 minutes.',
+  'act.bookingOk': 'Rental request sent. A manager will contact you within 15 minutes.',
+  'act.quoteOk': 'Quote request sent. You will receive a commercial offer within 1 hour.',
+  'act.leadOk': 'Request received.',
+  'act.rateLimited': 'Too many requests. Please wait a minute and try again.',
+  'success.claim.offer': 'Sign in to track this order in “My orders” — your history stays with the account.',
+  'success.claim.btn': 'Save this order to an account',
+  'success.claim.done': 'Order linked to your account',
+  'success.claim.myOrders': 'My orders',
 }
 
 export const commerce: Record<Lang, Record<K, string>> = { RU: ru, KZ: kz, EN: en }

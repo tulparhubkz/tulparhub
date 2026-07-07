@@ -5,7 +5,7 @@ import { Ico } from '@/components/ui/Ico'
 import { Placeholder } from '@/components/ui/Placeholder'
 import { fmtKZT } from '@/lib/utils'
 import { useT } from '@/lib/i18n'
-import { isValidPhone, formatPhoneInput } from '@/lib/validation'
+import { isValidPhone, phoneInputValue } from '@/lib/validation'
 import { submitOrder } from '@/app/actions'
 import type { RentalUnit } from '@/types'
 import { reachGoal } from '@/lib/analytics'
@@ -68,9 +68,9 @@ export function BookingSheet({ item, onClose }: BookingSheetProps) {
       })
       if (result.ok) {
         reachGoal('LEAD_SUBMIT', { kind: 'booking' })
-        setDone(result.message) // in-sheet confirmation — a toast is too easy to miss
+        setDone(t(result.message, result.params)) // in-sheet confirmation — a toast is too easy to miss
       } else {
-        setError(result.message)
+        setError(t(result.message, result.params))
       }
     } catch {
       setError(t('bs.error'))
@@ -124,7 +124,7 @@ export function BookingSheet({ item, onClose }: BookingSheetProps) {
               </div>
               <div>
                 <label>{t('bs.phone')}</label>
-                <input ref={phoneRef} type="tel" placeholder="+7 (___) ___-__-__" onChange={(e) => { e.target.value = formatPhoneInput(e.target.value) }} />
+                <input ref={phoneRef} type="tel" placeholder="+7 (___) ___-__-__" onChange={(e) => { e.target.value = phoneInputValue(e) }} />
               </div>
             </div>
             <div className="sheet-row">

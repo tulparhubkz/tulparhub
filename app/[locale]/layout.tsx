@@ -11,6 +11,7 @@ import { CartAddedPopup } from '@/components/cart/CartAddedPopup'
 import { YandexMetrica } from '@/components/analytics/YandexMetrica'
 import { MetricaIdentity } from '@/components/analytics/MetricaIdentity'
 import { routing } from '@/i18n/routing'
+import { siteUrl } from '@/lib/seo'
 import { Providers } from '../providers'
 import '../globals.css'
 
@@ -35,15 +36,30 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params
   const t = await getTranslations({ locale })
+  const title = t('meta.title')
+  const description = t('meta.description')
   return {
-    title: t('meta.title'),
-    description: t('meta.description'),
+    metadataBase: new URL(siteUrl()),
+    title,
+    description,
+    alternates: {
+      canonical: `/${locale}`,
+      languages: { ru: '/ru', kk: '/kz', en: '/en' },
+    },
+    openGraph: {
+      title,
+      description,
+      siteName: 'TulparHub',
+      type: 'website',
+      url: `/${locale}`,
+    },
   }
 }
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  themeColor: '#0a1a4f',
 }
 
 export function generateStaticParams() {

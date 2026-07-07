@@ -1,7 +1,8 @@
 import { db } from '@/lib/db'
 import { orders, orderItems, parts } from '@/lib/db/schema'
-import { inArray, eq, desc } from 'drizzle-orm'
+import { inArray, eq, desc, and, isNull } from 'drizzle-orm'
 import { phoneDigits } from '@/lib/validation'
+import { deliveryCost } from '@/lib/services/delivery'
 
 export const ORDER_STATUSES = ['new', 'confirmed', 'shipped', 'done', 'cancelled'] as const
 export type OrderStatus = (typeof ORDER_STATUSES)[number]
@@ -18,6 +19,8 @@ export interface OrderItemInput {
 
 export interface OrderInput {
   userId?: string | null
+  /** Price line items at price_b2b. Caller must verify the session role — never trust the client. */
+  b2b?: boolean
   name: string
   phone: string
   email?: string | null
@@ -48,32 +51,46 @@ function genInvoice(): string {
  *
  * Line items are re-priced from the catalog so the stored total never trusts a
  * client-supplied price. `name`/`oem` are snapshotted onto the line item so it
- * survives later catalog edits. Returns the goods total (delivery/discount are
- * not persisted yet — see issue #15 follow-ups).
+ * survives later catalog edits. Delivery is priced server-side from the same
+ * tariff the cart uses and folded into `total`; `deliveryCost` is null when the
+ * method is manager-calc (freight/unknown). Returns the grand total.
  */
+const MAX_ITEMS = 100
+const MAX_QTY = 9_999
+
 export async function createOrder(input: OrderInput): Promise<CreatedOrder> {
-  const clean = (input.items ?? []).filter((i) => i && i.id && i.qty > 0)
+  // Quantities must be sane integers: fractional/huge values would either be
+  // rejected by the integer column or overflow the int4 total.
+  const clean = (input.items ?? []).filter(
+    (i) => i && i.id && Number.isInteger(i.qty) && i.qty > 0 && i.qty <= MAX_QTY,
+  )
   if (clean.length === 0) throw new Error('createOrder: empty order')
+  if (clean.length > MAX_ITEMS) throw new Error(`createOrder: too many line items (${clean.length})`)
 
   // Re-price from the DB; fall back to the client value only if the part is gone.
+  // B2B buyers get the wholesale price where the feed has one (retail otherwise).
   const ids = Array.from(new Set(clean.map((i) => i.id)))
   const rows = await db
-    .select({ id: parts.id, oem: parts.oem, name: parts.name, price: parts.price })
+    .select({ id: parts.id, oem: parts.oem, name: parts.name, price: parts.price, priceB2b: parts.priceB2b })
     .from(parts)
     .where(inArray(parts.id, ids))
   const byId = new Map(rows.map((r) => [r.id, r]))
 
   const lineItems = clean.map((i) => {
     const p = byId.get(i.id)
+    const catalogPrice = p ? (input.b2b && p.priceB2b ? p.priceB2b : p.price) : null
     return {
       partId: p?.id ?? null,
       oem: p?.oem ?? i.oem ?? null,
       name: p?.name ?? i.name,
       qty: i.qty,
-      price: p?.price ?? i.price ?? 0,
+      price: catalogPrice ?? i.price ?? 0,
     }
   })
-  const total = lineItems.reduce((a, c) => a + c.price * c.qty, 0)
+  const goodsTotal = lineItems.reduce((a, c) => a + c.price * c.qty, 0)
+  // Same tariff the cart shows; null (freight/unknown) adds nothing to the total.
+  const dCost = deliveryCost(input.delivery, goodsTotal)
+  const total = goodsTotal + (dCost ?? 0)
 
   // Insert atomically; retry on the (rare) invoice-number collision.
   for (let attempt = 0; attempt < 5; attempt++) {
@@ -89,6 +106,7 @@ export async function createOrder(input: OrderInput): Promise<CreatedOrder> {
             paymentStatus: 'pending',
             paymentProvider: input.payment ?? null,
             total,
+            deliveryCost: dCost,
             customerName: input.name,
             customerPhone: input.phone,
             customerEmail: input.email ?? null,
@@ -121,6 +139,7 @@ export interface TrackedOrder {
   paymentStatus: string
   paymentProvider: string | null
   delivery: string | null
+  deliveryCost: number | null
   city: string | null
   total: number
   items: Array<{ name: string; oem: string | null; qty: number; price: number }>
@@ -149,10 +168,33 @@ export async function trackOrderByInvoice(invoiceNumber: string, phone: string):
     paymentStatus: o.paymentStatus,
     paymentProvider: o.paymentProvider,
     delivery: o.delivery,
+    deliveryCost: o.deliveryCost,
     city: o.city,
     total: o.total,
     items: its.map((it) => ({ name: it.name, oem: it.oem, qty: it.qty, price: it.price })),
   }
+}
+
+export type ClaimResult = 'claimed' | 'already' | 'taken' | 'notfound'
+
+/**
+ * Attach a guest order to a signed-in user (#48). Possession of the
+ * unguessable order UUID — it only lives in the buyer's own browser session —
+ * is the proof of ownership, the same trust base as the invoice link.
+ * The claim itself is atomic: only orders with no user can be taken.
+ */
+export async function attachOrderToUser(orderId: string, userId: string): Promise<ClaimResult> {
+  if (!orderId || orderId.length < 30 || !userId) return 'notfound'
+  const claimed = await db
+    .update(orders)
+    .set({ userId })
+    .where(and(eq(orders.id, orderId), isNull(orders.userId)))
+    .returning({ id: orders.id })
+  if (claimed.length > 0) return 'claimed'
+
+  const [o] = await db.select({ userId: orders.userId }).from(orders).where(eq(orders.id, orderId))
+  if (!o) return 'notfound'
+  return o.userId === userId ? 'already' : 'taken'
 }
 
 /** Full order + line items by UUID — for the invoice document (id is unguessable). */
@@ -182,6 +224,7 @@ export interface OrderListItem {
   company: string | null
   city: string | null
   delivery: string | null
+  deliveryCost: number | null
   paymentProvider: string | null
   status: string
   paymentStatus: string
@@ -232,6 +275,7 @@ async function attachItems(os: (typeof orders.$inferSelect)[]): Promise<OrderLis
     company: o.company,
     city: o.city,
     delivery: o.delivery,
+    deliveryCost: o.deliveryCost,
     paymentProvider: o.paymentProvider,
     status: o.status,
     paymentStatus: o.paymentStatus,

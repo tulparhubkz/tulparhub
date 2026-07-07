@@ -1,3 +1,5 @@
+import type { PartDTO } from '@/lib/services/parts'
+
 export interface EquipmentType {
   id: string
   ru: string
@@ -75,6 +77,10 @@ export interface City {
   symbol: string
 }
 
-export interface CartItem extends Part {
-  qty: number
-}
+// What the storefront actually passes around: the API DTO (see
+// lib/services/parts.ts) with part_stock flattened into a city→qty map by the
+// fetching page. The `Part` interface above is the legacy mock-data shape and
+// only describes lib/data fixtures.
+export type CardPart = PartDTO & { stock?: Record<string, number> }
+
+export type CartItem = CardPart & { qty: number }

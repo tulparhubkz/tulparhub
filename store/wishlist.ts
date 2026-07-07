@@ -1,12 +1,12 @@
 'use client'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Part } from '@/types'
+import type { Part, CardPart } from '@/types'
 import { reachGoal } from '@/lib/analytics'
 
 interface WishlistStore {
-  items: Part[]
-  toggle: (part: Part) => void
+  items: CardPart[]
+  toggle: (part: CardPart) => void
   has: (id: string) => boolean
   remove: (id: string) => void
 }

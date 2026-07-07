@@ -2,7 +2,8 @@
 import { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { fmtKZT } from '@/lib/utils'
-import { formatPhoneInput } from '@/lib/validation'
+import { Ico } from '@/components/ui/Ico'
+import { phoneInputValue } from '@/lib/validation'
 import { useT, type TranslationKey } from '@/lib/i18n'
 import { trackOrder } from '@/app/actions'
 import type { TrackedOrder } from '@/lib/services/orders'
@@ -22,7 +23,7 @@ const PAY_KEY: Record<string, TranslationKey> = {
   failed: 'track.pay.failed',
   refunded: 'track.pay.refunded',
 }
-const STEP_ICONS = ['✅', '📞', '📦', '🏁']
+const STEP_ICONS = ['check', 'phone', 'box', 'flag'] as const
 
 function TrackInner() {
   const t = useT()
@@ -56,6 +57,15 @@ function TrackInner() {
 
   const cancelled = order?.status === 'cancelled'
   const stepIdx = order ? FLOW.indexOf(order.status as (typeof FLOW)[number]) : -1
+  // Same rule as the invoice: charged → amount, 0 → free, freight w/o cost →
+  // manager-calc, pre-migration (null, non-freight) → hidden.
+  const deliveryDisplay = !order
+    ? null
+    : order.deliveryCost === null
+      ? (order.delivery === 'freight' ? t('cart.byCalc') : null)
+      : order.deliveryCost === 0
+        ? t('cart.free')
+        : fmtKZT(order.deliveryCost)
 
   return (
     <>
@@ -88,8 +98,8 @@ function TrackInner() {
         .trk-step:last-child { padding-bottom: 0; }
         .trk-step:not(:last-child)::before { content: ''; position: absolute; left: 17px; top: 38px; bottom: 0; width: 2px; background: var(--line); }
         .trk-step.on:not(:last-child)::before { background: #16a34a; }
-        .trk-dot { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; border: 2px solid var(--line); background: var(--surf-2); filter: grayscale(1); opacity: .55; }
-        .trk-step.on .trk-dot { background: #f0fdf4; border-color: #16a34a; filter: none; opacity: 1; }
+        .trk-dot { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--ink-3); flex-shrink: 0; border: 2px solid var(--line); background: var(--surf-2); opacity: .55; }
+        .trk-step.on .trk-dot { background: #f0fdf4; border-color: #16a34a; color: #16a34a; opacity: 1; }
         .trk-step-label { padding-top: 8px; font-size: 14px; font-weight: 600; color: var(--ink-3); }
         .trk-step.on .trk-step-label { color: var(--ink); }
         .trk-items { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
@@ -99,6 +109,7 @@ function TrackInner() {
         .trk-item .nm { color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
         .trk-item .q { color: var(--ink-3); flex-shrink: 0; }
         .trk-item .p { font-weight: 700; color: var(--ink); flex-shrink: 0; }
+        .trk-delivery { display: flex; justify-content: space-between; font-size: 13px; color: var(--ink-2); margin-bottom: 10px; }
         .trk-total { display: flex; justify-content: space-between; border-top: 1.5px solid var(--line); padding-top: 12px; font-size: 15px; color: var(--ink-2); }
         .trk-total b { color: var(--ink); font-weight: 800; }
         .trk-again { background: none; border: none; color: var(--accent); font-size: 14px; font-weight: 600; cursor: pointer; padding: 0; align-self: center; }
@@ -131,7 +142,7 @@ function TrackInner() {
                   <input
                     type="tel"
                     value={phone}
-                    onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
+                    onChange={(e) => setPhone(phoneInputValue(e))}
                     placeholder={t('track.phonePh')}
                     required
                   />
@@ -162,7 +173,7 @@ function TrackInner() {
                 <div className="trk-steps">
                   {FLOW.map((s, i) => (
                     <div key={s} className={`trk-step${!cancelled && i <= stepIdx ? ' on' : ''}`}>
-                      <div className="trk-dot">{STEP_ICONS[i]}</div>
+                      <div className="trk-dot"><Ico name={STEP_ICONS[i]} size={16} stroke={2} /></div>
                       <div className="trk-step-label">{t(STATUS_KEY[s])}</div>
                     </div>
                   ))}
@@ -181,6 +192,12 @@ function TrackInner() {
                     </div>
                   ))}
                 </div>
+                {deliveryDisplay && (
+                  <div className="trk-delivery">
+                    <span>{t('track.delivery')}</span>
+                    <span>{deliveryDisplay}</span>
+                  </div>
+                )}
                 <div className="trk-total">
                   <span>{t('track.total')}</span>
                   <b>{fmtKZT(order.total)}</b>

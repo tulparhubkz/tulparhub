@@ -1,4 +1,4 @@
-import type { Brand, City, EquipmentType, Model, Part, RentalUnit, System } from '@/types'
+import type { Brand, City, EquipmentType, Model, RentalUnit, System } from '@/types'
 
 export const equipmentTypes: EquipmentType[] = [
   { id: 'tractor',   ru: 'Седельные тягачи',    en: 'Semi-trucks',    count: 20279 },
@@ -88,97 +88,6 @@ export const subAssemblies: Record<string, string[]> = {
   cooling:      ['Радиатор охлаждения', 'Вентилятор и муфта', 'Термостат', 'Патрубки и шланги', 'Расширительный бачок', 'Интеркулер', 'Помпа (водяной насос)', 'Антифриз и охлаждающие жидкости'],
   pneumatics:   ['Компрессор пневмосистемы', 'Воздушный ресивер', 'Осушитель воздуха', 'Клапаны управления тормозами', 'Пневмомагистрали и фитинги', 'Регулятор давления', 'Пневмоподвеска — клапаны'],
 }
-
-export const parts: Part[] = [
-  {
-    id: 'p-740-1118', oem: '740.1118010-02', name: 'Турбокомпрессор ТКР-7Н1',
-    brand: 'БЗА', type: 'OEM', category: 'engine',
-    fits: ['KAMAZ 6520', 'KAMAZ 65115', 'KAMAZ 43118'],
-    price: 285000, priceUSD: 590, vat: 12,
-    stock: { 'Алматы': 4, 'Астана': 2, 'Ташкент': 0, 'Москва': 12 },
-    eta: 'В наличии · Алматы', img: 'turbo',
-    specs: { 'Производительность': '0,42 кг/с', 'Степень сжатия': '2,4', 'Макс. частота': '95 000 об/мин', 'Тип подшипника': 'Скольжения', 'Масса': '11,2 кг' },
-    cross: ['740.30-1118010', '740.11-1118010', 'TKR-7N1'],
-    rating: 4.8, reviews: 42,
-  },
-  {
-    id: 'p-mann-w962', oem: 'W 962', name: 'Фильтр масляный',
-    brand: 'MANN-FILTER', type: 'Aftermarket', category: 'filter',
-    fits: ['KAMAZ 6520', 'KAMAZ 65115', 'MAZ 6430', 'Shacman F3000'],
-    price: 4200, priceUSD: 9, vat: 12,
-    stock: { 'Алматы': 124, 'Астана': 58, 'Ташкент': 31, 'Москва': 200 },
-    eta: 'В наличии · все склады', img: 'filter',
-    specs: { 'Высота': '142 мм', 'Внешний Ø': '93 мм', 'Резьба': '3/4-16 UNF', 'Производитель': 'MANN-FILTER (Германия)' },
-    cross: ['LF3349', '7421561278', 'WK 950/19'],
-    rating: 4.9, reviews: 318,
-  },
-  {
-    id: 'p-bosch-0445120', oem: '0 445 120 153', name: 'Форсунка топливная Common Rail',
-    brand: 'Bosch', type: 'OEM', category: 'fuel',
-    fits: ['KAMAZ 6520 (Cummins ISL)', 'KAMAZ 65115', 'CAT 320'],
-    price: 78500, priceUSD: 165, vat: 12,
-    stock: { 'Алматы': 6, 'Астана': 3, 'Ташкент': 1, 'Москва': 24 },
-    eta: 'В наличии · Алматы', img: 'injector',
-    specs: { 'Давление впрыска': '1800 бар', 'Тип распылителя': 'DLLA 152 P 1832', 'Электромагнитный клапан': 'Bosch' },
-    cross: ['0445120152', '5263262', '4940640'],
-    rating: 4.7, reviews: 91,
-  },
-  {
-    id: 'p-clutch-182', oem: '182.1601090', name: 'Корзина сцепления Ø430',
-    brand: 'КАМАЗ', type: 'OEM', category: 'trans',
-    fits: ['KAMAZ 6520', 'KAMAZ 65115', 'KAMAZ 5490'],
-    price: 64200, priceUSD: 135, vat: 12,
-    stock: { 'Алматы': 2, 'Астана': 0, 'Ташкент': 0, 'Москва': 8 },
-    eta: 'Под заказ · 3–5 дней', img: 'clutch',
-    specs: { 'Диаметр': '430 мм', 'Число шлицов': '10', 'Масса': '38 кг' },
-    cross: ['182.1601090-10'],
-    rating: 4.6, reviews: 23,
-  },
-  {
-    id: 'p-pump-740', oem: '740.1307010', name: 'Насос водяной (помпа)',
-    brand: 'ТЯЖМАШ', type: 'Aftermarket', category: 'cool',
-    fits: ['KAMAZ 6520', 'KAMAZ 65115'],
-    price: 18900, priceUSD: 40, vat: 12,
-    stock: { 'Алматы': 14, 'Астана': 9, 'Ташкент': 4, 'Москва': 30 },
-    eta: 'В наличии · Алматы', img: 'pump',
-    specs: { 'Производительность': '320 л/мин', 'Масса': '6,4 кг' },
-    cross: ['740.1307010-04'],
-    rating: 4.4, reviews: 67,
-  },
-  {
-    id: 'p-brake-100', oem: '100.3501090', name: 'Тормозная камера тип 30',
-    brand: 'WABCO', type: 'OEM', category: 'brakes',
-    fits: ['KAMAZ 6520', 'MAZ 6430', 'Shacman F3000'],
-    price: 12400, priceUSD: 26, vat: 12,
-    stock: { 'Алматы': 28, 'Астана': 12, 'Ташкент': 6, 'Москва': 40 },
-    eta: 'В наличии · все склады', img: 'brake',
-    specs: { 'Тип': '30/30', 'Ход штока': '64 мм' },
-    cross: ['9253011000'],
-    rating: 4.7, reviews: 154,
-  },
-  {
-    id: 'p-belt-740', oem: '740.1308020', name: 'Ремень ручейковый 8PK 1395',
-    brand: 'Gates', type: 'Aftermarket', category: 'engine',
-    fits: ['KAMAZ 6520', 'KAMAZ 65115', 'KAMAZ 43118'],
-    price: 5800, priceUSD: 12, vat: 12,
-    stock: { 'Алматы': 52, 'Астана': 24, 'Ташкент': 11, 'Москва': 90 },
-    eta: 'В наличии · все склады', img: 'belt',
-    specs: { 'Длина': '1395 мм', 'Ширина': '28,6 мм', 'Число ручьёв': '8' },
-    cross: ['8PK1395', '740.1308020-10'],
-    rating: 4.8, reviews: 88,
-  },
-  {
-    id: 'p-shock-65115', oem: '65115-2905006', name: 'Амортизатор передней подвески',
-    brand: 'ТЯЖМАШ', type: 'OEM', category: 'chassis',
-    fits: ['KAMAZ 65115', 'KAMAZ 43118'],
-    price: 9600, priceUSD: 20, vat: 12,
-    stock: { 'Алматы': 18, 'Астана': 4, 'Ташкент': 0, 'Москва': 22 },
-    eta: 'В наличии · Алматы', img: 'shock',
-    specs: { 'Ход': '230 мм', 'Длина сж.': '420 мм', 'Длина раст.': '650 мм' },
-    cross: ['65115-2905006-30'],
-    rating: 4.5, reviews: 41,
-  },
-]
 
 export const rental: RentalUnit[] = [
   {
