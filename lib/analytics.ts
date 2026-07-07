@@ -70,7 +70,7 @@ export function ecommerce(
 }
 
 export function partProduct(
-  p: { id: string; name: string; price: number; brand?: string; category?: string },
+  p: { id: string; name: string; price: number; brand?: string | null; category?: string | null },
   quantity?: number,
 ): EcommerceProduct {
   return {
