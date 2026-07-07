@@ -15,6 +15,11 @@ FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
+# NEXT_PUBLIC_* vars are inlined by `next build`, so they must exist at build
+# time. Render forwards a service env var into the Docker build only when a
+# matching ARG is declared here — without this the analytics tag id is empty.
+ARG NEXT_PUBLIC_YANDEX_METRICA_ID
+ENV NEXT_PUBLIC_YANDEX_METRICA_ID=$NEXT_PUBLIC_YANDEX_METRICA_ID
 RUN yarn build
 
 # ── runner ────────────────────────────────────────────────────────────────────
