@@ -1,5 +1,6 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
+import { useLocale } from 'next-intl'
 import { useRouter } from '@/i18n/navigation'
 import { Link } from '@/i18n/navigation'
 import { Ico } from '@/components/ui/Ico'
@@ -13,10 +14,12 @@ import { useT } from '@/lib/i18n'
 import { isValidPhone, isValidEmail, phoneInputValue } from '@/lib/validation'
 import { deliveryCost } from '@/lib/services/delivery'
 import { submitOrder } from '@/app/actions'
+import { reachGoal, ecommerce, partProduct, setVisitParams } from '@/lib/analytics'
 
 export default function CartPage() {
   const router = useRouter()
   const t = useT()
+  const locale = useLocale()
   const { items, setQty, clearCart, city } = useCart()
   const [b2b, setB2b]         = useState(true)
   const [pay, setPay]         = useState('invoice')
@@ -30,9 +33,19 @@ export default function CartPage() {
   const binRef   = useRef<HTMLInputElement>(null)
   const esfRef   = useRef<HTMLInputElement>(null)
   const mgrRef   = useRef<HTMLInputElement>(null)
+  const checkoutFired = useRef(false)
 
   const addToast = (msg: string, icon: 'check' | 'info' = 'check') =>
     setToasts((t) => [...t, { id: Date.now(), msg, icon }])
+
+  // Fire CHECKOUT_START once, when the cart first renders with items (the store
+  // hydrates from localStorage after mount, so key on items.length, not [] ).
+  useEffect(() => {
+    if (!checkoutFired.current && items.length > 0) {
+      checkoutFired.current = true
+      reachGoal('CHECKOUT_START')
+    }
+  }, [items.length])
 
   // ЮЛ buyers see the wholesale price where the feed has one. The server
   // re-prices with the same rule and additionally checks the session role.
@@ -88,6 +101,17 @@ export default function CartPage() {
         items:    items.map((i) => ({ id: i.id, oem: i.oem ?? '', name: i.name, qty: i.qty, price: unitPrice(i) })),
       })
       if (result.ok) {
+        setVisitParams({ buyer: b2b ? 'b2b' : 'individual', city, locale })
+        reachGoal('ORDER_SUCCESS', {
+          id: result.invoiceNumber ?? '',
+          total: result.total ?? 0,
+          payment: pay,
+        })
+        ecommerce(
+          'purchase',
+          items.map((i) => partProduct(i, i.qty)),
+          { id: result.invoiceNumber ?? result.orderId ?? '', revenue: result.total ?? 0 },
+        )
         clearCart()
         // The order UUID doubles as the invoice link — keep it out of the URL
         // (browser history / referrers) and hand it over via sessionStorage (#67).

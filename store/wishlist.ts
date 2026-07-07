@@ -1,7 +1,8 @@
 'use client'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { CardPart } from '@/types'
+import type { Part, CardPart } from '@/types'
+import { reachGoal } from '@/lib/analytics'
 
 interface WishlistStore {
   items: CardPart[]
@@ -16,6 +17,7 @@ export const useWishlist = create<WishlistStore>()(
       items: [],
       toggle: (part) => {
         const exists = get().items.some(i => i.id === part.id)
+        if (!exists) reachGoal('WISHLIST_ADD', { id: part.id })
         set(s => ({
           items: exists
             ? s.items.filter(i => i.id !== part.id)

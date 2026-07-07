@@ -8,6 +8,8 @@ import { Footer } from '@/components/layout/Footer'
 import { FloatingChat } from '@/components/layout/FloatingChat'
 import { BottomNav } from '@/components/layout/BottomNav'
 import { CartAddedPopup } from '@/components/cart/CartAddedPopup'
+import { YandexMetrica } from '@/components/analytics/YandexMetrica'
+import { MetricaIdentity } from '@/components/analytics/MetricaIdentity'
 import { routing } from '@/i18n/routing'
 import { siteUrl } from '@/lib/seo'
 import { Providers } from '../providers'
@@ -87,6 +89,8 @@ export default async function LocaleLayout({
       <body>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <Providers>
+            <YandexMetrica />
+            <MetricaIdentity />
             <Header />
             {children}
             <Footer />

@@ -5,6 +5,7 @@ import { useRouter } from '@/i18n/navigation'
 import { Link } from '@/i18n/navigation'
 import Image from 'next/image'
 import { useCart } from '@/store/cart'
+import { reachGoal, ecommerce, partProduct } from '@/lib/analytics'
 import { useWishlist } from '@/store/wishlist'
 import { fmtKZT } from '@/lib/utils'
 import { warehouseCity } from '@/lib/data'
@@ -193,6 +194,13 @@ export default function PDPPage() {
       })
       .finally(() => setLoading(false))
   }, [id])
+
+  useEffect(() => {
+    if (!part || part.error) return
+    reachGoal('PDP_VIEW', { id: part.id })
+    ecommerce('detail', [partProduct(part)])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [part?.id])
 
   if (loading) return (
     <div className="container" aria-hidden="true">
