@@ -86,7 +86,12 @@ const ru = {
   'footer.col.contacts': 'Контакты',
   'footer.contact.address': 'ул. Райымбека 348А, Алматы',
   'footer.legal.rights': 'TulparHub © 2024–2025 · Все права защищены',
-  'footer.legal.entity': 'ТОО «TulparHub» · БИН 200140000000',
+  'footer.legal.entity': 'ТОО «TulparHub» · БИН 260740001461',
+  'footer.col.docs': 'Документы',
+  'footer.legal.oferta': 'Публичная оферта',
+  'footer.legal.privacy': 'Политика конфиденциальности',
+  'footer.legal.returns': 'Возврат и обмен',
+  'footer.legal.requisites': 'Реквизиты',
 }
 
 type K = keyof typeof ru
@@ -168,7 +173,12 @@ const kz: Record<K, string> = {
   'footer.col.contacts': 'Байланыс',
   'footer.contact.address': 'Райымбек к-сі 348А, Алматы',
   'footer.legal.rights': 'TulparHub © 2024–2025 · Барлық құқықтар қорғалған',
-  'footer.legal.entity': '«TulparHub» ЖШС · БСН 200140000000',
+  'footer.legal.entity': '«TulparHub» ЖШС · БСН 260740001461',
+  'footer.col.docs': 'Құжаттар',
+  'footer.legal.oferta': 'Жария оферта',
+  'footer.legal.privacy': 'Құпиялылық саясаты',
+  'footer.legal.returns': 'Қайтару және айырбастау',
+  'footer.legal.requisites': 'Деректемелер',
 }
 
 const en: Record<K, string> = {
@@ -248,7 +258,12 @@ const en: Record<K, string> = {
   'footer.col.contacts': 'Contacts',
   'footer.contact.address': '348A Rayymbek Ave, Almaty',
   'footer.legal.rights': 'TulparHub © 2024–2025 · All rights reserved',
-  'footer.legal.entity': 'TulparHub LLP · BIN 200140000000',
+  'footer.legal.entity': 'TulparHub LLP · BIN 260740001461',
+  'footer.col.docs': 'Documents',
+  'footer.legal.oferta': 'Public offer',
+  'footer.legal.privacy': 'Privacy policy',
+  'footer.legal.returns': 'Returns & exchange',
+  'footer.legal.requisites': 'Company details',
 }
 
 export const chrome: Record<Lang, Record<K, string>> = { RU: ru, KZ: kz, EN: en }
