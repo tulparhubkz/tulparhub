@@ -877,7 +877,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 
 /* ── Footer ── */
 .foot { background: var(--surf-2); color: var(--ink-2); padding: 60px 0 0; border-top: 1px solid var(--line); }
-.foot-grid { display: grid; grid-template-columns: 280px repeat(4, 1fr); gap: 40px; padding-bottom: 48px; }
+.foot-grid { display: grid; grid-template-columns: 280px repeat(5, 1fr); gap: 40px; padding-bottom: 48px; }
 .foot-brand .logo-text { font-size: 24px; }
 .foot-tag { font-size: 13px; line-height: 1.6; margin-top: 10px; color: var(--ink-2); }
 .foot-trust { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
@@ -888,6 +888,27 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .foot-col a { display: block; color: var(--ink-2); text-decoration: none; font-size: 13px; margin-bottom: 8px; }
 .foot-col a:hover { color: var(--ink); }
 .foot-legal { border-top: 1px solid var(--line); padding: 16px 20px; font-size: 12px; color: var(--ink-3); display: flex; justify-content: space-between; }
+
+/* ── Legal pages (oferta / privacy / returns / requisites) ── */
+.lg-hero { background: var(--surf-2); color: var(--ink); padding: 48px 0; margin-bottom: 40px; border-bottom: 1px solid var(--line); }
+.lg-hero-inner { max-width: 860px; margin: 0 auto; padding: 0 20px; }
+.lg-hero h1 { font-size: 32px; font-weight: 800; margin-bottom: 12px; line-height: 1.2; }
+.lg-hero p { font-size: 16px; color: var(--ink-2); line-height: 1.65; }
+.lg-updated { font-size: 13px; color: var(--ink-3); margin-top: 14px; }
+.lg-page { max-width: 860px; margin: 0 auto; padding: 0 20px 80px; }
+.lg-section { background: var(--surf); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 28px 32px; margin-bottom: 18px; }
+.lg-section h2 { font-size: 18px; font-weight: 800; color: var(--ink); margin-bottom: 16px; line-height: 1.35; }
+.lg-section p { font-size: 15px; color: var(--ink-2); line-height: 1.7; margin-bottom: 12px; }
+.lg-section p:last-child { margin-bottom: 0; }
+.lg-note { background: var(--surf-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 18px; font-size: 14px; color: var(--ink-2); line-height: 1.6; margin-top: 4px; }
+.lg-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.lg-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 15px; color: var(--ink-2); line-height: 1.6; }
+.lg-list li::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-top: 9px; }
+.lg-fields { margin: 0; display: flex; flex-direction: column; gap: 0; }
+.lg-field { display: grid; grid-template-columns: 220px 1fr; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.lg-field:last-child { border-bottom: none; }
+.lg-field dt { font-size: 13px; font-weight: 700; color: var(--ink-3); text-transform: uppercase; letter-spacing: .04em; }
+.lg-field dd { margin: 0; font-size: 15px; color: var(--ink); line-height: 1.5; }
 
 /* ── Responsive ── */
 @media (max-width: 1100px) {
@@ -1362,6 +1383,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
   .foot { padding: 40px 0 0; }
   .foot-grid { grid-template-columns: 1fr; gap: 28px; }
   .foot-legal { flex-direction: column; gap: 8px; text-align: center; }
+  .lg-hero h1 { font-size: 26px; }
+  .lg-section { padding: 20px 18px; }
+  .lg-field { grid-template-columns: 1fr; gap: 2px; }
 
   /* wide tables scroll instead of blowing out the layout */
   .pdp-specs, .pdp-cross-tab { overflow-x: auto; -webkit-overflow-scrolling: touch; }
