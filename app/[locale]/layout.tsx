@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { notFound } from 'next/navigation'
-import { Golos_Text, JetBrains_Mono } from 'next/font/google'
+import { Golos_Text, JetBrains_Mono, PT_Serif } from 'next/font/google'
 import { NextIntlClientProvider, hasLocale } from 'next-intl'
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server'
 import { Header } from '@/components/layout/Header'
@@ -10,6 +10,7 @@ import { BottomNav } from '@/components/layout/BottomNav'
 import { CartAddedPopup } from '@/components/cart/CartAddedPopup'
 import { YandexMetrica } from '@/components/analytics/YandexMetrica'
 import { MetricaIdentity } from '@/components/analytics/MetricaIdentity'
+import { ProfileGate } from '@/components/auth/ProfileGate'
 import { routing } from '@/i18n/routing'
 import { siteUrl } from '@/lib/seo'
 import { Providers } from '../providers'
@@ -26,6 +27,15 @@ const jetbrains = JetBrains_Mono({
   subsets: ['latin', 'cyrillic'],
   weight: ['400', '500', '600', '700'],
   variable: '--font-jetbrains',
+  display: 'swap',
+})
+
+// Serif display face — used sparingly for headings (e.g. the signup wizard).
+// PT Serif has first-class Cyrillic, which the market needs.
+const ptSerif = PT_Serif({
+  subsets: ['latin', 'cyrillic'],
+  weight: ['400', '700'],
+  variable: '--font-serif',
   display: 'swap',
 })
 
@@ -85,12 +95,13 @@ export default async function LocaleLayout({
   const messages = await getMessages()
 
   return (
-    <html lang={HTML_LANG[locale] ?? locale} className={`${golos.variable} ${jetbrains.variable}`}>
+    <html lang={HTML_LANG[locale] ?? locale} className={`${golos.variable} ${jetbrains.variable} ${ptSerif.variable}`}>
       <body>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <Providers>
             <YandexMetrica />
             <MetricaIdentity />
+            <ProfileGate />
             <Header />
             {children}
             <Footer />

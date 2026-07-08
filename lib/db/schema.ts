@@ -170,9 +170,16 @@ export const users = pgTable('users', {
   image: text('image'),
   // TulparHub additions
   role: text('role').notNull().default('retail'), // retail | b2b | admin
+  // Account type declared at signup. Null = profile not completed yet (e.g. a
+  // fresh Google sign-in that hasn't been through /auth/complete).
+  accountType: text('account_type'), // individual | company
+  firstName: text('first_name'), // физ. лицо
+  lastName: text('last_name'), // физ. лицо
   phone: text('phone'),
-  company: text('company'),
-  bin: text('bin'), // КЗ business identification number
+  company: text('company'), // юр. лицо — organisation name
+  bin: text('bin'), // юр. лицо — БИН/ИИН (КЗ business identification number)
+  position: text('position'), // юр. лицо — должность контактного лица
+  termsAcceptedAt: timestamp('terms_accepted_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
