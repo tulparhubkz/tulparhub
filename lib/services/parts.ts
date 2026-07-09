@@ -235,9 +235,10 @@ export async function getPart(id: string, opts: PartViewOpts = {}) {
   return toDTO(row, stock.get(id) ?? [], opts, images.get(id) ?? [])
 }
 
-// Lightweight typeahead used by the search box.
+// Lightweight typeahead used by the search box. Carries the card-sized
+// thumbnail only — the dropdown never shows anything bigger.
 export async function searchPartsLite(q: string, limit = 8) {
-  return db
+  const rows = await db
     .select({ id: parts.id, name: parts.name, oem: parts.oem, price: parts.price })
     .from(parts)
     .where(
@@ -248,6 +249,12 @@ export async function searchPartsLite(q: string, limit = 8) {
       ),
     )
     .limit(limit)
+
+  const images = await imagesByPart(rows.map((r) => r.id), { primaryOnly: true })
+  return rows.map((r) => ({
+    ...r,
+    img: images.get(r.id)?.[0]?.url200 ?? fallbackImage(r.oem, r.name),
+  }))
 }
 
 // Aggregate part counts per manufacturer brand.
