@@ -8,6 +8,41 @@ import type { EmailConfig } from '@auth/core/providers/email'
 export type EmailLocale = 'ru' | 'kz' | 'en'
 const LOCALES: EmailLocale[] = ['ru', 'kz', 'en']
 
+// Specific, greppable reasons email sign-in can fail — so a broken deploy is
+// diagnosable from logs / the /api/auth/email-diagnostics endpoint instead of
+// the opaque Auth.js "Configuration" error.
+export type EmailErrorCode =
+  | 'RESEND_API_KEY_MISSING'
+  | 'EMAIL_FROM_MISSING'
+  | 'EMAIL_FROM_INVALID'
+  | 'RESEND_UNAUTHORIZED' // 401 — bad/restricted API key
+  | 'RESEND_DOMAIN_NOT_VERIFIED' // 403 — from-domain not verified
+  | 'RESEND_INVALID_REQUEST' // 422 — bad from/to/payload
+  | 'RESEND_SEND_FAILED' // other non-2xx from Resend
+  | 'RESEND_UNREACHABLE' // network error / timeout
+
+const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
+
+// Config problems detectable without calling Resend.
+export function emailConfigErrors(
+  apiKey = process.env.RESEND_API_KEY,
+  from = process.env.EMAIL_FROM,
+): EmailErrorCode[] {
+  const errs: EmailErrorCode[] = []
+  if (!apiKey) errs.push('RESEND_API_KEY_MISSING')
+  if (!from) errs.push('EMAIL_FROM_MISSING')
+  else if (!EMAIL_RE.test(from)) errs.push('EMAIL_FROM_INVALID')
+  return errs
+}
+
+// Map a Resend HTTP status to a specific code.
+export function resendStatusToCode(status: number): EmailErrorCode {
+  if (status === 401) return 'RESEND_UNAUTHORIZED'
+  if (status === 403) return 'RESEND_DOMAIN_NOT_VERIFIED'
+  if (status === 422) return 'RESEND_INVALID_REQUEST'
+  return 'RESEND_SEND_FAILED'
+}
+
 // The locale travels with the sign-in `callbackUrl` (always embedded in the
 // magic-link URL — the /auth page sets it to the current /{locale}); we fall
 // back to next-intl's NEXT_LOCALE cookie, then to RU.
@@ -98,27 +133,90 @@ export function renderVerificationEmail(locale: EmailLocale, url: string): { sub
   return { subject: c.subject, html, text }
 }
 
+// POST an already-rendered email to Resend, returning a specific error code on
+// failure (or null on success). Shared by the sign-in hook and diagnostics.
+async function resendSend(
+  apiKey: string,
+  body: Record<string, unknown>,
+): Promise<{ code: EmailErrorCode; detail: string } | null> {
+  let res: Response
+  try {
+    res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(10000),
+    })
+  } catch (err) {
+    return { code: 'RESEND_UNREACHABLE', detail: String(err) }
+  }
+  if (!res.ok) {
+    const detail = await res.text().catch(() => '')
+    return { code: resendStatusToCode(res.status), detail: `${res.status} ${detail}` }
+  }
+  return null
+}
+
 // Auth.js Resend hook — sends the localized email through Resend's HTTP API.
-// A 10s timeout guarantees the sign-in request can never hang indefinitely.
+// Throws an `EmailErrorCode` (logged with a greppable prefix) so failures are
+// diagnosable. A 10s timeout guarantees the request can never hang.
 export const sendVerificationRequest: EmailConfig['sendVerificationRequest'] = async ({
   identifier,
   url,
   provider,
   request,
 }) => {
+  const configErrs = emailConfigErrors(provider.apiKey, provider.from)
+  if (configErrs.length) {
+    console.error(`[auth-email] config error: ${configErrs.join(', ')}`)
+    throw new Error(configErrs[0])
+  }
+
   const locale = detectLocale(request?.headers.get('cookie') ?? null, url)
   const { subject, html, text } = renderVerificationEmail(locale, url)
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${provider.apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ from: provider.from, to: identifier, subject, html, text }),
-    signal: AbortSignal.timeout(10000),
+  const fail = await resendSend(provider.apiKey!, {
+    from: provider.from,
+    to: identifier,
+    subject,
+    html,
+    text,
   })
-  if (!res.ok) {
-    const detail = await res.text().catch(() => '')
-    throw new Error(`Resend send failed (${res.status}): ${detail}`)
+  if (fail) {
+    console.error(`[auth-email] ${fail.code}: ${fail.detail}`)
+    throw new Error(fail.code)
   }
+}
+
+// On-demand check of email config (+ optional live test send to Resend's test
+// address). Powers GET /api/auth/email-diagnostics. Never returns secrets.
+export interface EmailDiagnostics {
+  ok: boolean
+  errors: EmailErrorCode[]
+  config: { resendApiKey: boolean; emailFrom: string | null }
+  testSend?: { ok: boolean; code?: EmailErrorCode; detail?: string }
+}
+
+export async function emailDiagnostics(testSend = false): Promise<EmailDiagnostics> {
+  const apiKey = process.env.RESEND_API_KEY
+  const from = process.env.EMAIL_FROM ?? null
+  const errors = emailConfigErrors(apiKey, from ?? undefined)
+
+  const diag: EmailDiagnostics = {
+    ok: errors.length === 0,
+    errors,
+    config: { resendApiKey: !!apiKey, emailFrom: from },
+  }
+
+  if (testSend && errors.length === 0) {
+    const fail = await resendSend(apiKey!, {
+      from,
+      to: 'delivered@resend.dev', // Resend's test sink — no real inbox
+      subject: 'TulparHub email diagnostics',
+      html: '<p>ok</p>',
+    })
+    diag.testSend = fail ? { ok: false, code: fail.code, detail: fail.detail } : { ok: true }
+    diag.ok = !fail
+  }
+
+  return diag
 }
