@@ -131,6 +131,27 @@ export const partStock = pgTable(
   }),
 )
 
+// Product photos from the vendor's image export, joined on (article, brand).
+// The source publishes seven sizes of every asset behind identical URLs that
+// differ only in a path segment; we keep the three the storefront renders.
+// `position` is the order the export lists them in — 0 is the primary shot.
+export const partImages = pgTable(
+  'part_images',
+  {
+    partId: text('part_id')
+      .notNull()
+      .references(() => parts.id, { onDelete: 'cascade' }),
+    position: integer('position').notNull(),
+    fileName: text('file_name'),
+    url200: text('url_200').notNull(), // catalog card thumbnail
+    url800: text('url_800').notNull(), // product page main image
+    url1600: text('url_1600').notNull(), // zoom
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.partId, t.position] }),
+  }),
+)
+
 /* ─────────────────────────────────────────────────────────────────────────────
  * Rental units
  * ──────────────────────────────────────────────────────────────────────────── */
@@ -330,18 +351,21 @@ export const syncRuns = pgTable('sync_runs', {
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
   vendorId: text('vendor_id').references(() => vendors.id),
-  source: text('source').notNull().default('csv'), // csv | 1c
+  source: text('source').notNull().default('csv'), // csv | images-csv | 1c
   startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
   finishedAt: timestamp('finished_at', { withTimezone: true }),
   status: text('status').notNull().default('running'), // running | success | error
   rowsRead: integer('rows_read').notNull().default(0),
   partsUpserted: integer('parts_upserted').notNull().default(0),
   stockUpserted: integer('stock_upserted').notNull().default(0),
+  imagesUpserted: integer('images_upserted').notNull().default(0),
   error: text('error'),
 })
 
 // Convenience type exports for the services layer.
 export type Part = typeof parts.$inferSelect
 export type NewPart = typeof parts.$inferInsert
+export type PartImage = typeof partImages.$inferSelect
+export type NewPartImage = typeof partImages.$inferInsert
 export type Order = typeof orders.$inferSelect
 export type User = typeof users.$inferSelect

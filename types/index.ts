@@ -82,5 +82,6 @@ export interface City {
 // fetching page. The `Part` interface above is the legacy mock-data shape and
 // only describes lib/data fixtures.
 export type CardPart = PartDTO & { stock?: Record<string, number> }
+export type { PartImageEntry } from '@/lib/services/parts'
 
 export type CartItem = CardPart & { qty: number }
