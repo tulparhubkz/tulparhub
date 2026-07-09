@@ -25,6 +25,6 @@ services:
       - key: RESEND_API_KEY
         sync: false # set manually in the dashboard → Resend API key (secret)
       - key: EMAIL_FROM
-        value: no-reply@tulparhub.baglanov.com # must be on the Resend-verified domain
+        value: "no-reply@tulparhub.baglanov.com" # must be on the Resend-verified domain
       - key: AUTH_URL
-        value: https://tulparhub.onrender.com
+        value: "https://tulparhub.onrender.com"
