@@ -35,7 +35,7 @@ function AuthInner() {
     e.preventDefault()
     setError('')
     setLoading(true)
-    const res = await signIn('nodemailer', { email, redirect: false, callbackUrl })
+    const res = await signIn('resend', { email, redirect: false, callbackUrl })
     setLoading(false)
     if (res?.error) {
       setError(t('auth.error'))

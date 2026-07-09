@@ -1,8 +1,9 @@
-import { createTransport } from 'nodemailer'
-import type { NodemailerConfig } from '@auth/core/providers/nodemailer'
+import type { EmailConfig } from '@auth/core/providers/email'
 
 // Localized magic-link email. Auth.js's default sender is English-only; this
 // sends the sign-in link in the language the user is actually using (RU/KZ/EN).
+// Delivered via Resend's HTTP API (not SMTP) — hosts like Render block outbound
+// SMTP ports, which makes a nodemailer transport hang until it's killed.
 
 export type EmailLocale = 'ru' | 'kz' | 'en'
 const LOCALES: EmailLocale[] = ['ru', 'kz', 'en']
@@ -97,9 +98,9 @@ export function renderVerificationEmail(locale: EmailLocale, url: string): { sub
   return { subject: c.subject, html, text }
 }
 
-// Auth.js Nodemailer hook — builds the transport from the provider's server
-// config and sends the localized email.
-export const sendVerificationRequest: NodemailerConfig['sendVerificationRequest'] = async ({
+// Auth.js Resend hook — sends the localized email through Resend's HTTP API.
+// A 10s timeout guarantees the sign-in request can never hang indefinitely.
+export const sendVerificationRequest: EmailConfig['sendVerificationRequest'] = async ({
   identifier,
   url,
   provider,
@@ -107,10 +108,17 @@ export const sendVerificationRequest: NodemailerConfig['sendVerificationRequest'
 }) => {
   const locale = detectLocale(request?.headers.get('cookie') ?? null, url)
   const { subject, html, text } = renderVerificationEmail(locale, url)
-  const transport = createTransport(provider.server)
-  const result = await transport.sendMail({ to: identifier, from: provider.from, subject, html, text })
-  const failed = [...(result.rejected ?? []), ...(result.pending ?? [])].filter(Boolean)
-  if (failed.length) {
-    throw new Error(`Email(s) (${failed.join(', ')}) could not be sent`)
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${provider.apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ from: provider.from, to: identifier, subject, html, text }),
+    signal: AbortSignal.timeout(10000),
+  })
+  if (!res.ok) {
+    const detail = await res.text().catch(() => '')
+    throw new Error(`Resend send failed (${res.status}): ${detail}`)
   }
 }
