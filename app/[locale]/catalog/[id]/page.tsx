@@ -8,6 +8,7 @@ import { useCart } from '@/store/cart'
 import { reachGoal, ecommerce, partProduct } from '@/lib/analytics'
 import { useWishlist } from '@/store/wishlist'
 import { fmtKZT } from '@/lib/utils'
+import type { PartImageEntry } from '@/types'
 import { warehouseCity } from '@/lib/data'
 import { useT, type TranslationKey } from '@/lib/i18n'
 
@@ -151,7 +152,6 @@ export default function PDPPage() {
   const [qty, setQty]         = useState(1)
   const [b2b, setB2b]         = useState(false)
   const [activeThumb, setActiveThumb] = useState(0)
-  const [imgUrl, setImgUrl]   = useState<string | null>(null)
   const { items, addItem, city: myCity } = useCart()
   const wlToggle = useWishlist(s => s.toggle)
   const inWish   = useWishlist(s => s.items.some(i => i.id === id))
@@ -166,15 +166,7 @@ export default function PDPPage() {
           )
         }
         setPart(data)
-
-        // Fetch real product image
-        const imgParams = new URLSearchParams()
-        if (data.oem) imgParams.set('oem', data.oem)
-        else if (data.name) imgParams.set('name', data.name)
-        fetch(`/api/part-image?${imgParams}`)
-          .then(r => r.json())
-          .then(d => { if (d.url) setImgUrl(d.url) })
-          .catch(() => {})
+        setActiveThumb(0)
 
         if (data.name && data.category) {
           const firstWord = data.name.split(' ')[0]
@@ -232,6 +224,11 @@ export default function PDPPage() {
   const inCart   = items.some(i => i.id === part.id)
   const specs    = parseSpecs(part.name, part.brand)
   const isOEM    = (part.type || '').toUpperCase() === 'OEM'
+
+  // A part with no vendor photo falls back to a single stand-in (see toDTO),
+  // so `images` is at most one entry there and the thumbnail strip stays hidden.
+  const images: PartImageEntry[] = part.images ?? []
+  const mainImage = images[activeThumb] ?? images[0] ?? null
 
   const stockEntries = Object.entries(stock)
     .filter(([, q]) => (q as number) > 0)
@@ -380,42 +377,50 @@ export default function PDPPage() {
           {/* ── Gallery ── */}
           <div className="gallery">
             <div className="gal-main" style={{ overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surf-2)' }}>
-              {imgUrl ? (
-                <Image
-                  src={imgUrl}
-                  alt={part.name}
-                  fill
-                  sizes="440px"
-                  style={{ objectFit: 'contain', padding: '12px' }}
-                  priority
-                  unoptimized
-                />
+              {mainImage ? (
+                <a
+                  href={mainImage.url1600}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={t('pdp.zoom')}
+                  style={{ position: 'absolute', inset: 0, cursor: 'zoom-in' }}
+                >
+                  <Image
+                    src={mainImage.url800}
+                    alt={part.name}
+                    fill
+                    sizes="440px"
+                    style={{ objectFit: 'contain', padding: '12px' }}
+                    priority
+                    unoptimized
+                  />
+                </a>
               ) : (
                 <GlyphSvg size={120} />
               )}
               <span className="brandchip" style={{ position: 'relative', zIndex: 1 }}>{part.brand}</span>
             </div>
-            <div className="gal-thumbs">
-              {[0, 1, 2].map(i => (
-                <div
-                  key={i}
-                  className={`th${activeThumb === i ? ' on' : ''}`}
-                  onClick={() => setActiveThumb(i)}
-                  style={{ overflow: 'hidden', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surf-2)' }}
-                >
-                  {imgUrl ? (
+            {images.length > 1 && (
+              <div className="gal-thumbs">
+                {images.map((img, i) => (
+                  <div
+                    key={img.url200}
+                    className={`th${activeThumb === i ? ' on' : ''}`}
+                    onClick={() => setActiveThumb(i)}
+                    style={{ overflow: 'hidden', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surf-2)' }}
+                  >
                     <Image
-                      src={imgUrl}
-                      alt={part.name}
+                      src={img.url200}
+                      alt={`${part.name} — ${i + 1}`}
                       fill
                       sizes="74px"
-                      style={{ objectFit: 'contain', padding: '4px', opacity: i === 0 ? 1 : 0.6 }}
+                      style={{ objectFit: 'contain', padding: '4px', opacity: activeThumb === i ? 1 : 0.6 }}
                       unoptimized
                     />
-                  ) : <GlyphSvg size={40} />}
-                </div>
-              ))}
-            </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* ── Info column ── */}

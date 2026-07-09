@@ -45,6 +45,7 @@ const ru = {
   // Product detail (PDP)
   'pdp.notFound': 'Товар не найден',
   'pdp.backToCatalog': '← Вернуться в каталог',
+  'pdp.zoom': 'Открыть изображение в полном размере',
   'pdp.badge.oem': 'OEM · ОРИГИНАЛ',
   'pdp.badge.analog': 'Аналог',
   'pdp.badge.inStockPre': 'В наличии · ',
@@ -128,6 +129,7 @@ const kz: Record<K, string> = {
   'catalog.showPre': 'Көрсету ',
   'pdp.notFound': 'Тауар табылмады',
   'pdp.backToCatalog': '← Каталогқа оралу',
+  'pdp.zoom': 'Суретті толық өлшемде ашу',
   'pdp.badge.oem': 'OEM · ТҮПНҰСҚА',
   'pdp.badge.analog': 'Аналог',
   'pdp.badge.inStockPre': 'Бар · ',
@@ -207,6 +209,7 @@ const en: Record<K, string> = {
   'catalog.showPre': 'Show ',
   'pdp.notFound': 'Product not found',
   'pdp.backToCatalog': '← Back to catalog',
+  'pdp.zoom': 'Open full-size image',
   'pdp.badge.oem': 'OEM · ORIGINAL',
   'pdp.badge.analog': 'Aftermarket',
   'pdp.badge.inStockPre': 'In stock · ',

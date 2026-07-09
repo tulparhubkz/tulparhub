@@ -17,6 +17,8 @@ import {
 import { db } from '@/lib/db'
 import { parts, partStock } from '@/lib/db/schema'
 import { brands as brandCfg, models as modelCfg } from '@/lib/data'
+import { imagesByPart } from '@/lib/services/partImages'
+import { fallbackImage } from '@/lib/partImage'
 
 const PAGE_SIZE = 24
 
@@ -26,6 +28,13 @@ const PAGE_SIZE = 24
 export interface PartStockEntry {
   city: string
   qty: number
+}
+
+/** Card thumbnail, product-page main image, zoom. See lib/services/partImages.ts. */
+export interface PartImageEntry {
+  url200: string
+  url800: string
+  url1600: string
 }
 
 export interface PartDTO {
@@ -47,6 +56,7 @@ export interface PartDTO {
   rating: number | null
   reviews: number
   part_stock: PartStockEntry[]
+  images: PartImageEntry[] // empty only when the part has no photo and classifies to nothing
 }
 
 /** Options threaded from the API routes; `b2b` = viewer may see wholesale prices. */
@@ -55,8 +65,22 @@ export interface PartViewOpts {
 }
 
 type PartRow = typeof parts.$inferSelect
+
+// Vendor photos when we have them; otherwise one stand-in, repeated across the
+// sizes because the stand-in sources publish a single resolution.
+function toImages(p: PartRow, images: PartImageEntry[]): PartImageEntry[] {
+  if (images.length > 0) return images
+  const url = fallbackImage(p.oem, p.name)
+  return url ? [{ url200: url, url800: url, url1600: url }] : []
+}
+
 // Exported for unit tests — pure row→DTO mapping.
-export function toDTO(p: PartRow, stock: PartStockEntry[], opts: PartViewOpts = {}): PartDTO {
+export function toDTO(
+  p: PartRow,
+  stock: PartStockEntry[],
+  opts: PartViewOpts = {},
+  images: PartImageEntry[] = [],
+): PartDTO {
   return {
     id: p.id,
     oem: p.oem,
@@ -76,6 +100,7 @@ export function toDTO(p: PartRow, stock: PartStockEntry[], opts: PartViewOpts = 
     rating: p.rating,
     reviews: p.reviews,
     part_stock: stock.map((s) => ({ city: s.city, qty: s.qty })),
+    images: toImages(p, images),
   }
 }
 
@@ -195,8 +220,10 @@ export async function listParts(f: PartFilters, opts: PartViewOpts = {}) {
     .limit(limit)
     .offset(ids?.length ? 0 : (page - 1) * PAGE_SIZE)
 
-  const stock = await stockByPart(rows.map((r) => r.id))
-  const items = rows.map((r) => toDTO(r, stock.get(r.id) ?? [], opts))
+  const ids_ = rows.map((r) => r.id)
+  // Cards only ever render the thumbnail — don't drag the whole gallery over.
+  const [stock, images] = await Promise.all([stockByPart(ids_), imagesByPart(ids_, { primaryOnly: true })])
+  const items = rows.map((r) => toDTO(r, stock.get(r.id) ?? [], opts, images.get(r.id) ?? []))
 
   return { items, total, page, limit: PAGE_SIZE }
 }
@@ -204,8 +231,8 @@ export async function listParts(f: PartFilters, opts: PartViewOpts = {}) {
 export async function getPart(id: string, opts: PartViewOpts = {}) {
   const [row] = await db.select().from(parts).where(eq(parts.id, id)).limit(1)
   if (!row) return null
-  const stock = await stockByPart([id])
-  return toDTO(row, stock.get(id) ?? [], opts)
+  const [stock, images] = await Promise.all([stockByPart([id]), imagesByPart([id])])
+  return toDTO(row, stock.get(id) ?? [], opts, images.get(id) ?? [])
 }
 
 // Lightweight typeahead used by the search box.

@@ -26,6 +26,36 @@ const row = {
   updatedAt: new Date(),
 } as Parameters<typeof toDTO>[0]
 
+describe('toDTO — images', () => {
+  const img = { url200: 'https://cdn/200/a.jpg', url800: 'https://cdn/800/a.jpg', url1600: 'https://cdn/1600/a.jpg' }
+
+  it('passes the vendor photos through untouched, in order', () => {
+    const second = { url200: 'https://cdn/200/b.jpg', url800: 'https://cdn/800/b.jpg', url1600: 'https://cdn/1600/b.jpg' }
+    expect(toDTO(row, [], {}, [img, second]).images).toEqual([img, second])
+  })
+
+  it('substitutes a single stand-in when the vendor ships no photo', () => {
+    const images = toDTO(row, [], {}, []).images
+    expect(images).toHaveLength(1)
+    expect(images[0].url200).toMatch(/^https?:\/\//)
+  })
+
+  it('repeats the stand-in across sizes — those sources publish one resolution', () => {
+    const [only] = toDTO(row, [], {}, []).images
+    expect(only.url200).toBe(only.url800)
+    expect(only.url800).toBe(only.url1600)
+  })
+
+  it('prefers a real photo over the stand-in', () => {
+    expect(toDTO(row, [], {}, [img]).images[0].url200).toBe(img.url200)
+  })
+
+  it('yields no image when the part classifies to nothing', () => {
+    const unknown = { ...row, oem: 'НЕТ', name: 'Совершенно неизвестная запчасть' }
+    expect(toDTO(unknown, [], {}, []).images).toEqual([])
+  })
+})
+
 describe('toDTO — wholesale price gating (#49)', () => {
   it('strips price_b2b for guests/retail (default)', () => {
     const dto = toDTO(row, [])
