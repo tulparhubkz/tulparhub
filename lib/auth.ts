@@ -42,12 +42,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     session({ session, user }) {
       if (session.user) {
-        const u = user as { role?: string; accountType?: string | null }
+        const u = user as {
+          role?: string
+          accountType?: string | null
+          phone?: string | null
+          company?: string | null
+          bin?: string | null
+        }
         session.user.id = user.id
         session.user.role = u.role ?? 'retail'
         // Null until the profile is completed — the client ProfileGate uses this
         // to push fresh Google sign-ins through /auth/complete.
         session.user.accountType = u.accountType ?? null
+        // Signup details, so the cart can prefill its contact form. Safe to
+        // expose: the session is database-backed, so this never rides in a
+        // cookie, and it is the user's own data.
+        session.user.phone = u.phone ?? null
+        session.user.company = u.company ?? null
+        session.user.bin = u.bin ?? null
       }
       return session
     },

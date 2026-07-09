@@ -1,6 +1,7 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
 import { useLocale } from 'next-intl'
+import { useSession } from 'next-auth/react'
 import { useRouter } from '@/i18n/navigation'
 import { Link } from '@/i18n/navigation'
 import { Ico } from '@/components/ui/Ico'
@@ -11,7 +12,7 @@ import { ToastHost, type ToastItem } from '@/components/ui/Toast'
 import { useCart } from '@/store/cart'
 import { fmtKZT } from '@/lib/utils'
 import { useT } from '@/lib/i18n'
-import { isValidPhone, isValidEmail, phoneInputValue } from '@/lib/validation'
+import { isValidPhone, isValidEmail, phoneInputValue, formatPhoneInput } from '@/lib/validation'
 import { deliveryCost } from '@/lib/services/delivery'
 import { submitOrder } from '@/app/actions'
 import { reachGoal, ecommerce, partProduct, setVisitParams } from '@/lib/analytics'
@@ -21,22 +22,40 @@ export default function CartPage() {
   const t = useT()
   const locale = useLocale()
   const { items, setQty, clearCart, city } = useCart()
+  const { data: session } = useSession()
   const [b2b, setB2b]         = useState(true)
   const [pay, setPay]         = useState('invoice')
   const [delivery, setDelivery] = useState('courier')
   const [toasts, setToasts]   = useState<ToastItem[]>([])
   const [submitting, setSubmitting] = useState(false)
-  const nameRef  = useRef<HTMLInputElement>(null)
-  const phoneRef = useRef<HTMLInputElement>(null)
-  const emailRef = useRef<HTMLInputElement>(null)
-  const companyRef = useRef<HTMLInputElement>(null)
-  const binRef   = useRef<HTMLInputElement>(null)
+  const [name, setName]       = useState('')
+  const [phone, setPhone]     = useState('')
+  const [email, setEmail]     = useState('')
+  const [company, setCompany] = useState('')
+  const [bin, setBin]         = useState('')
   const esfRef   = useRef<HTMLInputElement>(null)
   const mgrRef   = useRef<HTMLInputElement>(null)
   const checkoutFired = useRef(false)
+  const seeded = useRef(false)
 
   const addToast = (msg: string, icon: 'check' | 'info' = 'check') =>
     setToasts((t) => [...t, { id: Date.now(), msg, icon }])
+
+  // Prefill the contact form from the profile the user filled in at signup, so
+  // they don't type it all again. Seeded once: later session refreshes must not
+  // wipe edits, and the fields stay free to change — nothing here is written
+  // back to the profile, so a tweak applies to this order only.
+  useEffect(() => {
+    const u = session?.user
+    if (seeded.current || !u) return
+    seeded.current = true
+    if (u.accountType) setB2b(u.accountType === 'company')
+    setName(u.name ?? '')
+    setEmail(u.email ?? '')
+    setPhone(u.phone ? formatPhoneInput(u.phone) : '')
+    setCompany(u.company ?? '')
+    setBin(u.bin ?? '')
+  }, [session])
 
   // Fire CHECKOUT_START once, when the cart first renders with items (the store
   // hydrates from localStorage after mount, so key on items.length, not [] ).
@@ -72,13 +91,13 @@ export default function CartPage() {
 
   const handleCheckout = async () => {
     if (submitting) return
-    const name  = nameRef.current?.value?.trim()
-    const phone = phoneRef.current?.value?.trim()
-    const email = emailRef.current?.value?.trim()
-    if (!name)  { addToast(t('cart.toast.enterName'), 'info'); return }
-    if (!phone) { addToast(t('cart.toast.enterPhone'), 'info'); return }
-    if (!isValidPhone(phone)) { addToast(t('cart.toast.badPhone'), 'info'); return }
-    if (email && !isValidEmail(email)) { addToast(t('cart.toast.badEmail'), 'info'); return }
+    const contactName = name.trim()
+    const contactPhone = phone.trim()
+    const contactEmail = email.trim()
+    if (!contactName)  { addToast(t('cart.toast.enterName'), 'info'); return }
+    if (!contactPhone) { addToast(t('cart.toast.enterPhone'), 'info'); return }
+    if (!isValidPhone(contactPhone)) { addToast(t('cart.toast.badPhone'), 'info'); return }
+    if (contactEmail && !isValidEmail(contactEmail)) { addToast(t('cart.toast.badEmail'), 'info'); return }
     setSubmitting(true)
     // B2B service flags travel in the order comment so ops sees them.
     const notes = [
@@ -89,14 +108,16 @@ export default function CartPage() {
       const result = await submitOrder({
         kind:     'order',
         b2b,
-        name,
-        phone,
-        email,
+        name:     contactName,
+        phone:    contactPhone,
+        email:    contactEmail,
         city,
         payment:  pay,
         delivery,
-        company:  companyRef.current?.value,
-        bin:      binRef.current?.value,
+        // Only meaningful for a ЮЛ order; the state survives a toggle back to
+        // Физ. лицо, and submitOrder stores '' verbatim where it wants null.
+        company:  b2b ? company.trim() || undefined : undefined,
+        bin:      b2b ? bin.trim() || undefined : undefined,
         comment:  notes || undefined,
         items:    items.map((i) => ({ id: i.id, oem: i.oem ?? '', name: i.name, qty: i.qty, price: unitPrice(i) })),
       })
@@ -116,7 +137,7 @@ export default function CartPage() {
         // The order UUID doubles as the invoice link — keep it out of the URL
         // (browser history / referrers) and hand it over via sessionStorage (#67).
         if (result.orderId) sessionStorage.setItem('th-last-order', result.orderId)
-        const q = new URLSearchParams({ num: result.invoiceNumber ?? '', phone, pay, total: String(result.total ?? '') })
+        const q = new URLSearchParams({ num: result.invoiceNumber ?? '', phone: contactPhone, pay, total: String(result.total ?? '') })
         router.push(`/order-success?${q}`)
       } else {
         addToast(t(result.message, result.params), 'info')
@@ -263,9 +284,9 @@ export default function CartPage() {
               <div className="cart-section">
                 <h3>4. {t('cart.sec.contact')}</h3>
                 <div className="b2b-grid">
-                  <div className="b2b-row"><label>{t('cart.name')}</label><input ref={nameRef} placeholder={t('cart.namePlaceholder')} /></div>
-                  <div className="b2b-row"><label>{t('cart.phone')}</label><input ref={phoneRef} type="tel" placeholder="+7 (700) 000-00-00" onChange={(e) => { e.target.value = phoneInputValue(e) }} /></div>
-                  <div className="b2b-row"><label>{t('cart.email')}</label><input ref={emailRef} type="email" placeholder="mail@example.com" title={t('cart.emailNote')} /></div>
+                  <div className="b2b-row"><label>{t('cart.name')}</label><input value={name} onChange={(e) => setName(e.target.value)} placeholder={t('cart.namePlaceholder')} /></div>
+                  <div className="b2b-row"><label>{t('cart.phone')}</label><input value={phone} onChange={(e) => setPhone(phoneInputValue(e))} type="tel" placeholder="+7 (700) 000-00-00" /></div>
+                  <div className="b2b-row"><label>{t('cart.email')}</label><input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="mail@example.com" title={t('cart.emailNote')} /></div>
                 </div>
               </div>
             )}
@@ -275,11 +296,11 @@ export default function CartPage() {
               <div className="cart-section cart-b2b">
                 <h3>4. {t('cart.sec.company')}</h3>
                 <div className="b2b-grid">
-                  <div className="b2b-row"><label>{t('cart.contactPerson')}</label><input ref={nameRef} placeholder={t('cart.namePlaceholder')} /></div>
-                  <div className="b2b-row"><label>{t('cart.phone')}</label><input ref={phoneRef} type="tel" placeholder="+7 (700) 000-00-00" onChange={(e) => { e.target.value = phoneInputValue(e) }} /></div>
-                  <div className="b2b-row"><label>{t('cart.email')}</label><input ref={emailRef} type="email" placeholder="mail@example.com" title={t('cart.emailNote')} /></div>
-                  <div className="b2b-row"><label>{t('cart.companyName')}</label><input ref={companyRef} placeholder="ТОО «Компания»" /></div>
-                  <div className="b2b-row"><label>{t('cart.bin')}</label><input ref={binRef} placeholder="000000000000" inputMode="numeric" /></div>
+                  <div className="b2b-row"><label>{t('cart.contactPerson')}</label><input value={name} onChange={(e) => setName(e.target.value)} placeholder={t('cart.namePlaceholder')} /></div>
+                  <div className="b2b-row"><label>{t('cart.phone')}</label><input value={phone} onChange={(e) => setPhone(phoneInputValue(e))} type="tel" placeholder="+7 (700) 000-00-00" /></div>
+                  <div className="b2b-row"><label>{t('cart.email')}</label><input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="mail@example.com" title={t('cart.emailNote')} /></div>
+                  <div className="b2b-row"><label>{t('cart.companyName')}</label><input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="ТОО «Компания»" /></div>
+                  <div className="b2b-row"><label>{t('cart.bin')}</label><input value={bin} onChange={(e) => setBin(e.target.value)} placeholder="000000000000" inputMode="numeric" /></div>
                 </div>
                 <div className="b2b-checks">
                   <label className="filt-toggle"><input ref={esfRef} type="checkbox" defaultChecked /><span>{t('cart.esf')}</span></label>
