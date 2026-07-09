@@ -20,10 +20,13 @@ function CompleteInner() {
   const { data: session, status, update } = useSession()
   const dest = safeCallback(params.get('callbackUrl'))
 
+  // Admins have no физ/юр profile to complete — send them straight through.
+  const done = !!session?.user && (!!session.user.accountType || session.user.role === 'admin')
+
   useEffect(() => {
     if (status === 'unauthenticated') router.replace('/auth')
-    else if (session?.user && session.user.accountType) router.replace(dest)
-  }, [status, session, dest, router])
+    else if (done) router.replace(dest)
+  }, [status, done, dest, router])
 
   async function handleComplete(data: ProfileInput): Promise<{ error?: string } | void> {
     const res = await fetch('/api/auth/complete', {
@@ -36,7 +39,7 @@ function CompleteInner() {
     router.replace(dest)
   }
 
-  if (status !== 'authenticated' || session.user.accountType) return null
+  if (status !== 'authenticated' || done) return null
 
   return (
     <main className="suw-page">
