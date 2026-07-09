@@ -1,29 +1,24 @@
 import NextAuth, { type NextAuthConfig } from 'next-auth'
 import Google from 'next-auth/providers/google'
-import Nodemailer from 'next-auth/providers/nodemailer'
+import Resend from 'next-auth/providers/resend'
 import { DrizzleAdapter } from '@auth/drizzle-adapter'
 import { db } from '@/lib/db'
 import { users, accounts, sessions, verificationTokens } from '@/lib/db/schema'
 import { sendVerificationRequest } from '@/lib/auth-email'
 
 // Providers are wired conditionally so the app boots fine before credentials
-// exist. Add AUTH_GOOGLE_ID/SECRET and/or an email provider to enable them.
+// exist. Add AUTH_GOOGLE_ID/SECRET and/or RESEND_API_KEY to enable them.
 const providers: NextAuthConfig['providers'] = []
 if (process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET) {
   providers.push(Google) // auto-reads AUTH_GOOGLE_ID / AUTH_GOOGLE_SECRET
 }
 
-// Email magic-link sender. Resend is the default: set RESEND_API_KEY and we
-// build its SMTP connection string automatically (host smtp.resend.com, user
-// literally "resend", password = the API key). EMAIL_SERVER stays as a fallback
-// for any other SMTP host. EMAIL_FROM must be an address on a domain verified
-// in Resend (e.g. no-reply@tulparhub.kz). Inert until one of them is set.
-const emailServer = process.env.RESEND_API_KEY
-  ? `smtp://resend:${process.env.RESEND_API_KEY}@smtp.resend.com:587`
-  : process.env.EMAIL_SERVER
-if (emailServer) {
+// Email magic-link sender via Resend's HTTP API (see lib/auth-email). We use the
+// API rather than SMTP because hosts like Render block outbound SMTP ports.
+// EMAIL_FROM must be an address on a Resend-verified domain. Inert until set.
+if (process.env.RESEND_API_KEY) {
   providers.push(
-    Nodemailer({ server: emailServer, from: process.env.EMAIL_FROM, sendVerificationRequest }),
+    Resend({ apiKey: process.env.RESEND_API_KEY, from: process.env.EMAIL_FROM, sendVerificationRequest }),
   )
 }
 
