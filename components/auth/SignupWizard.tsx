@@ -1,10 +1,10 @@
 'use client'
 import { useState } from 'react'
-import { Link } from '@/i18n/navigation'
 import { Ico } from '@/components/ui/Ico'
 import { useT } from '@/lib/i18n'
+import { LegalModal, type LegalModalSlug } from '@/components/legal/LegalModal'
 import { PhoneInput } from './PhoneInput'
-import type { AccountType, ProfileInput } from '@/lib/auth-signup'
+import { DEFAULT_POSITION, type AccountType, type ProfileInput } from '@/lib/auth-signup'
 
 // Two-step signup wizard for /auth/complete. The user is already authenticated
 // (Google or email magic link) by the time they get here, so there is no email
@@ -25,12 +25,15 @@ export function SignupWizard({
   const [bin, setBin] = useState('')
   const [company, setCompany] = useState('')
   const [contact, setContact] = useState('')
-  const [position, setPosition] = useState('')
   const [phone, setPhone] = useState('') // raw national digits
   const [terms, setTerms] = useState(false)
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  // Which legal document the terms popup is showing, if any. They open in a
+  // modal rather than on /oferta and /privacy because ProfileGate bounces an
+  // un-onboarded user straight back here.
+  const [legal, setLegal] = useState<LegalModalSlug | null>(null)
 
   const binOk = /^\d{12}$/.test(bin)
 
@@ -40,7 +43,7 @@ export function SignupWizard({
       if (!firstName.trim() || !lastName.trim()) return t('auth.err.fields')
     } else {
       if (!binOk) return t('auth.err.bin')
-      if (!company.trim() || !contact.trim() || !position.trim()) return t('auth.err.fields')
+      if (!company.trim() || !contact.trim()) return t('auth.err.fields')
     }
     if (!terms) return t('auth.err.terms')
     return null
@@ -58,7 +61,7 @@ export function SignupWizard({
     const payload: ProfileInput =
       type === 'individual'
         ? { accountType: 'individual', firstName: firstName.trim(), lastName: lastName.trim(), phone: e164, terms: true }
-        : { accountType: 'company', bin: bin.trim(), name: contact.trim(), company: company.trim(), position: position.trim(), phone: e164, terms: true }
+        : { accountType: 'company', bin: bin.trim(), name: contact.trim(), company: company.trim(), position: DEFAULT_POSITION, phone: e164, terms: true }
 
     setLoading(true)
     const res = await onSubmit(payload)
@@ -143,15 +146,9 @@ export function SignupWizard({
                   <label htmlFor="w-company">{t('auth.field.company')}</label>
                   <input id="w-company" className="suw-input" value={company} onChange={(e) => setCompany(e.target.value)} placeholder={t('wiz.ph.company')} autoComplete="organization" />
                 </div>
-                <div className="suw-grid">
-                  <div className="suw-field">
-                    <label htmlFor="w-contact">{t('auth.field.contactName')}</label>
-                    <input id="w-contact" className="suw-input" value={contact} onChange={(e) => setContact(e.target.value)} placeholder={t('wiz.ph.contactName')} autoComplete="name" />
-                  </div>
-                  <div className="suw-field">
-                    <label htmlFor="w-pos">{t('auth.field.position')}</label>
-                    <input id="w-pos" className="suw-input" value={position} onChange={(e) => setPosition(e.target.value)} placeholder={t('wiz.ph.position')} autoComplete="organization-title" />
-                  </div>
+                <div className="suw-field">
+                  <label htmlFor="w-contact">{t('auth.field.contactName')}</label>
+                  <input id="w-contact" className="suw-input" value={contact} onChange={(e) => setContact(e.target.value)} placeholder={t('wiz.ph.contactName')} autoComplete="name" />
                 </div>
               </>
             )}
@@ -166,9 +163,9 @@ export function SignupWizard({
             <input type="checkbox" checked={terms} onChange={(e) => setTerms(e.target.checked)} />
             <span>
               {t('auth.terms.pre')}
-              <Link href="/oferta">{t('auth.terms.oferta')}</Link>
+              <TermsLink onClick={() => setLegal('oferta')}>{t('auth.terms.oferta')}</TermsLink>
               {t('auth.terms.and')}
-              <Link href="/privacy">{t('auth.terms.privacy')}</Link>
+              <TermsLink onClick={() => setLegal('privacy')}>{t('auth.terms.privacy')}</TermsLink>
             </span>
           </label>
 
@@ -177,9 +174,29 @@ export function SignupWizard({
           <button type="submit" className="suw-cta" disabled={loading}>
             {loading ? t('wiz.saving') : t('wiz.finish')} {!loading && <Ico name="arrow" size={18} />}
           </button>
+
+          {legal && <LegalModal slug={legal} onClose={() => setLegal(null)} />}
         </form>
       )}
     </div>
+  )
+}
+
+// A link-styled button inside the terms <label>. The click must not bubble to
+// the label, or opening a document would also tick the consent checkbox.
+function TermsLink({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      className="suw-terms-link"
+      onClick={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        onClick()
+      }}
+    >
+      {children}
+    </button>
   )
 }
 

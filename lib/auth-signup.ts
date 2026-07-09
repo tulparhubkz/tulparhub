@@ -6,6 +6,10 @@ import { z } from 'zod'
 
 export type AccountType = 'individual' | 'company'
 
+// The signup wizard no longer asks company users for their должность, but the
+// column and the schema below still require one. New signups get this value.
+export const DEFAULT_POSITION = 'Менеджер'
+
 const phone = z
   .string()
   .trim()
