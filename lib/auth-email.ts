@@ -23,10 +23,17 @@ export type EmailErrorCode =
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 
+// Sender address. Not a secret, so it defaults to our verified domain and only
+// needs EMAIL_FROM set to override it.
+export const DEFAULT_EMAIL_FROM = 'no-reply@tulparhub.baglanov.com'
+export function emailFrom(): string {
+  return process.env.EMAIL_FROM || DEFAULT_EMAIL_FROM
+}
+
 // Config problems detectable without calling Resend.
 export function emailConfigErrors(
   apiKey = process.env.RESEND_API_KEY,
-  from = process.env.EMAIL_FROM,
+  from = emailFrom(),
 ): EmailErrorCode[] {
   const errs: EmailErrorCode[] = []
   if (!apiKey) errs.push('RESEND_API_KEY_MISSING')
@@ -198,8 +205,8 @@ export interface EmailDiagnostics {
 
 export async function emailDiagnostics(testSend = false): Promise<EmailDiagnostics> {
   const apiKey = process.env.RESEND_API_KEY
-  const from = process.env.EMAIL_FROM ?? null
-  const errors = emailConfigErrors(apiKey, from ?? undefined)
+  const from = emailFrom()
+  const errors = emailConfigErrors(apiKey, from)
 
   const diag: EmailDiagnostics = {
     ok: errors.length === 0,
