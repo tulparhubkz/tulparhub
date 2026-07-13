@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from '@/i18n/navigation'
 import { useT } from '@/lib/i18n'
 import { SignupWizard } from '@/components/auth/SignupWizard'
+import { ONBOARDING_SKIP_KEY } from '@/components/auth/ProfileGate'
 import type { ProfileInput } from '@/lib/auth-signup'
 
 function safeCallback(raw: string | null): string {
@@ -39,11 +40,18 @@ function CompleteInner() {
     router.replace(dest)
   }
 
+  function handleSkip() {
+    // Remember the choice so ProfileGate stops redirecting; the user can finish
+    // their profile later on /account/profile or at checkout.
+    localStorage.setItem(ONBOARDING_SKIP_KEY, '1')
+    router.replace(dest)
+  }
+
   if (status !== 'authenticated' || done) return null
 
   return (
     <main className="suw-page">
-      <SignupWizard onSubmit={handleComplete} />
+      <SignupWizard onSubmit={handleComplete} onSkip={handleSkip} />
     </main>
   )
 }

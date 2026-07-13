@@ -13,8 +13,11 @@ import { DEFAULT_POSITION, type AccountType, type ProfileInput } from '@/lib/aut
 
 export function SignupWizard({
   onSubmit,
+  onSkip,
 }: {
   onSubmit: (data: ProfileInput) => Promise<{ error?: string } | void>
+  // Optional "skip for now" escape hatch — onboarding is not a hard blocker.
+  onSkip?: () => void
 }) {
   const t = useT()
   const [step, setStep] = useState<1 | 2>(1)
@@ -114,6 +117,12 @@ export function SignupWizard({
           <button type="button" className="suw-cta" onClick={() => setStep(2)}>
             {t('wiz.continue')} <Ico name="arrow" size={18} />
           </button>
+
+          {onSkip && (
+            <button type="button" className="suw-skip" onClick={onSkip}>
+              {t('wiz.skip')}
+            </button>
+          )}
         </>
       ) : (
         <form onSubmit={submit}>

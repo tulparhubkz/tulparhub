@@ -55,6 +55,13 @@ export default function AccountPage() {
 
       <div className="acc-group-title">{t('account.group.sections')}</div>
       <nav className="acc-list">
+        {user && (
+          <Link href="/account/profile" className="acc-row">
+            <Ico name="user" size={18} />
+            <span>{t('account.link.profile')}</span>
+            <Ico name="chevron" size={16} className="acc-row-arr" />
+          </Link>
+        )}
         <button className="acc-row" onClick={() => setShowGarage(true)}>
           <Ico name="truck" size={18} />
           <span>{t('account.myGarage')}</span>

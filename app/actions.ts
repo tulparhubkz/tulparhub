@@ -2,6 +2,7 @@
 
 import { createLead } from '@/lib/services/leads'
 import { createOrder, trackOrderByInvoice, attachOrderToUser, type TrackedOrder } from '@/lib/services/orders'
+import { backfillProfileFromOrder } from '@/lib/services/users'
 import {
   listVehicles,
   importVehicles,
@@ -119,6 +120,22 @@ export async function submitOrder(payload: OrderPayload): Promise<ActionResult> 
         comment: payload.comment,
         items: (payload.items ?? []).map((i) => ({ name: i.name, qty: i.qty })),
       }))
+
+      // Save the checkout contacts onto the signed-in user's profile (best
+      // effort — the order already succeeded, so a failure here must not fail it).
+      if (userId) {
+        try {
+          await backfillProfileFromOrder(userId, {
+            b2b: payload.b2b === true,
+            name: payload.name.trim(),
+            phone: payload.phone.trim(),
+            company: payload.company ?? null,
+            bin: payload.bin ?? null,
+          })
+        } catch (err) {
+          console.error('[submitOrder] profile backfill error:', err)
+        }
+      }
 
       revalidatePath('/')
       return {

@@ -22,33 +22,40 @@ const bin = z
   .trim()
   .refine((v) => /^\d{12}$/.test(v), 'bad_bin')
 
-const individual = z.object({
+const individualBase = z.object({
   accountType: z.literal('individual'),
   firstName: z.string().trim().min(1),
   lastName: z.string().trim().min(1),
   phone,
-  terms: z.literal(true),
 })
 
-const company = z.object({
+const companyBase = z.object({
   accountType: z.literal('company'),
   bin,
   name: z.string().trim().min(1), // контактное лицо
   position: z.string().trim().min(1), // должность
   company: z.string().trim().min(1), // организация
   phone,
-  terms: z.literal(true),
 })
 
-// The email/identity comes from the session, so the form only supplies the
-// account-type fields.
+// Profile fields without the consent checkbox — used when a user edits their
+// already-created profile on /account/profile (terms were accepted at signup).
+export const profileEditSchema = z.discriminatedUnion('accountType', [individualBase, companyBase])
+
+export type ProfileEditInput = z.infer<typeof profileEditSchema>
+
+const individual = individualBase.extend({ terms: z.literal(true) })
+const company = companyBase.extend({ terms: z.literal(true) })
+
+// Signup variant: same fields plus explicit consent. The email/identity comes
+// from the session, so the form only supplies the account-type fields.
 export const profileSchema = z.discriminatedUnion('accountType', [individual, company])
 
 export type ProfileInput = z.infer<typeof profileSchema>
 
 // Map a validated profile onto the columns of `users` / `pending_signups`.
 // физ. лицо → retail, юр. лицо → b2b.
-export function profileToColumns(p: ProfileInput) {
+export function profileToColumns(p: ProfileEditInput) {
   if (p.accountType === 'individual') {
     return {
       accountType: 'individual' as const,

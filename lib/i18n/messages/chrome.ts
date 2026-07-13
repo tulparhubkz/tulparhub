@@ -58,6 +58,7 @@ const ru = {
   'account.link.wishlist': 'Избранное',
   'account.link.about': 'О компании',
   'account.link.warranty': 'Гарантия и возврат',
+  'account.link.profile': 'Личный профиль',
   'account.link.orders': 'Мои заказы',
   'account.link.track': 'Отследить заказ',
   // Footer
@@ -146,6 +147,7 @@ const kz: Record<K, string> = {
   'account.link.wishlist': 'Таңдаулылар',
   'account.link.about': 'Компания туралы',
   'account.link.warranty': 'Кепілдік және қайтару',
+  'account.link.profile': 'Жеке профиль',
   'account.link.orders': 'Менің тапсырыстарым',
   'account.link.track': 'Тапсырысты қадағалау',
   'footer.tag': 'Жүк көлігіне қосалқы бөлшектер және арнайы техника жалдау · 2026 жылдан бері.',
@@ -231,6 +233,7 @@ const en: Record<K, string> = {
   'account.link.wishlist': 'Wishlist',
   'account.link.about': 'About',
   'account.link.warranty': 'Warranty & returns',
+  'account.link.profile': 'My profile',
   'account.link.orders': 'My orders',
   'account.link.track': 'Track order',
   'footer.tag': 'Truck parts and equipment rental · since 2026.',
