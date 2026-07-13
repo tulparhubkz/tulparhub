@@ -398,7 +398,7 @@ export default function PDPPage() {
               ) : (
                 <GlyphSvg size={120} />
               )}
-              <span className="brandchip" style={{ position: 'relative', zIndex: 1 }}>{part.brand}</span>
+              <span className="brandchip" style={{ zIndex: 1 }}>{part.brand}</span>
             </div>
             {images.length > 1 && (
               <div className="gal-thumbs">

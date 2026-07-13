@@ -36,3 +36,81 @@ export async function updateUserRole(id: string, role: UserRole) {
   if (!USER_ROLES.includes(role)) throw new Error(`updateUserRole: invalid role "${role}"`)
   await db.update(users).set({ role }).where(eq(users.id, id))
 }
+
+export interface OrderContactInfo {
+  b2b: boolean
+  name: string
+  phone: string
+  company?: string | null
+  bin?: string | null
+}
+
+// The current profile fields that decide what a checkout order may backfill.
+export interface ProfileSnapshot {
+  accountType: string | null
+  firstName: string | null
+  lastName: string | null
+  name: string | null
+  phone: string | null
+  company: string | null
+  bin: string | null
+}
+
+// Decide which profile columns a checkout order should write. Only fills fields
+// that are still empty — a one-off order for someone else must not overwrite the
+// saved profile — and only declares the account type/role when the profile was
+// never completed (e.g. a user who skipped onboarding), matching how signup maps
+// физ→retail / юр→b2b. It never downgrades or flips the role of an already-
+// onboarded user. Pure so it can be unit-tested without a DB.
+export function computeProfileBackfill(cur: ProfileSnapshot, info: OrderContactInfo): Partial<typeof users.$inferInsert> {
+  const set: Partial<typeof users.$inferInsert> = {}
+
+  const name = info.name.trim()
+  const phone = info.phone.trim()
+  const company = info.company?.trim() || null
+  const bin = info.bin?.trim() || null
+
+  if (!cur.name && name) set.name = name
+  if (!cur.phone && phone) set.phone = phone
+  if (info.b2b) {
+    if (!cur.company && company) set.company = company
+    if (!cur.bin && bin) set.bin = bin
+  }
+
+  // First-time profile completion: declare type + role and split the name into
+  // first/last for a физ. лицо (the profile form edits those two fields).
+  if (!cur.accountType) {
+    set.accountType = info.b2b ? 'company' : 'individual'
+    set.role = info.b2b ? 'b2b' : 'retail'
+    if (!info.b2b && name) {
+      const parts = name.split(/\s+/)
+      if (!cur.firstName) set.firstName = parts[0]
+      if (!cur.lastName && parts.length > 1) set.lastName = parts.slice(1).join(' ')
+    }
+  }
+
+  return set
+}
+
+// Save the contact details a signed-in user typed at checkout onto their
+// profile, so /account/profile shows them and the next checkout prefills.
+export async function backfillProfileFromOrder(userId: string, info: OrderContactInfo): Promise<void> {
+  const [cur] = await db
+    .select({
+      accountType: users.accountType,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      name: users.name,
+      phone: users.phone,
+      company: users.company,
+      bin: users.bin,
+    })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1)
+  if (!cur) return
+
+  const set = computeProfileBackfill(cur, info)
+  if (Object.keys(set).length === 0) return
+  await db.update(users).set(set).where(eq(users.id, userId))
+}

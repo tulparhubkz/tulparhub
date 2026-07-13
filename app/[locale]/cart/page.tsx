@@ -188,13 +188,6 @@ export default function CartPage() {
             <h1>{t('cart.head.title')}</h1>
             <p>{items.length} {items.length < 5 ? t('cart.itemsFew') : t('cart.itemsMany')} {t('cart.inCart')} · {items.reduce((a, c) => a + c.qty, 0)} {t('cart.pcs')}</p>
           </div>
-          <div className="cart-mode">
-            <span className="cart-mode-lbl">{t('cart.buyingAs')}</span>
-            <div className="cart-mode-switch">
-              <button className={!b2b ? 'on' : ''} onClick={() => setB2b(false)}>{t('cart.individual')}</button>
-              <button className={b2b ? 'on' : ''} onClick={() => setB2b(true)}>{t('cart.legal')}</button>
-            </div>
-          </div>
         </header>
 
         <div className="cart-layout">
@@ -279,35 +272,41 @@ export default function CartPage() {
               </div>
             </div>
 
-            {/* Contact — always shown */}
-            {!b2b && (
-              <div className="cart-section">
-                <h3>4. {t('cart.sec.contact')}</h3>
+            {/* Buyer type + contact / company details */}
+            <div className={`cart-section${b2b ? ' cart-b2b' : ''}`}>
+              <h3>4. {b2b ? t('cart.sec.company') : t('cart.sec.contact')}</h3>
+
+              {/* Choose (or change) buyer type right where the details are filled in */}
+              <div className="cart-mode">
+                <span className="cart-mode-lbl">{t('cart.buyingAs')}</span>
+                <div className="cart-mode-switch">
+                  <button className={!b2b ? 'on' : ''} onClick={() => setB2b(false)}>{t('cart.individual')}</button>
+                  <button className={b2b ? 'on' : ''} onClick={() => setB2b(true)}>{t('cart.legal')}</button>
+                </div>
+              </div>
+
+              {!b2b ? (
                 <div className="b2b-grid">
                   <div className="b2b-row"><label>{t('cart.name')}</label><input value={name} onChange={(e) => setName(e.target.value)} placeholder={t('cart.namePlaceholder')} /></div>
                   <div className="b2b-row"><label>{t('cart.phone')}</label><input value={phone} onChange={(e) => setPhone(phoneInputValue(e))} type="tel" placeholder="+7 (700) 000-00-00" /></div>
                   <div className="b2b-row"><label>{t('cart.email')}</label><input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="mail@example.com" title={t('cart.emailNote')} /></div>
                 </div>
-              </div>
-            )}
-
-            {/* B2B */}
-            {b2b && (
-              <div className="cart-section cart-b2b">
-                <h3>4. {t('cart.sec.company')}</h3>
-                <div className="b2b-grid">
-                  <div className="b2b-row"><label>{t('cart.contactPerson')}</label><input value={name} onChange={(e) => setName(e.target.value)} placeholder={t('cart.namePlaceholder')} /></div>
-                  <div className="b2b-row"><label>{t('cart.phone')}</label><input value={phone} onChange={(e) => setPhone(phoneInputValue(e))} type="tel" placeholder="+7 (700) 000-00-00" /></div>
-                  <div className="b2b-row"><label>{t('cart.email')}</label><input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="mail@example.com" title={t('cart.emailNote')} /></div>
-                  <div className="b2b-row"><label>{t('cart.companyName')}</label><input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="ТОО «Компания»" /></div>
-                  <div className="b2b-row"><label>{t('cart.bin')}</label><input value={bin} onChange={(e) => setBin(e.target.value)} placeholder="000000000000" inputMode="numeric" /></div>
-                </div>
-                <div className="b2b-checks">
-                  <label className="filt-toggle"><input ref={esfRef} type="checkbox" defaultChecked /><span>{t('cart.esf')}</span></label>
-                  <label className="filt-toggle"><input ref={mgrRef} type="checkbox" /><span>{t('cart.assignManager')}</span></label>
-                </div>
-              </div>
-            )}
+              ) : (
+                <>
+                  <div className="b2b-grid">
+                    <div className="b2b-row"><label>{t('cart.contactPerson')}</label><input value={name} onChange={(e) => setName(e.target.value)} placeholder={t('cart.namePlaceholder')} /></div>
+                    <div className="b2b-row"><label>{t('cart.phone')}</label><input value={phone} onChange={(e) => setPhone(phoneInputValue(e))} type="tel" placeholder="+7 (700) 000-00-00" /></div>
+                    <div className="b2b-row"><label>{t('cart.email')}</label><input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="mail@example.com" title={t('cart.emailNote')} /></div>
+                    <div className="b2b-row"><label>{t('cart.companyName')}</label><input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="ТОО «Компания»" /></div>
+                    <div className="b2b-row"><label>{t('cart.bin')}</label><input value={bin} onChange={(e) => setBin(e.target.value)} placeholder="000000000000" inputMode="numeric" /></div>
+                  </div>
+                  <div className="b2b-checks">
+                    <label className="filt-toggle"><input ref={esfRef} type="checkbox" defaultChecked /><span>{t('cart.esf')}</span></label>
+                    <label className="filt-toggle"><input ref={mgrRef} type="checkbox" /><span>{t('cart.assignManager')}</span></label>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Summary */}
