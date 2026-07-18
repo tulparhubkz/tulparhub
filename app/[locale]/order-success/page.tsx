@@ -27,20 +27,35 @@ function OrderSuccessInner() {
   // Email magic-link path for the claim (temporary stand-in for SMS-OTP): the
   // returning magic-link session claims this order + all orders on that email.
   const [claimEmail, setClaimEmail] = useState('')
+  const [sending, setSending] = useState(false)
   const [emailSent, setEmailSent] = useState(false)
+  const [emailErr, setEmailErr] = useState(false)
   async function handleClaimEmail(e: React.FormEvent) {
     e.preventDefault()
     const addr = claimEmail.trim()
-    if (!addr) return
+    if (!addr || sending) return
+    setSending(true)
+    setEmailErr(false)
     try {
-      await signIn('resend', { email: addr, redirect: false, callbackUrl: window.location.href })
-      setEmailSent(true)
-    } catch { /* surfaced by the disabled state staying put */ }
+      const res = await signIn('resend', { email: addr, redirect: false, callbackUrl: window.location.href })
+      if (res?.error) setEmailErr(true)
+      else setEmailSent(true)
+    } catch {
+      setEmailErr(true)
+    } finally {
+      setSending(false)
+    }
   }
   useEffect(() => {
     const oid = sessionStorage.getItem('th-last-order') ?? ''
     setOrderId(oid)
-    if (!oid) return
+    const storedEmail = sessionStorage.getItem('th-last-email')
+    if (storedEmail) setClaimEmail(storedEmail)
+    // Engage the claim flow whenever there's an order context. The UUID lives in
+    // sessionStorage (lost to a new tab on magic-link return), so fall back to
+    // the ?num= in the URL — claimOrder still attaches by verified email.
+    const hasNum = !!new URLSearchParams(window.location.search).get('num')
+    if (!oid && !hasNum) return
     claimOrder(oid)
       .then((r) => {
         if (r.ok) setClaim('claimed')
@@ -112,7 +127,10 @@ function OrderSuccessInner() {
         .claim-email-form input:focus { border-color: var(--accent); }
         .claim-email-btn { padding: 10px 18px; border: none; border-radius: 10px; background: var(--accent); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; }
         .claim-email-btn:hover { background: var(--accent-deep); }
+        .claim-email-btn:disabled { opacity: .7; cursor: default; }
+        .claim-email-form input:disabled { opacity: .7; }
         .claim-sent { font-size: 13px; color: #15803d; margin-top: 12px; margin-bottom: 0; }
+        .claim-err { font-size: 13px; color: #dc2626; margin-top: 10px; margin-bottom: 0; }
 
         .success-steps { background: var(--surf); border: 1.5px solid var(--line); border-radius: 20px; padding: 32px 36px; }
         .success-steps h2 { font-size: 16px; font-weight: 700; color: var(--ink); margin-bottom: 24px; }
@@ -203,9 +221,13 @@ function OrderSuccessInner() {
                         value={claimEmail}
                         onChange={(e) => setClaimEmail(e.target.value)}
                         placeholder={t('success.claim.emailPh')}
+                        disabled={sending}
                       />
-                      <button type="submit" className="claim-email-btn">{t('success.claim.emailBtn')}</button>
+                      <button type="submit" className="claim-email-btn" disabled={sending}>
+                        {sending ? t('auth.loading') : t('success.claim.emailBtn')}
+                      </button>
                     </form>
+                    {emailErr && <p className="claim-err">{t('success.claim.emailErr')}</p>}
                   </>
                 )}
               </div>

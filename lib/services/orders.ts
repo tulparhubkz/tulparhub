@@ -1,6 +1,6 @@
 import { db } from '@/lib/db'
 import { orders, orderItems, parts } from '@/lib/db/schema'
-import { inArray, eq, desc, and, isNull, sql } from 'drizzle-orm'
+import { inArray, eq, ne, desc, and, isNull, sql } from 'drizzle-orm'
 import { phoneDigits } from '@/lib/validation'
 import { deliveryCost } from '@/lib/services/delivery'
 
@@ -290,12 +290,15 @@ export interface OrderNotifyTarget {
   invoiceNumber: string
 }
 
+// The `ne(...)` guard makes the UPDATE a no-op when the value is unchanged, so
+// a returned row means the status genuinely transitioned — the caller emails
+// the customer only on real changes, never on a re-select of the same status.
 export async function updateOrderStatus(id: string, status: OrderStatus): Promise<OrderNotifyTarget | null> {
   if (!ORDER_STATUSES.includes(status)) throw new Error(`updateOrderStatus: invalid status "${status}"`)
   const [row] = await db
     .update(orders)
     .set({ status })
-    .where(eq(orders.id, id))
+    .where(and(eq(orders.id, id), ne(orders.status, status)))
     .returning({ customerEmail: orders.customerEmail, invoiceNumber: orders.invoiceNumber })
   return row ?? null
 }
@@ -305,7 +308,7 @@ export async function updateOrderPayment(id: string, paymentStatus: PaymentStatu
   const [row] = await db
     .update(orders)
     .set({ paymentStatus })
-    .where(eq(orders.id, id))
+    .where(and(eq(orders.id, id), ne(orders.paymentStatus, paymentStatus)))
     .returning({ customerEmail: orders.customerEmail, invoiceNumber: orders.invoiceNumber })
   return row ?? null
 }

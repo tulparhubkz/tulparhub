@@ -216,20 +216,27 @@ export async function claimOrder(
   if (!userId) return { ok: false, code: 'unauthenticated' }
 
   try {
-    const res = await attachOrderToUser(orderId, userId)
-    // Also sweep any other guest orders placed under this verified email — the
-    // session email is proven by Google / the magic link (#48, email analogue
-    // of claim-by-verified-phone). Best effort: the primary claim already won.
+    // Primary path (Google, same tab): claim the exact order whose UUID this
+    // browser holds. Absent when the magic link opened a fresh tab — sessionStorage
+    // doesn't cross tabs — so it may legitimately be empty here.
+    const primary = orderId ? await attachOrderToUser(orderId, userId) : 'notfound'
+
+    // Reliable path for the email flow: attach every unclaimed order under the
+    // verified address (proven by Google / the magic link — #48, the email
+    // analogue of claim-by-verified-phone). This is what catches *this* order
+    // when the UUID was lost to a new tab. Best effort.
+    let swept = 0
     if (sessionEmail) {
       try {
-        await attachOrdersByEmail(sessionEmail, userId)
+        swept = await attachOrdersByEmail(sessionEmail, userId)
       } catch (err) {
         console.error('[claimOrder] email sweep error:', err)
       }
     }
-    if (res === 'claimed' || res === 'already') {
+
+    if (primary === 'claimed' || primary === 'already' || swept > 0) {
       revalidatePath('/account/orders')
-      return { ok: true, code: res }
+      return { ok: true, code: primary === 'already' ? 'already' : 'claimed' }
     }
     return { ok: false, code: 'unavailable' }
   } catch (err) {
