@@ -1,7 +1,7 @@
 'use server'
 
 import { createLead } from '@/lib/services/leads'
-import { createOrder, trackOrderByInvoice, attachOrderToUser, type TrackedOrder } from '@/lib/services/orders'
+import { createOrder, trackOrderByInvoice, attachOrderToUser, attachOrdersByEmail, type TrackedOrder } from '@/lib/services/orders'
 import { backfillProfileFromOrder } from '@/lib/services/users'
 import {
   listVehicles,
@@ -205,8 +205,11 @@ export async function claimOrder(
   orderId: string,
 ): Promise<{ ok: boolean; code: 'claimed' | 'already' | 'unauthenticated' | 'unavailable' }> {
   let userId: string | null = null
+  let sessionEmail: string | null = null
   try {
-    userId = (await auth())?.user?.id ?? null
+    const session = await auth()
+    userId = session?.user?.id ?? null
+    sessionEmail = session?.user?.email ?? null
   } catch {
     /* auth not configured — treated as signed out */
   }
@@ -214,6 +217,16 @@ export async function claimOrder(
 
   try {
     const res = await attachOrderToUser(orderId, userId)
+    // Also sweep any other guest orders placed under this verified email — the
+    // session email is proven by Google / the magic link (#48, email analogue
+    // of claim-by-verified-phone). Best effort: the primary claim already won.
+    if (sessionEmail) {
+      try {
+        await attachOrdersByEmail(sessionEmail, userId)
+      } catch (err) {
+        console.error('[claimOrder] email sweep error:', err)
+      }
+    }
     if (res === 'claimed' || res === 'already') {
       revalidatePath('/account/orders')
       return { ok: true, code: res }

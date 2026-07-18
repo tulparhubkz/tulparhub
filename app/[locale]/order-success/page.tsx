@@ -24,6 +24,19 @@ function OrderSuccessInner() {
   // Signed out → offer Google sign-in that round-trips back to this page,
   // where the same effect claims the order. 'hidden' = nothing to offer.
   const [claim, setClaim] = useState<'hidden' | 'offer' | 'claimed'>('hidden')
+  // Email magic-link path for the claim (temporary stand-in for SMS-OTP): the
+  // returning magic-link session claims this order + all orders on that email.
+  const [claimEmail, setClaimEmail] = useState('')
+  const [emailSent, setEmailSent] = useState(false)
+  async function handleClaimEmail(e: React.FormEvent) {
+    e.preventDefault()
+    const addr = claimEmail.trim()
+    if (!addr) return
+    try {
+      await signIn('resend', { email: addr, redirect: false, callbackUrl: window.location.href })
+      setEmailSent(true)
+    } catch { /* surfaced by the disabled state staying put */ }
+  }
   useEffect(() => {
     const oid = sessionStorage.getItem('th-last-order') ?? ''
     setOrderId(oid)
@@ -93,6 +106,13 @@ function OrderSuccessInner() {
         .claim-google:hover { border-color: var(--ink); }
         .claim-done { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; color: var(--ink-2); background: #f0fdf4; border-color: #bbf7d0; }
         .claim-done a { color: var(--accent); font-weight: 600; }
+        .claim-or { font-size: 12px; color: var(--ink-3); margin: 12px 0; text-transform: lowercase; }
+        .claim-email-form { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+        .claim-email-form input { flex: 1; min-width: 160px; padding: 10px 13px; border: 1.5px solid var(--line-2); border-radius: 10px; font-size: 14px; outline: none; }
+        .claim-email-form input:focus { border-color: var(--accent); }
+        .claim-email-btn { padding: 10px 18px; border: none; border-radius: 10px; background: var(--accent); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .claim-email-btn:hover { background: var(--accent-deep); }
+        .claim-sent { font-size: 13px; color: #15803d; margin-top: 12px; margin-bottom: 0; }
 
         .success-steps { background: var(--surf); border: 1.5px solid var(--line); border-radius: 20px; padding: 32px 36px; }
         .success-steps h2 { font-size: 16px; font-weight: 700; color: var(--ink); margin-bottom: 24px; }
@@ -171,6 +191,23 @@ function OrderSuccessInner() {
                   <svg width="16" height="16" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.34A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.97 10.72a5.4 5.4 0 0 1 0-3.44V4.94H.96a9 9 0 0 0 0 8.12l3.01-2.34z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58A9 9 0 0 0 .96 4.94l3.01 2.34C4.68 5.16 6.66 3.58 9 3.58z"/></svg>
                   {t('success.claim.btn')}
                 </button>
+                {emailSent ? (
+                  <p className="claim-sent">{t('success.claim.sent')}</p>
+                ) : (
+                  <>
+                    <div className="claim-or">{t('auth.or')}</div>
+                    <form className="claim-email-form" onSubmit={handleClaimEmail}>
+                      <input
+                        type="email"
+                        required
+                        value={claimEmail}
+                        onChange={(e) => setClaimEmail(e.target.value)}
+                        placeholder={t('success.claim.emailPh')}
+                      />
+                      <button type="submit" className="claim-email-btn">{t('success.claim.emailBtn')}</button>
+                    </form>
+                  </>
+                )}
               </div>
             )}
             {claim === 'claimed' && (
