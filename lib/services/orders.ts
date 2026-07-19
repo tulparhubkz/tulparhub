@@ -1,6 +1,6 @@
 import { db } from '@/lib/db'
 import { orders, orderItems, parts } from '@/lib/db/schema'
-import { inArray, eq, desc, and, isNull } from 'drizzle-orm'
+import { inArray, eq, ne, desc, and, isNull, sql } from 'drizzle-orm'
 import { phoneDigits } from '@/lib/validation'
 import { deliveryCost } from '@/lib/services/delivery'
 
@@ -284,12 +284,48 @@ async function attachItems(os: (typeof orders.$inferSelect)[]): Promise<OrderLis
   }))
 }
 
-export async function updateOrderStatus(id: string, status: OrderStatus) {
-  if (!ORDER_STATUSES.includes(status)) throw new Error(`updateOrderStatus: invalid status "${status}"`)
-  await db.update(orders).set({ status }).where(eq(orders.id, id))
+/** Contact + identity needed to notify the customer of a status change. */
+export interface OrderNotifyTarget {
+  customerEmail: string | null
+  invoiceNumber: string
 }
 
-export async function updateOrderPayment(id: string, paymentStatus: PaymentStatus) {
+// The `ne(...)` guard makes the UPDATE a no-op when the value is unchanged, so
+// a returned row means the status genuinely transitioned — the caller emails
+// the customer only on real changes, never on a re-select of the same status.
+export async function updateOrderStatus(id: string, status: OrderStatus): Promise<OrderNotifyTarget | null> {
+  if (!ORDER_STATUSES.includes(status)) throw new Error(`updateOrderStatus: invalid status "${status}"`)
+  const [row] = await db
+    .update(orders)
+    .set({ status })
+    .where(and(eq(orders.id, id), ne(orders.status, status)))
+    .returning({ customerEmail: orders.customerEmail, invoiceNumber: orders.invoiceNumber })
+  return row ?? null
+}
+
+export async function updateOrderPayment(id: string, paymentStatus: PaymentStatus): Promise<OrderNotifyTarget | null> {
   if (!PAYMENT_STATUSES.includes(paymentStatus)) throw new Error(`updateOrderPayment: invalid payment status "${paymentStatus}"`)
-  await db.update(orders).set({ paymentStatus }).where(eq(orders.id, id))
+  const [row] = await db
+    .update(orders)
+    .set({ paymentStatus })
+    .where(and(eq(orders.id, id), ne(orders.paymentStatus, paymentStatus)))
+    .returning({ customerEmail: orders.customerEmail, invoiceNumber: orders.invoiceNumber })
+  return row ?? null
+}
+
+/**
+ * Attach every unclaimed guest order sharing this email to the user (the email
+ * analogue of claim-by-verified-phone from the roadmap). The magic-link sign-in
+ * proves ownership of the address, so matching `customer_email` is safe. Only
+ * orders with no user are taken; comparison is case-insensitive. Returns count.
+ */
+export async function attachOrdersByEmail(email: string, userId: string): Promise<number> {
+  const addr = (email ?? '').trim().toLowerCase()
+  if (!addr || !userId) return 0
+  const claimed = await db
+    .update(orders)
+    .set({ userId })
+    .where(and(sql`lower(${orders.customerEmail}) = ${addr}`, isNull(orders.userId)))
+    .returning({ id: orders.id })
+  return claimed.length
 }

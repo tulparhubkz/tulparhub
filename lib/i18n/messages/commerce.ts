@@ -210,6 +210,10 @@ const ru = {
   'success.claim.btn': 'Сохранить заказ в аккаунте',
   'success.claim.done': 'Заказ привязан к вашему аккаунту',
   'success.claim.myOrders': 'Мои заказы',
+  'success.claim.emailPh': 'you@example.com',
+  'success.claim.emailBtn': 'Отправить ссылку',
+  'success.claim.sent': 'Проверьте почту — мы отправили ссылку для входа.',
+  'success.claim.emailErr': 'Не удалось отправить. Попробуйте ещё раз или войдите через Google.',
 }
 
 type K = keyof typeof ru
@@ -407,6 +411,10 @@ const kz: Record<K, string> = {
   'success.claim.btn': 'Тапсырысты аккаунтта сақтау',
   'success.claim.done': 'Тапсырыс аккаунтыңызға байланды',
   'success.claim.myOrders': 'Менің тапсырыстарым',
+  'success.claim.emailPh': 'you@example.com',
+  'success.claim.emailBtn': 'Сілтеме жіберу',
+  'success.claim.sent': 'Поштаңызды тексеріңіз — кіру сілтемесін жібердік.',
+  'success.claim.emailErr': 'Жіберу мүмкін болмады. Қайталап көріңіз немесе Google арқылы кіріңіз.',
 }
 
 const en: Record<K, string> = {
@@ -602,6 +610,10 @@ const en: Record<K, string> = {
   'success.claim.btn': 'Save this order to an account',
   'success.claim.done': 'Order linked to your account',
   'success.claim.myOrders': 'My orders',
+  'success.claim.emailPh': 'you@example.com',
+  'success.claim.emailBtn': 'Send link',
+  'success.claim.sent': 'Check your email — we sent a sign-in link.',
+  'success.claim.emailErr': 'Couldn’t send. Try again or use Google.',
 }
 
 export const commerce: Record<Lang, Record<K, string>> = { RU: ru, KZ: kz, EN: en }

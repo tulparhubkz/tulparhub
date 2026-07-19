@@ -137,6 +137,9 @@ export default function CartPage() {
         // The order UUID doubles as the invoice link — keep it out of the URL
         // (browser history / referrers) and hand it over via sessionStorage (#67).
         if (result.orderId) sessionStorage.setItem('th-last-order', result.orderId)
+        // Prefill the guest→account claim form so it's a single tap (kept out of
+        // the URL for the same privacy reason as the order UUID).
+        if (contactEmail) sessionStorage.setItem('th-last-email', contactEmail)
         const q = new URLSearchParams({ num: result.invoiceNumber ?? '', phone: contactPhone, pay, total: String(result.total ?? '') })
         router.push(`/order-success?${q}`)
       } else {
