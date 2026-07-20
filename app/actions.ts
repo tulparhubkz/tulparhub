@@ -1,8 +1,8 @@
 'use server'
 
 import { createLead } from '@/lib/services/leads'
-import { createOrder, trackOrderByInvoice, attachOrderToUser, type TrackedOrder } from '@/lib/services/orders'
-import { backfillProfileFromOrder } from '@/lib/services/users'
+import { createOrder, trackOrderByInvoice, attachOrderToUser, getOrderContactSnapshot, type TrackedOrder } from '@/lib/services/orders'
+import { backfillProfileFromOrder, contactInfoFromOrder } from '@/lib/services/users'
 import {
   listVehicles,
   importVehicles,
@@ -215,6 +215,15 @@ export async function claimOrder(
   try {
     const res = await attachOrderToUser(orderId, userId)
     if (res === 'claimed' || res === 'already') {
+      // A guest checkout typed contacts with no session to save them onto, so
+      // submitOrder skipped the backfill. Now that the order has an owner, copy
+      // them over — same best-effort rule: the claim already succeeded.
+      try {
+        const snapshot = await getOrderContactSnapshot(orderId)
+        if (snapshot) await backfillProfileFromOrder(userId, contactInfoFromOrder(snapshot))
+      } catch (err) {
+        console.error('[claimOrder] profile backfill error:', err)
+      }
       revalidatePath('/account/orders')
       return { ok: true, code: res }
     }

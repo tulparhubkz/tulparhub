@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { computeProfileBackfill, type ProfileSnapshot } from '@/lib/services/users'
+import { computeProfileBackfill, contactInfoFromOrder, type ProfileSnapshot } from '@/lib/services/users'
 
 const empty: ProfileSnapshot = {
   accountType: null,
@@ -86,5 +86,50 @@ describe('computeProfileBackfill', () => {
     const set = computeProfileBackfill(empty, { b2b: false, name: 'Иван', phone: '+77001234567' })
     expect(set.firstName).toBe('Иван')
     expect(set.lastName).toBeUndefined()
+  })
+})
+
+describe('contactInfoFromOrder', () => {
+  it('reads the contact snapshot a guest typed at checkout', () => {
+    expect(contactInfoFromOrder({
+      customerName: 'Иван Петров',
+      customerPhone: '+77001234567',
+      company: null,
+      bin: null,
+    })).toEqual({
+      b2b: false,
+      name: 'Иван Петров',
+      phone: '+77001234567',
+      company: null,
+      bin: null,
+    })
+  })
+
+  // Orders carry no b2b flag, and orders.b2b-style pricing is forced false for
+  // guests — company/bin are the only honest signal that this was a ЮЛ order.
+  it('infers a ЮЛ order from the company details on the order', () => {
+    expect(contactInfoFromOrder({
+      customerName: 'Иван Петров',
+      customerPhone: '+77001234567',
+      company: 'ТОО «Тест»',
+      bin: '123456789012',
+    })).toMatchObject({ b2b: true, company: 'ТОО «Тест»', bin: '123456789012' })
+  })
+
+  it('claiming a guest ЮЛ order completes an empty profile as company', () => {
+    const set = computeProfileBackfill(empty, contactInfoFromOrder({
+      customerName: 'Иван Петров',
+      customerPhone: '+77001234567',
+      company: 'ТОО «Тест»',
+      bin: '123456789012',
+    }))
+    expect(set).toMatchObject({
+      name: 'Иван Петров',
+      phone: '+77001234567',
+      company: 'ТОО «Тест»',
+      bin: '123456789012',
+      accountType: 'company',
+      role: 'b2b',
+    })
   })
 })

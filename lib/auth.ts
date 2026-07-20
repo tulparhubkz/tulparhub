@@ -5,6 +5,8 @@ import { DrizzleAdapter } from '@auth/drizzle-adapter'
 import { db } from '@/lib/db'
 import { users, accounts, sessions, verificationTokens } from '@/lib/db/schema'
 import { sendVerificationRequest, emailConfigErrors, emailFrom } from '@/lib/auth-email'
+import { attachGuestOrdersByEmail } from '@/lib/services/orders'
+import { backfillProfileFromOrder, contactInfoFromOrder } from '@/lib/services/users'
 
 // Providers are wired conditionally so the app boots fine before credentials
 // exist. Add AUTH_GOOGLE_ID/SECRET and/or RESEND_API_KEY to enable them.
@@ -62,6 +64,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.bin = u.bin ?? null
       }
       return session
+    },
+  },
+  events: {
+    // Guest checkouts leave orders with no owner. Both providers verify the
+    // email, so on every sign-in adopt any unclaimed order placed with that
+    // address and backfill the profile from the newest one — a customer who
+    // ordered as a guest and signed in later finds their details already there.
+    // Best effort: a failure here must never block the sign-in itself.
+    async signIn({ user }) {
+      if (!user?.id || !user.email) return
+      try {
+        const snapshot = await attachGuestOrdersByEmail(user.id, user.email)
+        if (snapshot) await backfillProfileFromOrder(user.id, contactInfoFromOrder(snapshot))
+      } catch (err) {
+        console.error('[auth] guest order adoption failed:', err)
+      }
     },
   },
 })
