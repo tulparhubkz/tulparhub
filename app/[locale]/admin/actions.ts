@@ -9,11 +9,23 @@ import {
   type PaymentStatus,
 } from '@/lib/services/orders'
 import { updateUserRole, type UserRole } from '@/lib/services/users'
+import { sendOrderStatusEmail } from '@/lib/order-email'
 
 export async function setOrderStatus(id: string, status: OrderStatus) {
   if (!(await getAdmin())) return { ok: false, message: 'Доступ запрещён' }
   try {
-    await updateOrderStatus(id, status)
+    const target = await updateOrderStatus(id, status)
+    // Fire-and-forget customer email (temporary stand-in for SMS notifications).
+    // A mail outage must never fail the status update the admin just made.
+    if (target?.customerEmail) {
+      void sendOrderStatusEmail({
+        to: target.customerEmail,
+        locale: 'ru', // orders carry no stored locale yet — default to RU
+        invoiceNumber: target.invoiceNumber,
+        status,
+        kind: 'order',
+      })
+    }
     revalidatePath('/admin')
     return { ok: true }
   } catch (err) {
@@ -40,7 +52,16 @@ export async function setUserRole(id: string, role: UserRole) {
 export async function setPaymentStatus(id: string, paymentStatus: PaymentStatus) {
   if (!(await getAdmin())) return { ok: false, message: 'Доступ запрещён' }
   try {
-    await updateOrderPayment(id, paymentStatus)
+    const target = await updateOrderPayment(id, paymentStatus)
+    if (target?.customerEmail) {
+      void sendOrderStatusEmail({
+        to: target.customerEmail,
+        locale: 'ru',
+        invoiceNumber: target.invoiceNumber,
+        status: paymentStatus,
+        kind: 'payment',
+      })
+    }
     revalidatePath('/admin')
     return { ok: true }
   } catch (err) {

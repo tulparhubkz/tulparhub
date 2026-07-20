@@ -1,7 +1,14 @@
 'use server'
 
 import { createLead } from '@/lib/services/leads'
-import { createOrder, trackOrderByInvoice, attachOrderToUser, getOrderContactSnapshot, type TrackedOrder } from '@/lib/services/orders'
+import {
+  createOrder,
+  trackOrderByInvoice,
+  attachOrderToUser,
+  attachOrdersByEmail,
+  getOrderContactSnapshot,
+  type TrackedOrder,
+} from '@/lib/services/orders'
 import { backfillProfileFromOrder, contactInfoFromOrder } from '@/lib/services/users'
 import {
   listVehicles,
@@ -205,27 +212,49 @@ export async function claimOrder(
   orderId: string,
 ): Promise<{ ok: boolean; code: 'claimed' | 'already' | 'unauthenticated' | 'unavailable' }> {
   let userId: string | null = null
+  let sessionEmail: string | null = null
   try {
-    userId = (await auth())?.user?.id ?? null
+    const session = await auth()
+    userId = session?.user?.id ?? null
+    sessionEmail = session?.user?.email ?? null
   } catch {
     /* auth not configured — treated as signed out */
   }
   if (!userId) return { ok: false, code: 'unauthenticated' }
 
   try {
-    const res = await attachOrderToUser(orderId, userId)
-    if (res === 'claimed' || res === 'already') {
-      // A guest checkout typed contacts with no session to save them onto, so
-      // submitOrder skipped the backfill. Now that the order has an owner, copy
-      // them over — same best-effort rule: the claim already succeeded.
+    // Primary path (Google, same tab): claim the exact order whose UUID this
+    // browser holds. Absent when the magic link opened a fresh tab — sessionStorage
+    // doesn't cross tabs — so it may legitimately be empty here.
+    const primary = orderId ? await attachOrderToUser(orderId, userId) : 'notfound'
+
+    // Reliable path for the email flow: attach every unclaimed order under the
+    // verified address (proven by Google / the magic link — #48, the email
+    // analogue of claim-by-verified-phone). This is what catches *this* order
+    // when the UUID was lost to a new tab. Best effort.
+    let swept = 0
+    if (sessionEmail) {
       try {
-        const snapshot = await getOrderContactSnapshot(orderId)
-        if (snapshot) await backfillProfileFromOrder(userId, contactInfoFromOrder(snapshot))
+        swept = await attachOrdersByEmail(sessionEmail, userId)
       } catch (err) {
-        console.error('[claimOrder] profile backfill error:', err)
+        console.error('[claimOrder] email sweep error:', err)
+      }
+    }
+
+    if (primary === 'claimed' || primary === 'already' || swept > 0) {
+      if (primary === 'claimed' || primary === 'already') {
+        // A guest checkout typed contacts with no session to save them onto, so
+        // submitOrder skipped the backfill. Now that the order has an owner, copy
+        // them over — same best-effort rule: the claim already succeeded.
+        try {
+          const snapshot = await getOrderContactSnapshot(orderId)
+          if (snapshot) await backfillProfileFromOrder(userId, contactInfoFromOrder(snapshot))
+        } catch (err) {
+          console.error('[claimOrder] profile backfill error:', err)
+        }
       }
       revalidatePath('/account/orders')
-      return { ok: true, code: res }
+      return { ok: true, code: primary === 'already' ? 'already' : 'claimed' }
     }
     return { ok: false, code: 'unavailable' }
   } catch (err) {
