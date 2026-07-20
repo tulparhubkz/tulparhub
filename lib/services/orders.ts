@@ -3,6 +3,7 @@ import { orders, orderItems, parts } from '@/lib/db/schema'
 import { inArray, eq, ne, desc, and, isNull, sql } from 'drizzle-orm'
 import { phoneDigits } from '@/lib/validation'
 import { deliveryCost } from '@/lib/services/delivery'
+import type { OrderContactSnapshot } from '@/lib/services/users'
 
 export const ORDER_STATUSES = ['new', 'confirmed', 'shipped', 'done', 'cancelled'] as const
 export type OrderStatus = (typeof ORDER_STATUSES)[number]
@@ -195,6 +196,62 @@ export async function attachOrderToUser(orderId: string, userId: string): Promis
   const [o] = await db.select({ userId: orders.userId }).from(orders).where(eq(orders.id, orderId))
   if (!o) return 'notfound'
   return o.userId === userId ? 'already' : 'taken'
+}
+
+/**
+ * Attach every still-unclaimed guest order placed with this email to the user,
+ * and return the newest one's contact snapshot so the caller can backfill the
+ * profile. Called on sign-in, where the provider (Google OAuth / magic link)
+ * has proven the user controls the address.
+ *
+ * Email is the ONLY safe key here: phone is self-asserted at checkout and
+ * freely editable at /account/profile, so matching on it would let anyone
+ * inherit a stranger's orders — including the invoice link — by typing their
+ * number. Do not widen this to phone without verified phone ownership.
+ */
+export async function attachGuestOrdersByEmail(
+  userId: string,
+  email: string,
+): Promise<OrderContactSnapshot | null> {
+  const addr = email.trim().toLowerCase()
+  if (!userId || !addr) return null
+
+  const claimed = await db
+    .update(orders)
+    .set({ userId })
+    .where(and(isNull(orders.userId), sql`lower(${orders.customerEmail}) = ${addr}`))
+    .returning({
+      customerName: orders.customerName,
+      customerPhone: orders.customerPhone,
+      company: orders.company,
+      bin: orders.bin,
+      createdAt: orders.createdAt,
+    })
+  if (claimed.length === 0) return null
+
+  // Newest order wins — it holds the most current details the customer gave.
+  const [latest] = claimed.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+  return {
+    customerName: latest.customerName,
+    customerPhone: latest.customerPhone,
+    company: latest.company,
+    bin: latest.bin,
+  }
+}
+
+/** The customer snapshot on an order — used to backfill a profile on claim. */
+export async function getOrderContactSnapshot(orderId: string): Promise<OrderContactSnapshot | null> {
+  const [o] = await db
+    .select({
+      customerName: orders.customerName,
+      customerPhone: orders.customerPhone,
+      company: orders.company,
+      bin: orders.bin,
+    })
+    .from(orders)
+    .where(eq(orders.id, orderId))
+    .limit(1)
+  return o ?? null
 }
 
 /** Full order + line items by UUID — for the invoice document (id is unguessable). */

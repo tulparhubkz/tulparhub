@@ -45,6 +45,30 @@ export interface OrderContactInfo {
   bin?: string | null
 }
 
+// The customer snapshot an order carries, as stored on the orders row.
+export interface OrderContactSnapshot {
+  customerName: string
+  customerPhone: string
+  company: string | null
+  bin: string | null
+}
+
+// Rebuild the checkout contact info from a stored order, so a guest order that
+// gets claimed after signing in can backfill the profile the same way a
+// signed-in checkout does. Orders have no b2b column (and b2b pricing is forced
+// off for guests), so company/bin presence is the signal that it was a ЮЛ order.
+export function contactInfoFromOrder(o: OrderContactSnapshot): OrderContactInfo {
+  const company = o.company?.trim() || null
+  const bin = o.bin?.trim() || null
+  return {
+    b2b: !!(company || bin),
+    name: o.customerName,
+    phone: o.customerPhone,
+    company,
+    bin,
+  }
+}
+
 // The current profile fields that decide what a checkout order may backfill.
 export interface ProfileSnapshot {
   accountType: string | null
