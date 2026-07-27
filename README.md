@@ -37,6 +37,7 @@ yarn dev                                          # http://localhost:3000
 | `yarn db:migrate` | применить миграции (на деплое выполняется автоматически) |
 | `yarn db:studio` | Drizzle Studio (просмотр БД) |
 | `yarn import-csv` | импорт прайса вендора в БД (подозрительные цены печатает списком) |
+| `yarn import-images` | импорт фото товаров (`IMAGES_CSV_PATH`) в БД |
 
 ## API (Route Handlers в `app/api/`)
 

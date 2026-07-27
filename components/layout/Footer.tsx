@@ -33,7 +33,6 @@ export function Footer() {
           <a href="#">{t('footer.link.wholesale')}</a>
           <a href="#">{t('footer.link.sto')}</a>
           <a href="#">{t('footer.link.1c')}</a>
-          <a href="#">{t('footer.link.docs')}</a>
         </div>
         <div className="foot-col">
           <h4>{t('footer.col.company')}</h4>
@@ -42,6 +41,13 @@ export function Footer() {
           <a href="#">{t('footer.link.partners')}</a>
           <a href="#">{t('footer.link.news')}</a>
           <a href="#">{t('footer.link.kb')}</a>
+        </div>
+        <div className="foot-col">
+          <h4>{t('footer.col.docs')}</h4>
+          <Link href="/oferta">{t('footer.legal.oferta')}</Link>
+          <Link href="/privacy">{t('footer.legal.privacy')}</Link>
+          <Link href="/returns">{t('footer.legal.returns')}</Link>
+          <Link href="/requisites">{t('footer.legal.requisites')}</Link>
         </div>
         <div className="foot-col">
           <h4>{t('footer.col.contacts')}</h4>

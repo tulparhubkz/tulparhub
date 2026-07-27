@@ -58,6 +58,7 @@ const ru = {
   'account.link.wishlist': 'Избранное',
   'account.link.about': 'О компании',
   'account.link.warranty': 'Гарантия и возврат',
+  'account.link.profile': 'Личный профиль',
   'account.link.orders': 'Мои заказы',
   'account.link.track': 'Отследить заказ',
   // Footer
@@ -86,7 +87,12 @@ const ru = {
   'footer.col.contacts': 'Контакты',
   'footer.contact.address': 'ул. Райымбека 348А, Алматы',
   'footer.legal.rights': 'TulparHub © 2024–2025 · Все права защищены',
-  'footer.legal.entity': 'ТОО «TulparHub» · БИН 200140000000',
+  'footer.legal.entity': 'ТОО «TulparHub» · БИН 260740001461',
+  'footer.col.docs': 'Документы',
+  'footer.legal.oferta': 'Публичная оферта',
+  'footer.legal.privacy': 'Политика конфиденциальности',
+  'footer.legal.returns': 'Возврат и обмен',
+  'footer.legal.requisites': 'Реквизиты',
 }
 
 type K = keyof typeof ru
@@ -141,6 +147,7 @@ const kz: Record<K, string> = {
   'account.link.wishlist': 'Таңдаулылар',
   'account.link.about': 'Компания туралы',
   'account.link.warranty': 'Кепілдік және қайтару',
+  'account.link.profile': 'Жеке профиль',
   'account.link.orders': 'Менің тапсырыстарым',
   'account.link.track': 'Тапсырысты қадағалау',
   'footer.tag': 'Жүк көлігіне қосалқы бөлшектер және арнайы техника жалдау · 2026 жылдан бері.',
@@ -168,7 +175,12 @@ const kz: Record<K, string> = {
   'footer.col.contacts': 'Байланыс',
   'footer.contact.address': 'Райымбек к-сі 348А, Алматы',
   'footer.legal.rights': 'TulparHub © 2024–2025 · Барлық құқықтар қорғалған',
-  'footer.legal.entity': '«TulparHub» ЖШС · БСН 200140000000',
+  'footer.legal.entity': '«TulparHub» ЖШС · БСН 260740001461',
+  'footer.col.docs': 'Құжаттар',
+  'footer.legal.oferta': 'Жария оферта',
+  'footer.legal.privacy': 'Құпиялылық саясаты',
+  'footer.legal.returns': 'Қайтару және айырбастау',
+  'footer.legal.requisites': 'Деректемелер',
 }
 
 const en: Record<K, string> = {
@@ -221,6 +233,7 @@ const en: Record<K, string> = {
   'account.link.wishlist': 'Wishlist',
   'account.link.about': 'About',
   'account.link.warranty': 'Warranty & returns',
+  'account.link.profile': 'My profile',
   'account.link.orders': 'My orders',
   'account.link.track': 'Track order',
   'footer.tag': 'Truck parts and equipment rental · since 2026.',
@@ -248,7 +261,12 @@ const en: Record<K, string> = {
   'footer.col.contacts': 'Contacts',
   'footer.contact.address': '348A Rayymbek Ave, Almaty',
   'footer.legal.rights': 'TulparHub © 2024–2025 · All rights reserved',
-  'footer.legal.entity': 'TulparHub LLP · BIN 200140000000',
+  'footer.legal.entity': 'TulparHub LLP · BIN 260740001461',
+  'footer.col.docs': 'Documents',
+  'footer.legal.oferta': 'Public offer',
+  'footer.legal.privacy': 'Privacy policy',
+  'footer.legal.returns': 'Returns & exchange',
+  'footer.legal.requisites': 'Company details',
 }
 
 export const chrome: Record<Lang, Record<K, string>> = { RU: ru, KZ: kz, EN: en }
