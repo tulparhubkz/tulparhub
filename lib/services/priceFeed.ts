@@ -1,12 +1,14 @@
 /**
  * Apply the emailed per-city price list to the catalogue.
  *
- * This feed is a REFRESH, not a source of truth: it carries no vendor code and
- * no retail price, so it can neither create parts nor set `parts.price`. It
- * matches existing parts on (article, brand) — the same join `part_images`
- * uses — and updates only two things, scoped to the one city the file covers:
+ * This feed is a REFRESH, not a source of truth: it carries no vendor code, so
+ * it can't create parts. It matches existing parts on (article, brand) — the
+ * same join `part_images` uses — and updates three things, scoped to the one
+ * city the file covers:
  *
- *   • parts.price_b2b   (wholesale)
+ *   • parts.price_b2b   (wholesale, straight from the file)
+ *   • parts.price       (retail, DERIVED as wholesale × 1.30 — no retail column
+ *                        in the feed; see RETAIL_MARKUP)
  *   • part_stock[city]  (that warehouse's quantity)
  *
  * Parts absent from the file have their stock in THIS city zeroed (sold out),
@@ -20,6 +22,18 @@ import { readSheet } from '@/lib/import/xlsx'
 import { parsePriceFeed, type PriceFeed, type FeedCity } from '@/lib/import/priceFeed'
 
 const BATCH = 500
+
+/**
+ * Retail markup over the vendor's wholesale price. This feed carries no retail
+ * column, so `parts.price` is derived: retail = wholesale × (1 + markup). For
+ * matched parts this overwrites whatever retail the TSV import set.
+ */
+export const RETAIL_MARKUP = 0.3
+
+/** Retail KZT derived from a wholesale price, rounded to a whole tenge. */
+export function retailFromWholesale(wholesale: number): number {
+  return Math.round(wholesale * (1 + RETAIL_MARKUP))
+}
 
 /** Join key, identical to the image matcher's — cased/padded inconsistently. */
 export function joinKey(article: string, brand: string | null): string {
@@ -145,20 +159,23 @@ export async function importPriceFeed(opts: {
 
     let stockZeroed = 0
     await db.transaction(async (tx) => {
-      // 1. Refresh wholesale price for every matched part.
+      // 1. Refresh wholesale price for every matched part, and derive retail
+      //    from it (this feed has no retail column — see RETAIL_MARKUP).
       const priceRows = Array.from(match.priceByPart.entries())
       for (let i = 0; i < priceRows.length; i += BATCH) {
         const chunk = priceRows.slice(i, i + BATCH)
-        // Cast both columns: with every value a bound parameter, Postgres can
+        // Cast every column: with all values bound parameters, Postgres can
         // otherwise fail to infer the VALUES column types.
         const values = sql.join(
-          chunk.map(([id, price]) => sql`(${id}::text, ${price}::int)`),
+          chunk.map(
+            ([id, b2b]) => sql`(${id}::text, ${b2b}::int, ${retailFromWholesale(b2b)}::int)`,
+          ),
           sql`, `,
         )
         await tx.execute(sql`
           UPDATE ${parts} AS p
-          SET price_b2b = v.price, updated_at = now()
-          FROM (VALUES ${values}) AS v(id, price)
+          SET price_b2b = v.b2b, price = v.retail, updated_at = now()
+          FROM (VALUES ${values}) AS v(id, b2b, retail)
           WHERE p.id = v.id
         `)
       }

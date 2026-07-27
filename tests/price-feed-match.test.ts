@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { matchFeed, joinKey, type CatalogPart } from '@/lib/services/priceFeed'
+import {
+  matchFeed,
+  joinKey,
+  retailFromWholesale,
+  RETAIL_MARKUP,
+  type CatalogPart,
+} from '@/lib/services/priceFeed'
 import type { PriceFeed, PriceRow } from '@/lib/import/priceFeed'
 
 function feed(rows: Array<Partial<PriceRow>>): PriceFeed {
@@ -16,6 +22,18 @@ function feed(rows: Array<Partial<PriceRow>>): PriceFeed {
     })),
   }
 }
+
+describe('retailFromWholesale', () => {
+  it('adds the configured markup over wholesale', () => {
+    expect(RETAIL_MARKUP).toBe(0.3)
+    expect(retailFromWholesale(1000)).toBe(1300)
+    expect(retailFromWholesale(14383)).toBe(18698) // 14383 × 1.3 = 18697.9 → 18698
+  })
+  it('rounds to a whole tenge', () => {
+    expect(retailFromWholesale(101)).toBe(131) // 131.3 → 131
+    expect(Number.isInteger(retailFromWholesale(999))).toBe(true)
+  })
+})
 
 describe('joinKey', () => {
   it('normalizes case and surrounding whitespace', () => {
