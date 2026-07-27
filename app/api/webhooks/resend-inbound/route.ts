@@ -27,7 +27,9 @@ import { importPriceFeed } from '@/lib/services/priceFeed'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300 // 8k+ rows: download + parse + write
 
-const DEFAULT_SENDERS = 'update@truckmotors.kz'
+// The vendor's feed address, plus the operator's own for testing/manual resends.
+// Override entirely with INBOUND_FEED_SENDERS (comma-separated) in production.
+const DEFAULT_SENDERS = 'update@truckmotors.kz,baglanov.a0930@gmail.com'
 
 /** Always 200 for handled-but-ignored mail, so Resend doesn't retry forever. */
 function ignored(reason: string) {
