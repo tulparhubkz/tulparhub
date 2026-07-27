@@ -8,6 +8,7 @@ import { useT } from '@/lib/i18n'
 import { isValidPhone, phoneInputValue } from '@/lib/validation'
 import { submitOrder } from '@/app/actions'
 import type { RentalUnit } from '@/types'
+import { reachGoal } from '@/lib/analytics'
 
 interface BookingSheetProps {
   item: RentalUnit
@@ -66,6 +67,7 @@ export function BookingSheet({ item, onClose }: BookingSheetProps) {
         ].filter(Boolean).join(' · '),
       })
       if (result.ok) {
+        reachGoal('LEAD_SUBMIT', { kind: 'booking' })
         setDone(t(result.message, result.params)) // in-sheet confirmation — a toast is too easy to miss
       } else {
         setError(t(result.message, result.params))

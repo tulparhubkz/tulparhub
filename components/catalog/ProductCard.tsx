@@ -1,5 +1,4 @@
 'use client'
-import { useState, useEffect } from 'react'
 import { useRouter } from '@/i18n/navigation'
 import Image from 'next/image'
 import { fmtKZT } from '@/lib/utils'
@@ -11,29 +10,6 @@ import type { CardPart } from '@/types'
 
 // Shared product card (the Autopiter-style ".card"). Used by the catalog,
 // wishlist and brand pages so there is one card to maintain.
-const imgCache = new Map<string, string | null>()
-
-function usePartImage(oem: string, name: string) {
-  const key = oem || name
-  const [url, setUrl] = useState<string | null>(imgCache.has(key) ? imgCache.get(key)! : null)
-  useEffect(() => {
-    if (imgCache.has(key)) {
-      setUrl(imgCache.get(key) ?? null)
-      return
-    }
-    const p = new URLSearchParams()
-    if (oem) p.set('oem', oem)
-    if (name) p.set('name', name)
-    fetch(`/api/part-image?${p}`)
-      .then((r) => r.json())
-      .then((d) => {
-        imgCache.set(key, d.url ?? null)
-        setUrl(d.url ?? null)
-      })
-      .catch(() => imgCache.set(key, null))
-  }, [key, oem, name])
-  return url
-}
 
 export function ProductCard({ part, b2b = false }: { part: CardPart; b2b?: boolean }) {
   const router = useRouter()
@@ -48,7 +24,7 @@ export function ProductCard({ part, b2b = false }: { part: CardPart; b2b?: boole
   // Availability relative to the city the user picked in the header.
   const localQty = stockMap[warehouseCity(city)] ?? 0
   const isOEM = (part.type || '').toUpperCase() === 'OEM'
-  const imgUrl = usePartImage(part.oem ?? '', part.name ?? '')
+  const imgUrl = part.images?.[0]?.url200 ?? null
 
   return (
     <div

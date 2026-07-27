@@ -8,6 +8,7 @@ import { Crumbs } from '@/components/ui/Crumbs'
 import { SysGlyph } from '@/components/ui/SysGlyph'
 import { brands, models, systems, subAssemblies } from '@/lib/data'
 import { useT } from '@/lib/i18n'
+import { reachGoal } from '@/lib/analytics'
 
 export default function PodborPage() {
   const router = useRouter()
@@ -18,6 +19,11 @@ export default function PodborPage() {
   }>({ brand: null, model: null, year: null, system: null })
 
   const step = !pick.brand ? 0 : !pick.model ? 1 : !pick.year ? 2 : !pick.system ? 3 : 4
+
+  const goToCatalog = () => {
+    reachGoal('PODBOR_SUBMIT', { brand: pick.brand, model: pick.model, system: pick.system })
+    router.push(`/catalog?brand=${pick.brand}&model=${pick.model}&system=${pick.system}`)
+  }
 
   const steps = [t('podbor.step.brand'), t('podbor.step.model'), t('podbor.step.year'), t('podbor.step.system'), t('podbor.step.sub')]
   const brandObj = brands.find((b) => b.id === pick.brand)
@@ -144,7 +150,7 @@ export default function PodborPage() {
                       <button
                         key={sa}
                         className="wiz-card wiz-card-sub"
-                        onClick={() => router.push(`/catalog?brand=${pick.brand}&model=${pick.model}&system=${pick.system}`)}
+                        onClick={goToCatalog}
                       >
                         <div className="wiz-sub-mark">→</div>
                         <div className="wiz-card-name">{sa}</div>
@@ -155,7 +161,7 @@ export default function PodborPage() {
                   <div className="wiz-cta">
                     <Btn
                       variant="primary" size="lg" iconRight="arrow"
-                      onClick={() => router.push(`/catalog?brand=${pick.brand}&model=${pick.model}&system=${pick.system}`)}
+                      onClick={goToCatalog}
                     >
                       {t('podbor.cta')}
                     </Btn>

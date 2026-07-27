@@ -4,6 +4,7 @@ import { Link, useRouter, usePathname } from '@/i18n/navigation'
 import Image from 'next/image'
 import { useLocale } from 'next-intl'
 import { Ico } from '@/components/ui/Ico'
+import { reachGoal } from '@/lib/analytics'
 import { useCart, useCartCount } from '@/store/cart'
 import { useWishlist } from '@/store/wishlist'
 import { useGarage } from '@/store/garage'
@@ -15,7 +16,7 @@ import { GaragePanel } from '@/components/garage/GaragePanel'
 import { useSession } from 'next-auth/react'
 
 interface SearchResults {
-  parts: Array<{ id: string; name: string; oem: string; price: number }>
+  parts: Array<{ id: string; name: string; oem: string; price: number; img: string | null }>
   systems: Array<{ id: string; label: string; href: string }>
   brands: Array<{ id: string; label: string; href: string }>
 }
@@ -69,6 +70,10 @@ export function Header() {
 
   const handleSearch = () => {
     if (!search.trim()) return
+    reachGoal(
+      searchTab === 'vin' ? 'SEARCH_VIN' : searchTab === 'model' ? 'SEARCH_MODEL' : 'SEARCH',
+      { q: search.trim() },
+    )
     setShowResults(false)
     if (searchTab === 'vin') {
       router.push(`/catalog?vin=${encodeURIComponent(search)}`)
@@ -183,7 +188,11 @@ export function Header() {
                       const idx = i
                       return (
                         <button key={p.id} id={`sr-opt-${idx}`} type="button" role="option" tabIndex={-1} aria-selected={highlight === idx} className={`sr-row${highlight === idx ? ' on' : ''}`} onMouseEnter={() => setHighlight(idx)} onMouseDown={() => go(`/catalog/${p.id}`)}>
-                          <div className="sr-thumb" style={{ width: 36, height: 36, background: '#f0f2f5', borderRadius: 4, flexShrink: 0 }} />
+                          <div className="sr-thumb" style={{ width: 36, height: 36, background: '#f0f2f5', borderRadius: 4, flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
+                            {p.img && (
+                              <Image src={p.img} alt="" fill sizes="36px" style={{ objectFit: 'contain', padding: 2 }} unoptimized />
+                            )}
+                          </div>
                           <div className="sr-meta">
                             <div className="sr-name">{p.name}</div>
                             <div className="sr-oem">{p.oem}</div>

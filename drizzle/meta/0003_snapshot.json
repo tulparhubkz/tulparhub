@@ -1,5 +1,5 @@
 {
-  "id": "06f1b02e-3657-40f2-8cd9-697d753d831a",
+  "id": "f2687e15-f7c5-408d-8b36-917ca2b37f61",
   "prevId": "0cb9f61e-9994-44de-9eef-a26f7bbe65af",
   "version": "7",
   "dialect": "postgresql",
@@ -305,13 +305,6 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
-        },
-        "status": {
-          "name": "status",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'new'"
         },
         "name": {
           "name": "name",
@@ -1354,6 +1347,24 @@
           "notNull": true,
           "default": "'retail'"
         },
+        "account_type": {
+          "name": "account_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "first_name": {
+          "name": "first_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_name": {
+          "name": "last_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "phone": {
           "name": "phone",
           "type": "text",
@@ -1369,6 +1380,18 @@
         "bin": {
           "name": "bin",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "position": {
+          "name": "position",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "terms_accepted_at": {
+          "name": "terms_accepted_at",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         },
