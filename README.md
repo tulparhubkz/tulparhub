@@ -8,9 +8,10 @@
 |------|------------|
 | Frontend / API | Next.js 14 (App Router), TypeScript |
 | База данных | PostgreSQL + Drizzle ORM |
-| Авторизация | Auth.js (NextAuth v5) — Google + email magic link |
+| Авторизация | Auth.js (NextAuth v5) — Google (live на staging); роли retail / b2b / admin |
+| Тесты | Vitest (`tests/`, юнит) + Playwright (`e2e/`, smoke) — оба в CI |
 | Инфраструктура | Docker Compose (Postgres + app + Caddy auto-TLS), KZ VPS |
-| Стейт на клиенте | Zustand + localStorage (корзина, избранное, гараж) |
+| Стейт на клиенте | Zustand + localStorage (корзина, избранное); гараж синкается в БД у залогиненных |
 
 Источник данных каталога — CSV-выгрузка прайса вендора (см. `scripts/import-csv.ts`); в будущем — 1С.
 
@@ -30,18 +31,21 @@ yarn dev                                          # http://localhost:3000
 | Команда | Действие |
 |---------|----------|
 | `yarn dev` / `yarn build` / `yarn start` | разработка / сборка / прод |
+| `yarn test` / `yarn test:watch` | юнит-тесты (Vitest, `tests/`) — бегут в CI перед сборкой |
+| `yarn e2e` | Playwright-smoke (`e2e/`, поднимает прод-сборку сам; нужен `DATABASE_URL`) |
 | `yarn db:generate` | сгенерировать миграцию из `lib/db/schema.ts` |
-| `yarn db:migrate` | применить миграции |
+| `yarn db:migrate` | применить миграции (на деплое выполняется автоматически) |
 | `yarn db:studio` | Drizzle Studio (просмотр БД) |
-| `yarn import-csv` | импорт прайса вендора в БД |
+| `yarn import-csv` | импорт прайса вендора в БД (подозрительные цены печатает списком) |
 | `yarn import-images` | импорт фото товаров (`IMAGES_CSV_PATH`) в БД |
 
 ## API (Route Handlers в `app/api/`)
 
 | Метод | Путь | Описание |
 |-------|------|----------|
-| GET | `/api/parts` | Список запчастей: `system`, `brand`, `model`, `partBrand`, `q`, `oemOnly=1`, `inStock=1`, `priceMax`, `sort`, `page` |
-| GET | `/api/parts/:id` | Одна запчасть |
+| GET | `/api/parts` | Список запчастей: `system`, `brand`, `model`, `partBrand`, `q`, `oemOnly=1`, `inStock=1`, `priceMax`, `sort`, `page`, `ids=a,b,c` (точечная выборка). `price_b2b` отдаётся только b2b/admin-сессиям |
+| GET | `/api/parts/:id` | Одна запчасть (то же правило про `price_b2b`) |
+| GET | `/api/health` | Liveness + доступность БД (для аптайм-мониторинга) |
 | GET | `/api/search?q=` | Поиск (parts / systems / brands) |
 | GET | `/api/part-brands` | Производители запчастей с количеством |
 | GET | `/api/rental`, `/api/rental/:id` | Аренда техники |
@@ -53,11 +57,14 @@ yarn dev                                          # http://localhost:3000
 
 ```
 app/            страницы + app/api (Route Handlers) + actions.ts (server actions)
+app/[locale]/admin  админка (заказы, заявки, импорт, пользователи) — гейт getAdmin()
 lib/db/         schema.ts (Drizzle), index.ts (клиент), миграции в drizzle/
-lib/services/   слой доступа к данным (parts, orders, leads) — роуты зовут его, не БД напрямую
-lib/auth.ts     конфиг Auth.js
+lib/services/   слой доступа к данным (parts, orders, leads, garage, users, delivery)
+lib/auth.ts     конфиг Auth.js; lib/admin.ts — getAdmin()/isB2bViewer()
+lib/rateLimit.ts  per-IP token bucket (заказы/трекинг/лиды)
 lib/data.ts     статические справочники (бренды/модели/города/категории, демо-аренда)
 store/          Zustand-сторы (корзина, избранное, гараж)
+tests/  e2e/    Vitest-юниты и Playwright-smoke
 ```
 
 ## Как мы работаем
@@ -79,7 +86,13 @@ store/          Zustand-сторы (корзина, избранное, гара
 - **Не правь версии зависимостей руками** в `package.json` — используй
   `yarn add` / `yarn install`, чтобы lock-файл совпадал.
 - **Стили страницы** — `<style jsx>` (скоуп), а не голый `<style>` (утекает
-  глобально). Пример: `app/catalog/[id]/page.tsx`.
+  глобально). Пример: `app/catalog/[id]/page.tsx`. Отступы/шрифты в новом коде —
+  через токены `--sp-*` / `--text-*` из `globals.css`.
+- **Line endings:** в репо нет `.gitattributes`, блобы — LF. Если `git diff --stat`
+  на Windows показывает изменение всего файла — сравни с
+  `git diff --ignore-cr-at-eol --stat` и нормализуй CRLF перед коммитом.
+- **Серверные экшены возвращают ключи переводов** (`act.*` в
+  `lib/i18n/messages/commerce.ts`), не строки — клиент рендерит через `t()`.
 - Клиент БД import-safe — `yarn build` работает без `DATABASE_URL`.
 
 ## Задачи и роадмап
