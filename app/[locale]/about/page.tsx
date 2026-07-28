@@ -1,6 +1,7 @@
 'use client'
 import { Link } from '@/i18n/navigation'
 import { useT } from '@/lib/i18n'
+import { Ico } from '@/components/ui/Ico'
 
 export default function AboutPage() {
   const t = useT()
@@ -69,7 +70,7 @@ export default function AboutPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 120px;
+          color: var(--ink-3);
         }
         .ab-page { max-width: 1200px; margin: 0 auto; padding: 0 20px 80px; }
 
@@ -164,7 +165,11 @@ export default function AboutPage() {
           font-weight: 700;
           color: var(--ink);
           margin-bottom: 8px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
         }
+        .ab-client h4 svg { color: var(--brand); flex: none; }
         .ab-client p {
           font-size: 14px;
           color: var(--ink-2);
@@ -211,7 +216,11 @@ export default function AboutPage() {
           font-size: 15px;
           font-weight: 700;
           color: var(--ink);
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
         }
+        .ab-pay-chip svg { color: var(--brand); flex: none; }
 
         .ab-cta {
           background: var(--surf-2);
@@ -283,7 +292,7 @@ export default function AboutPage() {
               <li>{t('about.hero.li5')}</li>
             </ul>
           </div>
-          <div className="ab-truck-img">🚛</div>
+          <div className="ab-truck-img"><Ico name="truck" size={128} stroke={1.25} /></div>
         </div>
       </div>
 
@@ -368,15 +377,15 @@ export default function AboutPage() {
           <h2>{t('about.clients.title')}</h2>
           <div className="ab-clients">
             <div className="ab-client">
-              <h4>🚚 {t('about.client1.title')}</h4>
+              <h4><Ico name="truck" size={18} /> {t('about.client1.title')}</h4>
               <p>{t('about.client1.text')}</p>
             </div>
             <div className="ab-client">
-              <h4>🔧 {t('about.client2.title')}</h4>
+              <h4><Ico name="wrench" size={18} /> {t('about.client2.title')}</h4>
               <p>{t('about.client2.text')}</p>
             </div>
             <div className="ab-client">
-              <h4>🏗️ {t('about.client3.title')}</h4>
+              <h4><Ico name="crane" size={18} /> {t('about.client3.title')}</h4>
               <p>{t('about.client3.text')}</p>
             </div>
           </div>
@@ -419,11 +428,11 @@ export default function AboutPage() {
           <h2>{t('about.pay.title')}</h2>
           <p style={{ color: 'var(--ink-2)', marginBottom: 16, fontSize: 15 }}>{t('about.pay.sub')}</p>
           <div className="ab-pay">
-            <div className="ab-pay-chip">💳 {t('about.pay.kaspi')}</div>
-            <div className="ab-pay-chip">🏦 {t('about.pay.bank')}</div>
-            <div className="ab-pay-chip">💵 {t('about.pay.cash')}</div>
-            <div className="ab-pay-chip">📱 {t('about.pay.qr')}</div>
-            <div className="ab-pay-chip">🤝 {t('about.pay.installment')}</div>
+            <div className="ab-pay-chip"><Ico name="card" size={18} /> {t('about.pay.kaspi')}</div>
+            <div className="ab-pay-chip"><Ico name="bank" size={18} /> {t('about.pay.bank')}</div>
+            <div className="ab-pay-chip"><Ico name="cash" size={18} /> {t('about.pay.cash')}</div>
+            <div className="ab-pay-chip"><Ico name="qr" size={18} /> {t('about.pay.qr')}</div>
+            <div className="ab-pay-chip"><Ico name="handshake" size={18} /> {t('about.pay.installment')}</div>
           </div>
         </div>
 

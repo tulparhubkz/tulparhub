@@ -1,6 +1,7 @@
 'use client'
 import { Link } from '@/i18n/navigation'
 import { useT } from '@/lib/i18n'
+import { Ico } from '@/components/ui/Ico'
 
 export default function WarrantyPage() {
   const t = useT()
@@ -53,8 +54,8 @@ export default function WarrantyPage() {
           gap: 10px;
         }
         .wt-section h2 .icon {
-          font-size: 22px;
-          line-height: 1;
+          display: inline-flex;
+          color: var(--brand);
         }
         .wt-section p {
           font-size: 15px;
@@ -276,7 +277,7 @@ export default function WarrantyPage() {
 
         {/* Гарантийные сроки */}
         <div className="wt-section">
-          <h2><span className="icon">🛡️</span>{t('warranty.terms.title')}</h2>
+          <h2><span className="icon"><Ico name="shield" size={22} /></span>{t('warranty.terms.title')}</h2>
           <div className="wt-terms">
             <div className="wt-term-card">
               <div className="wt-term-label">{t('warranty.term1.label')}</div>
@@ -296,7 +297,7 @@ export default function WarrantyPage() {
 
         {/* Возврат неиспользованного товара */}
         <div className="wt-section">
-          <h2><span className="icon">↩️</span>{t('warranty.return.title')}</h2>
+          <h2><span className="icon"><Ico name="undo" size={22} /></span>{t('warranty.return.title')}</h2>
           <p>{t('warranty.return.p1pre')}<strong>{t('warranty.return.p1bold')}</strong>{t('warranty.return.p1post')}</p>
           <ul className="wt-list">
             <li>{t('warranty.return.li1')}</li>
@@ -311,7 +312,7 @@ export default function WarrantyPage() {
 
         {/* Гарантийное обращение */}
         <div className="wt-section">
-          <h2><span className="icon">🔍</span>{t('warranty.process.title')}</h2>
+          <h2><span className="icon"><Ico name="search" size={22} /></span>{t('warranty.process.title')}</h2>
           <div className="wt-steps">
             <div className="wt-step">
               <div className="wt-step-num">1</div>
@@ -346,7 +347,7 @@ export default function WarrantyPage() {
 
         {/* Что не покрывается */}
         <div className="wt-section">
-          <h2><span className="icon">⚠️</span>{t('warranty.exclude.title')}</h2>
+          <h2><span className="icon"><Ico name="warn" size={22} /></span>{t('warranty.exclude.title')}</h2>
           <div className="wt-exclude">
             <p>{t('warranty.exclude.lead')}</p>
             <ul className="wt-list" style={{ color: '#7a4f1a' }}>
@@ -362,7 +363,7 @@ export default function WarrantyPage() {
 
         {/* FAQ */}
         <div className="wt-section">
-          <h2><span className="icon">❓</span>{t('warranty.faq.title')}</h2>
+          <h2><span className="icon"><Ico name="help" size={22} /></span>{t('warranty.faq.title')}</h2>
           <div className="wt-faq">
             <div className="wt-faq-item">
               <h4>{t('warranty.faq1.q')}</h4>

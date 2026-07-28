@@ -139,6 +139,17 @@ body {
 }
 .chip:hover, .chip.on { background: var(--accent); color: #fff; border-color: var(--accent); }
 
+/* ── Empty state ── */
+/* Shared shell for "nothing here yet" cards; new empty states use this instead of a per-page copy (#70). */
+.empty-state {
+  padding: var(--sp-12);
+  text-align: center;
+  color: var(--ink-3);
+  background: var(--surf);
+  border: 1.5px solid var(--line);
+  border-radius: 16px;
+}
+
 /* ── Breadcrumbs ── */
 .crumbs {
   display: flex;

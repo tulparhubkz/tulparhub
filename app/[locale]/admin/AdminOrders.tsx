@@ -62,7 +62,7 @@ export function AdminOrders({ orders, adminEmail }: { orders: Order[]; adminEmai
         </header>
 
         {rows.length === 0 ? (
-          <div className="adm-empty">Заказов пока нет.</div>
+          <div className="empty-state">Заказов пока нет.</div>
         ) : (
           <div className="adm-list">
             {rows.map((o) => (
@@ -133,7 +133,6 @@ export function AdminOrders({ orders, adminEmail }: { orders: Order[]; adminEmai
         .adm-head h1 { font-size: 26px; font-weight: 800; letter-spacing: -.02em; }
         .adm-head p { color: var(--ink-2); font-size: 14px; margin-top: 4px; }
         .adm-who { font-size: 13px; color: var(--ink-3); background: var(--surf-2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; }
-        .adm-empty { padding: 48px; text-align: center; color: var(--ink-3); background: var(--surf); border: 1.5px solid var(--line); border-radius: 16px; }
         .adm-list { display: flex; flex-direction: column; gap: 10px; }
         .adm-card { background: var(--surf); border: 1.5px solid var(--line); border-radius: 14px; overflow: hidden; }
         .adm-row { width: 100%; display: grid; grid-template-columns: 1.3fr 1.4fr 1fr 1.2fr 24px; gap: 14px; align-items: center; padding: 14px 16px; background: none; border: none; cursor: pointer; text-align: left; }
