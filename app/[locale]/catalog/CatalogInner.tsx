@@ -5,10 +5,12 @@ import { Link } from '@/i18n/navigation'
 import { Ico } from '@/components/ui/Ico'
 import { ProductCard } from '@/components/catalog/ProductCard'
 import { systems, brands, models } from '@/lib/data'
+import { useFacetCounts } from '@/lib/useFacetCounts'
 import { useT } from '@/lib/i18n'
 
 export default function CatalogInner() {
   const t           = useT()
+  const facets      = useFacetCounts()
   const params      = useSearchParams()
   const systemParam = params.get('system') ?? ''
   const brandParam  = params.get('brand')  ?? ''
@@ -166,7 +168,7 @@ export default function CatalogInner() {
               checked={filters.system === s.id}
               onChange={e => { setFilters(f => ({ ...f, system: e.target.checked ? s.id : '' })); setPage(1) }} />
             <span>{s.ru}</span>
-            <span className="filt-count">{s.count.toLocaleString('ru-RU')}</span>
+            {facets && <span className="filt-count">{(facets.categories[s.id] ?? 0).toLocaleString('ru-RU')}</span>}
           </label>
         ))}
       </div>

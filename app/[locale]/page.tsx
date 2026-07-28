@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/Badge'
 import { SysGlyph } from '@/components/ui/SysGlyph'
 import { ProductCard } from '@/components/catalog/ProductCard'
 import { systems, brands } from '@/lib/data'
+import { useFacetCounts } from '@/lib/useFacetCounts'
 import { useCart } from '@/store/cart'
 import { useT, type TranslationKey } from '@/lib/i18n'
 
@@ -131,6 +132,7 @@ function RentalSlideshow() {
 export default function HomePage() {
   const router = useRouter()
   const t = useT()
+  const facets = useFacetCounts()
   const [vinInput, setVinInput] = useState('')
   const [oemInput, setOemInput] = useState('')
   const [parts, setParts] = useState<any[]>([])
@@ -293,7 +295,7 @@ export default function HomePage() {
                   transition: '.15s',
                 }}>
                   <span>{b.name}</span>
-                  <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>{(b.parts ?? 0).toLocaleString('ru')} {t('home.selector.partsShort')}</span>
+                  <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>{(facets?.brands[b.id] ?? 0).toLocaleString('ru')} {t('home.selector.partsShort')}</span>
                 </Link>
               ))}
             </div>
@@ -360,7 +362,7 @@ export default function HomePage() {
                 <SysGlyph id={s.id} size={44} />
                 <div className="cat-meta">
                   <div className="cat-name">{s.ru}</div>
-                  <div className="cat-count">{s.count.toLocaleString('ru-RU')} {t('home.cat.countSuffix')}</div>
+                  <div className="cat-count">{(facets?.categories[s.id] ?? 0).toLocaleString('ru-RU')} {t('home.cat.countSuffix')}</div>
                 </div>
                 <span className="cat-chev"><Ico name="chevron" size={16} /></span>
               </Link>
@@ -387,7 +389,7 @@ export default function HomePage() {
                 </div>
                 <div className="type-tile-meta">
                   <div className="type-tile-name">{b.name}</div>
-                  <div className="type-tile-count">{(b.parts ?? 0).toLocaleString('ru-RU')} {t('home.selector.partsShort')} · {b.country}</div>
+                  <div className="type-tile-count">{(facets?.brands[b.id] ?? 0).toLocaleString('ru-RU')} {t('home.selector.partsShort')} · {b.country}</div>
                 </div>
                 <div className="type-tile-arrow"><Ico name="chevron" size={14} /></div>
               </Link>

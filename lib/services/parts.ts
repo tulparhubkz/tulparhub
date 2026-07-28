@@ -257,6 +257,43 @@ export async function searchPartsLite(q: string, limit = 8) {
   }))
 }
 
+// Real per-category and per-brand part counts for storefront filters and tiles.
+// Replaces the static snapshot numbers in lib/data.ts so the catalog sidebar,
+// homepage tiles, and podbor wizard reflect actual inventory instead of fictional
+// totals that promised thousands of parts where only dozens exist.
+export interface FacetCounts {
+  categories: Record<string, number> // system id → active part count
+  brands: Record<string, number> // truck brand id → active part count
+}
+
+export async function catalogFacetCounts(): Promise<FacetCounts> {
+  const catRows = await db
+    .select({ category: parts.category, count: sql<number>`count(*)::int` })
+    .from(parts)
+    .where(eq(parts.active, true))
+    .groupBy(parts.category)
+
+  const categories: Record<string, number> = {}
+  for (const r of catRows) if (r.category) categories[r.category] = r.count
+
+  // Brand counts mirror the match used by listParts(): a part belongs to a brand
+  // when its fits[] overlaps the brand's configured model fits, or — for brands
+  // with no configured models — carries an exact `dbName` fits entry.
+  const activeRows = await db.select({ fits: parts.fits }).from(parts).where(eq(parts.active, true))
+
+  const brands: Record<string, number> = {}
+  for (const b of brandCfg) {
+    const modelFits = (modelCfg[b.id] ?? []).map((m) => m.fits)
+    const dbName = b.dbName ?? b.id
+    brands[b.id] = activeRows.filter((r) => {
+      const fits = r.fits ?? []
+      return modelFits.length ? fits.some((f) => modelFits.includes(f)) : fits.includes(dbName)
+    }).length
+  }
+
+  return { categories, brands }
+}
+
 // Aggregate part counts per manufacturer brand.
 export async function partBrandCounts() {
   const rows = await db
