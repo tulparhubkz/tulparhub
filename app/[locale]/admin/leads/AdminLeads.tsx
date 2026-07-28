@@ -91,7 +91,7 @@ export function AdminLeads({ leads }: { leads: Lead[] }) {
         </div>
 
         {visible.length === 0 ? (
-          <div className="al-empty">{showDone ? 'Заявок нет.' : 'Необработанных заявок нет. 🎉'}</div>
+          <div className="empty-state">{showDone ? 'Заявок нет.' : 'Необработанных заявок нет.'}</div>
         ) : (
           <div className="al-list">
             {visible.map((l) => (
@@ -128,7 +128,6 @@ export function AdminLeads({ leads }: { leads: Lead[] }) {
         .al-head p { font-size: var(--text-sm); color: var(--ink-3); margin-top: 4px; }
         .al-filters { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; margin-bottom: var(--sp-4); }
         .al-done-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-sm); color: var(--ink-2); margin-left: auto; cursor: pointer; }
-        .al-empty { padding: var(--sp-12); text-align: center; color: var(--ink-3); background: var(--surf); border: 1.5px solid var(--line); border-radius: 16px; }
         .al-list { display: flex; flex-direction: column; gap: var(--sp-3); }
         .al-card { background: var(--surf); border: 1.5px solid var(--line); border-radius: 14px; padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-2); }
         .al-card.done { opacity: 0.55; }

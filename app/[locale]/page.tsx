@@ -128,18 +128,6 @@ function RentalSlideshow() {
   )
 }
 
-const TRUCK_EMOJI: Record<string, string> = {
-  tractor: '🚛', dump: '🚚', flatbed: '🚛', trailer: '🚌', delivery: '🚐', special: '🏗️',
-}
-
-function TruckTypeIcon({ kind, size = 48 }: { kind: string; size?: number }) {
-  return (
-    <div style={{ width: size, height: size, display: 'grid', placeItems: 'center', fontSize: size * 0.6 }}>
-      {TRUCK_EMOJI[kind] ?? '🚛'}
-    </div>
-  )
-}
-
 export default function HomePage() {
   const router = useRouter()
   const t = useT()
@@ -490,7 +478,7 @@ export default function HomePage() {
                   alignItems: 'center',
                   gap: 8,
                 }}>
-                  📞 +7 (700) 000-00-00
+                  <Ico name="phone" size={16} /> +7 (700) 000-00-00
                 </button>
               </a>
             </div>
