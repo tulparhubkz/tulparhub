@@ -7,12 +7,14 @@ import { Btn } from '@/components/ui/Btn'
 import { Crumbs } from '@/components/ui/Crumbs'
 import { SysGlyph } from '@/components/ui/SysGlyph'
 import { brands, models, systems, subAssemblies } from '@/lib/data'
+import { useFacetCounts } from '@/lib/useFacetCounts'
 import { useT } from '@/lib/i18n'
 import { reachGoal } from '@/lib/analytics'
 
 export default function PodborPage() {
   const router = useRouter()
   const t = useT()
+  const facets = useFacetCounts()
   const [pick, setPick] = useState<{
     brand: string | null; model: string | null
     year: string | null; system: string | null
@@ -70,7 +72,7 @@ export default function PodborPage() {
                   <button key={b.id} className="wiz-card wiz-card-brand" onClick={() => setPick({ ...pick, brand: b.id })}>
                     <div className="wiz-brand-mark">{b.name[0]}</div>
                     <div className="wiz-card-name">{b.name}</div>
-                    <div className="wiz-card-sub">{b.models} {t('podbor.modelsCount')} · {b.parts?.toLocaleString('ru')} {t('home.selector.partsShort')}</div>
+                    <div className="wiz-card-sub">{b.models} {t('podbor.modelsCount')} · {(facets?.brands[b.id] ?? 0).toLocaleString('ru')} {t('home.selector.partsShort')}</div>
                   </button>
                 ))}
               </div>
@@ -131,7 +133,7 @@ export default function PodborPage() {
                     <button key={s.id} className="wiz-card wiz-card-sys" onClick={() => setPick({ ...pick, system: s.id })}>
                       <SysGlyph id={s.id} size={40} />
                       <div className="wiz-card-name">{s.ru}</div>
-                      <div className="wiz-card-sub">{s.count} {t('home.cat.countSuffix')}</div>
+                      <div className="wiz-card-sub">{facets?.categories[s.id] ?? 0} {t('home.cat.countSuffix')}</div>
                     </button>
                   ))}
                 </div>
@@ -165,7 +167,7 @@ export default function PodborPage() {
                     >
                       {t('podbor.cta')}
                     </Btn>
-                    <span>{t('podbor.foundPre')}{systems.find((s) => s.id === pick.system)?.count} {t('home.cat.countSuffix')}</span>
+                    <span>{t('podbor.foundPre')}{facets?.categories[pick.system ?? ''] ?? 0} {t('home.cat.countSuffix')}</span>
                   </div>
                 </div>
               </>
