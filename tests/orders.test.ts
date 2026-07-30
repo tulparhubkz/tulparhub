@@ -159,6 +159,17 @@ describe('createOrder — buyer locale (#126)', () => {
     expect(insertedOrder().locale).toBe('kz')
   })
 
+  it('returns the stored locale and server-priced lines for the confirmation email (#125)', async () => {
+    h.selectQueue.push([{ ...part, name: 'Реальное имя' }])
+    const res = await createOrder({
+      name: 'И', phone: '+77001234567', locale: 'en', delivery: 'freight',
+      items: [{ id: 'main:A1', name: 'client name', qty: 3, price: 1 }],
+    })
+    expect(res.locale).toBe('en')
+    expect(res.deliveryCost).toBeNull() // freight = manager-calc
+    expect(res.items).toEqual([{ name: 'Реальное имя', oem: null, qty: 3, price: 1_000 }])
+  })
+
   it('defaults to RU when no locale is supplied', async () => {
     h.selectQueue.push([part])
     await createOrder({ name: 'И', phone: '+77001234567', items: [item] })

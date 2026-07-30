@@ -5,6 +5,7 @@ import {
   esc,
   sendEmail,
 } from '@/lib/email'
+import { fmtKZT } from '@/lib/utils'
 
 // Customer-facing "your order changed status" email. Temporary email transport
 // for what the roadmap plans as SMS notifications (the SMS gateway / alpha-name
@@ -154,6 +155,166 @@ export async function sendOrderStatusEmail(opts: {
     invoiceNumber: opts.invoiceNumber,
     status: opts.status,
     kind: opts.kind,
+    trackUrl: trackUrl(opts.locale, opts.invoiceNumber),
+  })
+  const fail = await sendEmail(apiKey!, { from, to: opts.to, subject, html, text })
+  if (fail) console.error(`[order-email] ${fail.code}: ${fail.detail}`)
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * Order-received confirmation (#125). On our email-only model this is the ONLY
+ * signal to the buyer that checkout went through, so it's sent right after the
+ * order is persisted — fire-and-forget, same as the status email.
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+export interface OrderConfirmationLine {
+  name: string
+  qty: number
+  price: number // unit price, KZT
+}
+
+export interface OrderConfirmationParams {
+  invoiceNumber: string
+  items: OrderConfirmationLine[]
+  total: number
+  /** KZT; null = manager-calc (freight/unknown) — the delivery line is then omitted. */
+  deliveryCost: number | null
+  /** Absolute (or relative) link to the /track page — build with trackUrl(). */
+  trackUrl: string
+}
+
+interface ConfirmCopy {
+  subject: (inv: string) => string
+  heading: string
+  intro: (inv: string) => string
+  itemsHeading: string
+  deliveryLabel: string
+  totalLabel: string
+  nextSteps: string
+}
+
+const CONFIRM_COPY: Record<EmailLocale, ConfirmCopy> = {
+  ru: {
+    subject: (inv) => `Заказ ${inv} принят`,
+    heading: 'Спасибо за заказ!',
+    intro: (inv) => `Мы получили ваш заказ ${inv} и начали его обработку.`,
+    itemsHeading: 'Состав заказа',
+    deliveryLabel: 'Доставка',
+    totalLabel: 'Итого',
+    nextSteps: 'Наш менеджер свяжется с вами для подтверждения. Статус заказа можно отследить по кнопке ниже.',
+  },
+  kz: {
+    subject: (inv) => `${inv} тапсырысы қабылданды`,
+    heading: 'Тапсырысыңыз үшін рахмет!',
+    intro: (inv) => `Біз сіздің ${inv} тапсырысыңызды қабылдап, өңдеуді бастадық.`,
+    itemsHeading: 'Тапсырыс құрамы',
+    deliveryLabel: 'Жеткізу',
+    totalLabel: 'Барлығы',
+    nextSteps: 'Менеджеріміз растау үшін сізбен хабарласады. Тапсырыс мәртебесін төмендегі түйме арқылы бақылай аласыз.',
+  },
+  en: {
+    subject: (inv) => `Order ${inv} received`,
+    heading: 'Thank you for your order!',
+    intro: (inv) => `We've received your order ${inv} and started processing it.`,
+    itemsHeading: 'Order summary',
+    deliveryLabel: 'Delivery',
+    totalLabel: 'Total',
+    nextSteps: 'Our manager will contact you to confirm. You can track the order status with the button below.',
+  },
+}
+
+export function renderOrderConfirmationEmail(
+  locale: EmailLocale,
+  p: OrderConfirmationParams,
+): { subject: string; html: string; text: string } {
+  const c = CONFIRM_COPY[locale]
+  const base = COPY[locale] // reuse the shared button / fallback / tagline strings
+  const subject = c.subject(p.invoiceNumber)
+  const link = esc(p.trackUrl)
+
+  const rows = p.items
+    .map(
+      (it) => `
+          <tr>
+            <td style="padding:8px 0;font-size:14px;color:#0a1a4f;border-bottom:1px solid #eef0f7;">${esc(it.name)}
+              <span style="color:#647089;">× ${it.qty}</span></td>
+            <td align="right" style="padding:8px 0;font-size:14px;font-weight:600;color:#0a1a4f;border-bottom:1px solid #eef0f7;white-space:nowrap;">${esc(fmtKZT(it.price * it.qty))}</td>
+          </tr>`,
+    )
+    .join('')
+
+  const deliveryRow =
+    p.deliveryCost !== null
+      ? `
+          <tr>
+            <td style="padding:8px 0;font-size:14px;color:#44507a;">${esc(c.deliveryLabel)}</td>
+            <td align="right" style="padding:8px 0;font-size:14px;color:#44507a;white-space:nowrap;">${esc(fmtKZT(p.deliveryCost))}</td>
+          </tr>`
+      : ''
+
+  const html = `<!doctype html>
+<html lang="${locale === 'kz' ? 'kk' : locale}">
+<body style="margin:0;background:#eef0f7;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#0a1a4f;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef0f7;padding:24px 12px;">
+    <tr><td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:440px;background:#ffffff;border-radius:16px;overflow:hidden;">
+        <tr><td style="background:#db0a40;padding:22px 28px;color:#ffffff;">
+          <div style="font-size:18px;font-weight:800;letter-spacing:-.5px;">TULPAR HUB</div>
+          <div style="font-size:12px;opacity:.75;margin-top:2px;">${esc(base.tagline)}</div>
+        </td></tr>
+        <tr><td style="padding:28px;">
+          <h1 style="margin:0 0 10px;font-size:20px;font-weight:700;color:#0a1a4f;">${esc(c.heading)}</h1>
+          <p style="margin:0 0 20px;font-size:14px;line-height:1.55;color:#44507a;">${esc(c.intro(p.invoiceNumber))}</p>
+          <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#647089;margin:0 0 6px;">${esc(c.itemsHeading)}</div>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+            ${rows}${deliveryRow}
+            <tr>
+              <td style="padding:12px 0 0;font-size:15px;font-weight:700;color:#0a1a4f;">${esc(c.totalLabel)}</td>
+              <td align="right" style="padding:12px 0 0;font-size:16px;font-weight:800;color:#db0a40;white-space:nowrap;">${esc(fmtKZT(p.total))}</td>
+            </tr>
+          </table>
+          <p style="margin:22px 0 22px;font-size:14px;line-height:1.55;color:#44507a;">${esc(c.nextSteps)}</p>
+          <a href="${link}" style="display:inline-block;background:#db0a40;color:#ffffff;text-decoration:none;font-size:15px;font-weight:700;padding:13px 28px;border-radius:10px;">${esc(base.button)}</a>
+          <p style="margin:24px 0 6px;font-size:12px;color:#647089;">${esc(base.fallback)}</p>
+          <p style="margin:0;font-size:12px;word-break:break-all;"><a href="${link}" style="color:#db0a40;">${link}</a></p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`
+
+  const itemsText = p.items.map((it) => `- ${it.name} × ${it.qty} — ${fmtKZT(it.price * it.qty)}`).join('\n')
+  const deliveryText = p.deliveryCost !== null ? `\n${c.deliveryLabel}: ${fmtKZT(p.deliveryCost)}` : ''
+  const text = `${c.heading}\n\n${c.intro(p.invoiceNumber)}\n\n${c.itemsHeading}:\n${itemsText}${deliveryText}\n${c.totalLabel}: ${fmtKZT(p.total)}\n\n${c.nextSteps}\n${p.trackUrl}`
+  return { subject, html, text }
+}
+
+/**
+ * Send the order-received confirmation, fire-and-forget. Silent no-op when email
+ * is misconfigured (never throws — callers await it only for `void`). Errors are
+ * logged with the same greppable prefix as the status email.
+ */
+export async function sendOrderConfirmationEmail(opts: {
+  to: string
+  locale: EmailLocale
+  invoiceNumber: string
+  items: OrderConfirmationLine[]
+  total: number
+  deliveryCost: number | null
+}): Promise<void> {
+  const apiKey = process.env.RESEND_API_KEY
+  const from = emailFrom()
+  const configErrs = emailConfigErrors(apiKey, from)
+  if (configErrs.length) {
+    console.error(`[order-email] config error: ${configErrs.join(', ')}`)
+    return
+  }
+  const { subject, html, text } = renderOrderConfirmationEmail(opts.locale, {
+    invoiceNumber: opts.invoiceNumber,
+    items: opts.items,
+    total: opts.total,
+    deliveryCost: opts.deliveryCost,
     trackUrl: trackUrl(opts.locale, opts.invoiceNumber),
   })
   const fail = await sendEmail(apiKey!, { from, to: opts.to, subject, html, text })
