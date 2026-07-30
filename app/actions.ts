@@ -22,6 +22,7 @@ import {
   type GarageVehicleInput,
 } from '@/lib/services/garage'
 import { notifyOps, formatOrderMessage, formatLeadMessage } from '@/lib/notify'
+import { sendOrderConfirmationEmail } from '@/lib/order-email'
 import { isValidPhone, isValidEmail } from '@/lib/validation'
 import { rateLimit, clientIpFrom } from '@/lib/rateLimit'
 import { auth } from '@/lib/auth'
@@ -98,6 +99,9 @@ export async function submitOrder(payload: OrderPayload): Promise<ActionResult> 
     // Wholesale pricing: the client toggle alone is not enough — the session
     // role must allow it, same rule as the catalog DTO (#49).
     const b2bPricing = payload.b2b === true && (sessionRole === 'b2b' || sessionRole === 'admin')
+    // The address the confirmation email goes to (typed at checkout, else the
+    // session's). Guests without an email get no confirmation — that's fine.
+    const customerEmail = payload.email?.trim() || sessionEmail || null
 
     try {
       const order = await createOrder({
@@ -107,7 +111,7 @@ export async function submitOrder(payload: OrderPayload): Promise<ActionResult> 
         locale:   payload.locale as OrderInput['locale'],
         name:     payload.name.trim(),
         phone:    payload.phone.trim(),
-        email:    payload.email?.trim() || sessionEmail || null,
+        email:    customerEmail,
         city:     payload.city ?? null,
         company:  payload.company ?? null,
         bin:      payload.bin ?? null,
@@ -132,6 +136,21 @@ export async function submitOrder(payload: OrderPayload): Promise<ActionResult> 
         comment: payload.comment,
         items: (payload.items ?? []).map((i) => ({ name: i.name, qty: i.qty })),
       }))
+
+      // On our email-only model this "order received" mail is the only signal to
+      // the buyer that checkout went through (#125). Fire-and-forget with the
+      // server-priced lines / total, in the order's stored locale; a mail outage
+      // must never fail an order, and a guest without an email just gets nothing.
+      if (customerEmail) {
+        void sendOrderConfirmationEmail({
+          to: customerEmail,
+          locale: order.locale,
+          invoiceNumber: order.invoiceNumber,
+          items: order.items.map((i) => ({ name: i.name, qty: i.qty, price: i.price })),
+          total: order.total,
+          deliveryCost: order.deliveryCost,
+        })
+      }
 
       // Save the checkout contacts onto the signed-in user's profile (best
       // effort — the order already succeeded, so a failure here must not fail it).

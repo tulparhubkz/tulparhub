@@ -42,6 +42,12 @@ export interface CreatedOrder {
   id: string
   invoiceNumber: string
   total: number
+  /** The locale persisted on the order (clamped) — so the confirmation email renders in it. */
+  locale: EmailLocale
+  /** KZT; null = manager-calc (freight/unknown). Mirrors the stored column. */
+  deliveryCost: number | null
+  /** Server-priced line items — the source of truth for the confirmation email. */
+  items: Array<{ name: string; oem: string | null; qty: number; price: number }>
 }
 
 function genInvoice(): string {
@@ -95,6 +101,10 @@ export async function createOrder(input: OrderInput): Promise<CreatedOrder> {
   // Same tariff the cart shows; null (freight/unknown) adds nothing to the total.
   const dCost = deliveryCost(input.delivery, goodsTotal)
   const total = goodsTotal + (dCost ?? 0)
+  // Clamp the buyer's locale to a supported one; legacy/garbage falls back to RU.
+  const locale: EmailLocale = EMAIL_LOCALES.includes(input.locale as EmailLocale)
+    ? (input.locale as EmailLocale)
+    : 'ru'
 
   // Insert atomically; retry on the (rare) invoice-number collision.
   for (let attempt = 0; attempt < 5; attempt++) {
@@ -120,14 +130,21 @@ export async function createOrder(input: OrderInput): Promise<CreatedOrder> {
             delivery: input.delivery ?? null,
             address: input.address ?? null,
             comment: input.comment ?? null,
-            locale: EMAIL_LOCALES.includes(input.locale as EmailLocale) ? input.locale : 'ru',
+            locale,
           })
           .returning({ id: orders.id })
 
         await tx.insert(orderItems).values(lineItems.map((li) => ({ ...li, orderId: o.id })))
         return o.id
       })
-      return { id, invoiceNumber, total }
+      return {
+        id,
+        invoiceNumber,
+        total,
+        locale,
+        deliveryCost: dCost,
+        items: lineItems.map((li) => ({ name: li.name, oem: li.oem, qty: li.qty, price: li.price })),
+      }
     } catch (err) {
       // 23505 = unique_violation on invoice_number → try a fresh number
       if ((err as { code?: string })?.code === '23505' && attempt < 4) continue
