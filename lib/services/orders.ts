@@ -80,6 +80,9 @@ export async function createOrder(input: OrderInput): Promise<CreatedOrder> {
   const lineItems = clean.map((i) => {
     const p = byId.get(i.id)
     const catalogPrice = p ? (input.b2b && p.priceB2b ? p.priceB2b : p.price) : null
+    // Quantities above available stock are allowed: the surplus is a «под заказ»
+    // backorder, the same way the storefront sells zero-stock parts. The cart
+    // tells the buyer which part of the line is on backorder before checkout.
     return {
       partId: p?.id ?? null,
       oem: p?.oem ?? i.oem ?? null,

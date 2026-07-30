@@ -769,6 +769,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .ci-name { font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 3px; }
 .ci-fits { font-size: 11px; color: var(--ink-2); margin-bottom: 4px; }
 .ci-stock { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #1a7c3e; }
+.ci-backorder { font-size: 11px; color: var(--gold-deep); margin-top: 4px; }
 .stock-dot.ok { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
 .ci-qty { display: flex; align-items: center; border: 1.5px solid var(--line-2); border-radius: var(--radius-lg); overflow: hidden; }
 .ci-qty button { width: 28px; height: 32px; background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--ink); }

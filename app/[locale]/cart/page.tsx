@@ -10,10 +10,10 @@ import { Crumbs } from '@/components/ui/Crumbs'
 import { Placeholder } from '@/components/ui/Placeholder'
 import { ToastHost, type ToastItem } from '@/components/ui/Toast'
 import { useCart } from '@/store/cart'
-import { fmtKZT } from '@/lib/utils'
+import { fmtKZT, totalStock } from '@/lib/utils'
 import { useT } from '@/lib/i18n'
 import { isValidPhone, isValidEmail, phoneInputValue, formatPhoneInput } from '@/lib/validation'
-import { deliveryCost } from '@/lib/services/delivery'
+import { deliveryCost, FREE_COURIER_THRESHOLD } from '@/lib/services/delivery'
 import { submitOrder } from '@/app/actions'
 import { reachGoal, ecommerce, partProduct, setVisitParams } from '@/lib/analytics'
 
@@ -201,7 +201,17 @@ export default function CartPage() {
                 <h3>1. {t('cart.sec.items')}</h3>
               </div>
               <div className="cart-items">
-                {items.map((item) => (
+                {items.map((item) => {
+                  // Stock never caps the stepper. What a line can't source from the
+                  // buyer's own city we cover from other cities' warehouses; only
+                  // what none of them hold is a «под заказ» backorder (same as
+                  // zero-stock parts, see Stock.tsx). Tell the buyer which applies.
+                  const cityStock = item.stock?.[city] ?? 0
+                  const otherStock = Math.max(0, totalStock(item.stock ?? {}) - cityStock)
+                  const shortfall = Math.max(0, item.qty - cityStock)
+                  const fromOther = Math.min(shortfall, otherStock)
+                  const backorder = shortfall - fromOther
+                  return (
                   <div key={item.id} className="cart-item">
                     <div className="ci-thumb"><Placeholder label={item.img ?? undefined} ratio="1" /></div>
                     <div className="ci-meta">
@@ -209,6 +219,8 @@ export default function CartPage() {
                       <div className="ci-name">{item.name}</div>
                       <div className="ci-fits">{item.brand} · {item.type}</div>
                       <div className="ci-stock"><span className="stock-dot ok" /> {item.eta}</div>
+                      {fromOther > 0 && <div className="ci-backorder">{t('cart.fromOtherCity')}</div>}
+                      {backorder > 0 && <div className="ci-backorder">{t('cart.backorderQty', { n: backorder })}</div>}
                     </div>
                     <div className="ci-qty">
                       <button onClick={() => setQty(item.id, Math.max(0, item.qty - 1))}><Ico name="minus" size={12} /></button>
@@ -221,11 +233,12 @@ export default function CartPage() {
                     </div>
                     <button className="ci-remove" onClick={() => setQty(item.id, 0)}><Ico name="close" size={14} /></button>
                   </div>
-                ))}
+                  )
+                })}
               </div>
               <div className="cart-upsell">
                 <Ico name="info" size={14} />
-                <span>{t('cart.upsell.pre')}<b>{Math.max(0, 30000 - subtotal).toLocaleString('ru-RU')} ₸</b>{t('cart.upsell.post')}</span>
+                <span>{t('cart.upsell.pre')}<b>{Math.max(0, FREE_COURIER_THRESHOLD - subtotal).toLocaleString('ru-RU')} ₸</b>{t('cart.upsell.post')}</span>
               </div>
             </div>
 
@@ -234,10 +247,10 @@ export default function CartPage() {
               <h3>2. {t('cart.sec.delivery')}</h3>
               <div className="cart-options">
                 {([
-                  { id: 'pickup',  icon: 'pin',   label: 'cart.del.pickup.label', sub: 'cart.del.pickup.sub', price: 0 },
-                  { id: 'courier', icon: 'truck',  label: 'cart.del.courier.label', sub: 'cart.del.courier.sub', price: subtotal >= 30000 ? 0 : 2500 },
-                  { id: 'sdek',    icon: 'bolt',   label: 'cart.del.sdek.label', sub: 'cart.del.sdek.sub', price: 4800 },
-                  { id: 'freight', icon: 'bag',    label: 'cart.del.freight.label', sub: 'cart.del.freight.sub', price: null },
+                  { id: 'pickup',  icon: 'pin',   label: 'cart.del.pickup.label', sub: 'cart.del.pickup.sub', price: deliveryCost('pickup', subtotal) },
+                  { id: 'courier', icon: 'truck',  label: 'cart.del.courier.label', sub: 'cart.del.courier.sub', price: deliveryCost('courier', subtotal) },
+                  { id: 'sdek',    icon: 'bolt',   label: 'cart.del.sdek.label', sub: 'cart.del.sdek.sub', price: deliveryCost('sdek', subtotal) },
+                  { id: 'freight', icon: 'bag',    label: 'cart.del.freight.label', sub: 'cart.del.freight.sub', price: deliveryCost('freight', subtotal) },
                 ] as const).map((o) => (
                   <label key={o.id} className={`cart-opt ${delivery === o.id ? 'on' : ''}`}>
                     <input type="radio" checked={delivery === o.id} onChange={() => setDelivery(o.id)} />
