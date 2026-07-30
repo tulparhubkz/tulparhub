@@ -1,5 +1,5 @@
 import { db } from '@/lib/db'
-import { orders, orderItems, parts, partStock } from '@/lib/db/schema'
+import { orders, orderItems, parts } from '@/lib/db/schema'
 import { inArray, eq, ne, desc, and, isNull, sql } from 'drizzle-orm'
 import { phoneDigits } from '@/lib/validation'
 import { deliveryCost } from '@/lib/services/delivery'
@@ -77,28 +77,17 @@ export async function createOrder(input: OrderInput): Promise<CreatedOrder> {
     .where(inArray(parts.id, ids))
   const byId = new Map(rows.map((r) => [r.id, r]))
 
-  // Available stock, pooled across warehouses (the same total the storefront
-  // shows). The DB is the source of truth: never trust the client-sent qty.
-  const stockRows = await db
-    .select({ partId: partStock.partId, total: sql<number>`coalesce(sum(${partStock.qty}), 0)` })
-    .from(partStock)
-    .where(inArray(partStock.partId, ids))
-    .groupBy(partStock.partId)
-  const stockById = new Map(stockRows.map((r) => [r.partId, Number(r.total)]))
-
   const lineItems = clean.map((i) => {
     const p = byId.get(i.id)
     const catalogPrice = p ? (input.b2b && p.priceB2b ? p.priceB2b : p.price) : null
-    // Cap in-stock lines at what the warehouse holds so a customer can't order
-    // more than exists. 0 stock = «под заказ» (backorder) — allowed as-is,
-    // matching how the storefront and cart treat zero-stock parts.
-    const stock = stockById.get(i.id) ?? 0
-    const qty = stock > 0 ? Math.min(i.qty, stock) : i.qty
+    // Quantities above available stock are allowed: the surplus is a «под заказ»
+    // backorder, the same way the storefront sells zero-stock parts. The cart
+    // tells the buyer which part of the line is on backorder before checkout.
     return {
       partId: p?.id ?? null,
       oem: p?.oem ?? i.oem ?? null,
       name: p?.name ?? i.name,
-      qty,
+      qty: i.qty,
       price: catalogPrice ?? i.price ?? 0,
     }
   })

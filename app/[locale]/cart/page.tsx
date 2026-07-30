@@ -202,11 +202,12 @@ export default function CartPage() {
               </div>
               <div className="cart-items">
                 {items.map((item) => {
-                  // Available stock caps the stepper. 0 = «под заказ» (backorder,
-                  // see Stock.tsx) — those stay uncapped. The server re-checks
-                  // against the DB, so this is a UX guard, not the source of truth.
-                  const max = totalStock(item.stock ?? {})
-                  const atMax = max > 0 && item.qty >= max
+                  // Stock never caps the stepper — a customer may order more than
+                  // the warehouse holds; the surplus is a «под заказ» backorder
+                  // (same as zero-stock parts, see Stock.tsx). When the line runs
+                  // past stock, tell them how much ships now vs. on backorder.
+                  const stock = totalStock(item.stock ?? {})
+                  const overStock = stock > 0 && item.qty > stock
                   return (
                   <div key={item.id} className="cart-item">
                     <div className="ci-thumb"><Placeholder label={item.img ?? undefined} ratio="1" /></div>
@@ -215,16 +216,12 @@ export default function CartPage() {
                       <div className="ci-name">{item.name}</div>
                       <div className="ci-fits">{item.brand} · {item.type}</div>
                       <div className="ci-stock"><span className="stock-dot ok" /> {item.eta}</div>
-                      {atMax && <div className="ci-maxhint">{t('cart.maxStock', { n: max })}</div>}
+                      {overStock && <div className="ci-backorder">{t('cart.backorder', { n: stock })}</div>}
                     </div>
                     <div className="ci-qty">
                       <button onClick={() => setQty(item.id, Math.max(0, item.qty - 1))}><Ico name="minus" size={12} /></button>
                       <input value={item.qty} readOnly />
-                      <button
-                        disabled={atMax}
-                        title={atMax ? t('cart.maxStock', { n: max }) : undefined}
-                        onClick={() => setQty(item.id, max > 0 ? Math.min(max, item.qty + 1) : item.qty + 1)}
-                      ><Ico name="plus" size={12} /></button>
+                      <button onClick={() => setQty(item.id, item.qty + 1)}><Ico name="plus" size={12} /></button>
                     </div>
                     <div className="ci-price">
                       <b>{fmtKZT(unitPrice(item) * item.qty)}</b>
