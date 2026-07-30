@@ -2,6 +2,9 @@
 import { useState, useEffect } from 'react'
 import { Link } from '@/i18n/navigation'
 import { useT } from '@/lib/i18n'
+import { useGarage } from '@/store/garage'
+import { isValidPhone, phoneInputValue } from '@/lib/validation'
+import { reachGoal } from '@/lib/analytics'
 
 const TRUCK_BRANDS = [
   'DAF', 'Volvo', 'MAN', 'Mercedes-Benz', 'Scania', 'Iveco', 'Renault Trucks',
@@ -14,31 +17,89 @@ const YEARS = Array.from({ length: 35 }, (_, i) => String(2025 - i))
 
 export default function VinPage() {
   const t = useT()
+  const { addVehicle } = useGarage()
   const [tab, setTab] = useState<'vin' | 'params'>('vin')
   const [vinForm, setVinForm] = useState({ vin: '', parts: '' })
-  const [vinDecoded, setVinDecoded] = useState<{ brand: string; model: string; year?: number } | null>(null)
+  const [vinDecoded, setVinDecoded] = useState<{ brand: string; model: string; year?: number; searchQuery?: string } | null>(null)
+  const [addedToGarage, setAddedToGarage] = useState(false)
   const [paramsForm, setParamsForm] = useState({
     year: '', brand: '', model: '', engine: '', gearbox: 'manual', parts: '',
   })
+  const [contact, setContact] = useState({ name: '', phone: '' })
   const [sent, setSent] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     const v = vinForm.vin.trim()
-    if (v.length < 11) { setVinDecoded(null); return }
+    if (v.length < 11) { setVinDecoded(null); setAddedToGarage(false); return }
+    setAddedToGarage(false)
     fetch(`/api/vin-decode?vin=${encodeURIComponent(v)}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => setVinDecoded(d))
       .catch(() => setVinDecoded(null))
   }, [vinForm.vin])
 
+  // POST the request to /api/leads; only flip to the success screen on 200 (#123).
+  async function submitLead(payload: Record<string, unknown>) {
+    if (submitting) return
+    const name = contact.name.trim()
+    const phone = contact.phone.trim()
+    if (name.length < 2) { setError(t('cart.toast.enterName')); return }
+    if (!isValidPhone(phone)) { setError(t('cart.toast.badPhone')); return }
+    setError('')
+    setSubmitting(true)
+    try {
+      const res = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...payload, kind: 'quote', name, phone }),
+      })
+      if (res.ok) {
+        reachGoal('LEAD_SUBMIT', { kind: payload.source })
+        setSent(true)
+      } else {
+        const data = await res.json().catch(() => null)
+        setError(data?.error || t('vin.err'))
+      }
+    } catch {
+      setError(t('vin.err'))
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   function submitVin(e: React.FormEvent) {
     e.preventDefault()
-    setSent(true)
+    void submitLead({
+      source: 'vin',
+      comment: vinForm.parts.trim(),
+      vin: vinForm.vin.trim(),
+      brand: vinDecoded?.brand,
+      model: vinDecoded?.model,
+      year: vinDecoded?.year ? String(vinDecoded.year) : undefined,
+      search_query: vinDecoded?.searchQuery,
+    })
   }
 
   function submitParams(e: React.FormEvent) {
     e.preventDefault()
-    setSent(true)
+    void submitLead({
+      source: 'params',
+      comment: paramsForm.parts.trim(),
+      brand: paramsForm.brand,
+      model: paramsForm.model.trim(),
+      year: paramsForm.year,
+      engine: paramsForm.engine.trim(),
+      gearbox: paramsForm.gearbox,
+    })
+  }
+
+  function handleAddToGarage() {
+    if (!vinDecoded) return
+    const label = `${vinDecoded.brand} ${vinDecoded.model}${vinDecoded.year ? ` ${vinDecoded.year}` : ''}`.trim()
+    addVehicle(vinForm.vin.trim(), label, vinDecoded.searchQuery)
+    setAddedToGarage(true)
   }
 
   if (sent) {
@@ -93,6 +154,12 @@ export default function VinPage() {
         .vin-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .vin-submit { display: flex; align-items: center; gap: 12px; padding: 13px 32px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 8px; }
         .vin-submit:hover { background: var(--accent-deep); }
+        .vin-submit:disabled { opacity: .6; cursor: default; }
+        .vin-ctas { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+        .vin-cta { display: inline-flex; align-items: center; gap: 7px; padding: 9px 16px; border: 1.5px solid var(--line-2); border-radius: var(--radius); background: var(--surf); color: var(--ink); font-size: 13.5px; font-weight: 600; cursor: pointer; text-decoration: none; }
+        .vin-cta:hover { border-color: var(--accent); color: var(--accent); }
+        .vin-cta:disabled { border-color: #68d391; color: #38a169; cursor: default; }
+        .vin-error { background: #fef2f2; border: 1px solid #fca5a5; border-radius: var(--radius); padding: 10px 14px; color: #dc2626; font-size: 13.5px; margin-bottom: 16px; }
         @media (max-width: 600px) { .vin-row { grid-template-columns: 1fr; } }
       `}</style>
 
@@ -130,10 +197,22 @@ export default function VinPage() {
                   required
                 />
                 {vinDecoded && (
-                  <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:8, padding:'10px 14px', background:'#f0faf4', border:'1px solid #68d391', borderRadius:'var(--radius)', fontSize:13 }}>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38a169" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                    <span><b>{vinDecoded.brand} {vinDecoded.model}</b>{vinDecoded.year ? ` · ${vinDecoded.year} ${t('common.yearShort')}`.trimEnd() : ''}</span>
-                  </div>
+                  <>
+                    <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:8, padding:'10px 14px', background:'#f0faf4', border:'1px solid #68d391', borderRadius:'var(--radius)', fontSize:13 }}>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38a169" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                      <span><b>{vinDecoded.brand} {vinDecoded.model}</b>{vinDecoded.year ? ` · ${vinDecoded.year} ${t('common.yearShort')}`.trimEnd() : ''}</span>
+                    </div>
+                    <div className="vin-ctas">
+                      <Link href={`/catalog?q=${encodeURIComponent(vinDecoded.searchQuery || `${vinDecoded.brand} ${vinDecoded.model}`)}`} className="vin-cta">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        {t('vin.cta.catalog')}
+                      </Link>
+                      <button type="button" className="vin-cta" onClick={handleAddToGarage} disabled={addedToGarage}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                        {addedToGarage ? t('vin.cta.added') : t('vin.cta.garage')}
+                      </button>
+                    </div>
+                  </>
                 )}
               </div>
               <div className="vin-field">
@@ -146,9 +225,35 @@ export default function VinPage() {
                   required
                 />
               </div>
-              <button type="submit" className="vin-submit">
+              <div className="vin-row">
+                <div className="vin-field">
+                  <label className="vin-label">{t('vin.field.name')}</label>
+                  <input
+                    className="vin-input"
+                    style={{ fontFamily: 'inherit' }}
+                    placeholder={t('vin.placeholder.name')}
+                    value={contact.name}
+                    onChange={e => setContact(c => ({ ...c, name: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="vin-field">
+                  <label className="vin-label">{t('vin.field.phone')}</label>
+                  <input
+                    className="vin-input"
+                    style={{ fontFamily: 'inherit' }}
+                    type="tel"
+                    placeholder={t('vin.placeholder.phone')}
+                    value={contact.phone}
+                    onChange={e => setContact(c => ({ ...c, phone: phoneInputValue(e) }))}
+                    required
+                  />
+                </div>
+              </div>
+              {error && <div className="vin-error">{error}</div>}
+              <button type="submit" className="vin-submit" disabled={submitting}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                {t('vin.submit')}
+                {submitting ? t('vin.submitting') : t('vin.submit')}
               </button>
             </form>
           </div>
@@ -229,9 +334,36 @@ export default function VinPage() {
                 />
               </div>
 
-              <button type="submit" className="vin-submit">
+              <div className="vin-row">
+                <div className="vin-field">
+                  <label className="vin-label">{t('vin.field.name')}</label>
+                  <input
+                    className="vin-input"
+                    style={{ fontFamily: 'inherit' }}
+                    placeholder={t('vin.placeholder.name')}
+                    value={contact.name}
+                    onChange={e => setContact(c => ({ ...c, name: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="vin-field">
+                  <label className="vin-label">{t('vin.field.phone')}</label>
+                  <input
+                    className="vin-input"
+                    style={{ fontFamily: 'inherit' }}
+                    type="tel"
+                    placeholder={t('vin.placeholder.phone')}
+                    value={contact.phone}
+                    onChange={e => setContact(c => ({ ...c, phone: phoneInputValue(e) }))}
+                    required
+                  />
+                </div>
+              </div>
+              {error && <div className="vin-error">{error}</div>}
+
+              <button type="submit" className="vin-submit" disabled={submitting}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                {t('vin.submit')}
+                {submitting ? t('vin.submitting') : t('vin.submit')}
               </button>
             </form>
           </div>
