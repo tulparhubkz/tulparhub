@@ -29,6 +29,15 @@ const LeadSchema = z.object({
   date_from: z.string().optional(),
   date_to: z.string().optional(),
   address: z.string().max(300).optional(),
+  // for VIN / parts help-me-choose requests (#123)
+  source: z.enum(['vin', 'params']).optional(),
+  vin: z.string().max(30).optional(),
+  brand: z.string().max(80).optional(),
+  model: z.string().max(80).optional(),
+  year: z.string().max(10).optional(),
+  engine: z.string().max(20).optional(),
+  gearbox: z.string().max(20).optional(),
+  search_query: z.string().max(120).optional(),
 })
 
 export async function POST(req: NextRequest) {

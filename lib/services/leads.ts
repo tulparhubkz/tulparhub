@@ -21,6 +21,15 @@ export interface LeadInput {
   date_to?: string
   address?: string
   items?: unknown
+  // VIN / parts help-me-choose requests (#123)
+  source?: string
+  vin?: string
+  brand?: string
+  model?: string
+  year?: string
+  engine?: string
+  gearbox?: string
+  search_query?: string
 }
 
 /** Most-recent leads for the admin panel. */
@@ -51,6 +60,14 @@ export async function createLead(input: LeadInput) {
       date_to: input.date_to,
       address: input.address,
       items: input.items,
+      source: input.source,
+      vin: input.vin,
+      brand: input.brand,
+      model: input.model,
+      year: input.year,
+      engine: input.engine,
+      gearbox: input.gearbox,
+      search_query: input.search_query,
     },
   })
 }

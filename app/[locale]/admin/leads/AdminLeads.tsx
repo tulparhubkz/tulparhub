@@ -37,13 +37,25 @@ function fmtDate(d: string | Date) {
   return new Date(d).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
+const GEARBOX_RU: Record<string, string> = { manual: 'Механика', auto: 'Автомат', robot: 'Робот' }
+
+function str(v: unknown): string {
+  return typeof v === 'string' ? v : ''
+}
+
 function metaLine(l: Lead): string | null {
   const m = l.meta ?? {}
   const parts: string[] = []
-  if (typeof m.unit_id === 'string' && m.unit_id) parts.push(`Техника: ${m.unit_id}`)
-  if (typeof m.date_from === 'string' && m.date_from) parts.push(`${m.date_from} → ${typeof m.date_to === 'string' && m.date_to ? m.date_to : '…'}`)
-  if (typeof m.address === 'string' && m.address) parts.push(m.address)
+  if (str(m.unit_id)) parts.push(`Техника: ${m.unit_id}`)
+  if (str(m.date_from)) parts.push(`${m.date_from} → ${str(m.date_to) || '…'}`)
+  if (str(m.address)) parts.push(str(m.address))
   if (Array.isArray(m.items) && m.items.length) parts.push(`${m.items.length} поз.`)
+  // VIN / parts help-me-choose requests (#123)
+  if (str(m.vin)) parts.push(`VIN ${m.vin}`)
+  const vehicle = [str(m.brand), str(m.model)].filter(Boolean).join(' ')
+  if (vehicle) parts.push(str(m.year) ? `${vehicle} · ${m.year} г.` : vehicle)
+  if (str(m.engine)) parts.push(`${m.engine} л`)
+  if (str(m.gearbox)) parts.push(GEARBOX_RU[str(m.gearbox)] ?? str(m.gearbox))
   return parts.length ? parts.join(' · ') : null
 }
 
