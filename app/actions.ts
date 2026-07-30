@@ -8,6 +8,7 @@ import {
   attachOrdersByEmail,
   getOrderContactSnapshot,
   type TrackedOrder,
+  type OrderInput,
 } from '@/lib/services/orders'
 import { backfillProfileFromOrder, contactInfoFromOrder } from '@/lib/services/users'
 import {
@@ -43,6 +44,8 @@ export interface OrderPayload {
   kind: 'order' | 'callback' | 'booking' | 'quote'
   /** Buyer asked for B2B pricing (ЮЛ toggle). Only honored for b2b/admin sessions. */
   b2b?: boolean
+  /** Active storefront locale (ru | kz | en) — persisted so order emails aren't RU-only (#126). */
+  locale?: string
   name: string
   phone: string
   email?: string
@@ -100,6 +103,8 @@ export async function submitOrder(payload: OrderPayload): Promise<ActionResult> 
       const order = await createOrder({
         userId,
         b2b: b2bPricing,
+        // createOrder clamps anything not in EMAIL_LOCALES back to 'ru'.
+        locale:   payload.locale as OrderInput['locale'],
         name:     payload.name.trim(),
         phone:    payload.phone.trim(),
         email:    payload.email?.trim() || sessionEmail || null,

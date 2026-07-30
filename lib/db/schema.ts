@@ -275,6 +275,8 @@ export const orders = pgTable(
     delivery: text('delivery'),
     address: text('address'),
     comment: text('comment'),
+    // Locale the buyer checked out in (ru | kz | en) — customer emails render in it.
+    locale: text('locale').notNull().default('ru'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({
