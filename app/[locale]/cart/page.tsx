@@ -202,12 +202,15 @@ export default function CartPage() {
               </div>
               <div className="cart-items">
                 {items.map((item) => {
-                  // Stock never caps the stepper — a customer may order more than
-                  // the warehouse holds; the surplus is a «под заказ» backorder
-                  // (same as zero-stock parts, see Stock.tsx). When the line runs
-                  // past stock, tell them how much ships now vs. on backorder.
-                  const stock = totalStock(item.stock ?? {})
-                  const overStock = stock > 0 && item.qty > stock
+                  // Stock never caps the stepper. What a line can't source from the
+                  // buyer's own city we cover from other cities' warehouses; only
+                  // what none of them hold is a «под заказ» backorder (same as
+                  // zero-stock parts, see Stock.tsx). Tell the buyer which applies.
+                  const cityStock = item.stock?.[city] ?? 0
+                  const otherStock = Math.max(0, totalStock(item.stock ?? {}) - cityStock)
+                  const shortfall = Math.max(0, item.qty - cityStock)
+                  const fromOther = Math.min(shortfall, otherStock)
+                  const backorder = shortfall - fromOther
                   return (
                   <div key={item.id} className="cart-item">
                     <div className="ci-thumb"><Placeholder label={item.img ?? undefined} ratio="1" /></div>
@@ -216,7 +219,8 @@ export default function CartPage() {
                       <div className="ci-name">{item.name}</div>
                       <div className="ci-fits">{item.brand} · {item.type}</div>
                       <div className="ci-stock"><span className="stock-dot ok" /> {item.eta}</div>
-                      {overStock && <div className="ci-backorder">{t('cart.backorder', { n: stock })}</div>}
+                      {fromOther > 0 && <div className="ci-backorder">{t('cart.fromOtherCity')}</div>}
+                      {backorder > 0 && <div className="ci-backorder">{t('cart.backorderQty', { n: backorder })}</div>}
                     </div>
                     <div className="ci-qty">
                       <button onClick={() => setQty(item.id, Math.max(0, item.qty - 1))}><Ico name="minus" size={12} /></button>
