@@ -4,6 +4,7 @@ import { inArray, eq, ne, desc, and, isNull, sql } from 'drizzle-orm'
 import { phoneDigits } from '@/lib/validation'
 import { deliveryCost } from '@/lib/services/delivery'
 import type { OrderContactSnapshot } from '@/lib/services/users'
+import { type EmailLocale, EMAIL_LOCALES } from '@/lib/email'
 
 export const ORDER_STATUSES = ['new', 'confirmed', 'shipped', 'done', 'cancelled'] as const
 export type OrderStatus = (typeof ORDER_STATUSES)[number]
@@ -32,6 +33,8 @@ export interface OrderInput {
   address?: string | null
   comment?: string | null
   payment?: string | null
+  /** Locale the buyer checked out in (ru | kz | en). Persisted so emails aren't RU-only. */
+  locale?: EmailLocale
   items: OrderItemInput[]
 }
 
@@ -120,6 +123,7 @@ export async function createOrder(input: OrderInput): Promise<CreatedOrder> {
             delivery: input.delivery ?? null,
             address: input.address ?? null,
             comment: input.comment ?? null,
+            locale: EMAIL_LOCALES.includes(input.locale as EmailLocale) ? input.locale : 'ru',
           })
           .returning({ id: orders.id })
 
@@ -348,6 +352,7 @@ async function attachItems(os: (typeof orders.$inferSelect)[]): Promise<OrderLis
 export interface OrderNotifyTarget {
   customerEmail: string | null
   invoiceNumber: string
+  locale: string // the locale the buyer checked out in — emails render in it
 }
 
 // The `ne(...)` guard makes the UPDATE a no-op when the value is unchanged, so
@@ -359,7 +364,7 @@ export async function updateOrderStatus(id: string, status: OrderStatus): Promis
     .update(orders)
     .set({ status })
     .where(and(eq(orders.id, id), ne(orders.status, status)))
-    .returning({ customerEmail: orders.customerEmail, invoiceNumber: orders.invoiceNumber })
+    .returning({ customerEmail: orders.customerEmail, invoiceNumber: orders.invoiceNumber, locale: orders.locale })
   return row ?? null
 }
 
@@ -369,7 +374,7 @@ export async function updateOrderPayment(id: string, paymentStatus: PaymentStatu
     .update(orders)
     .set({ paymentStatus })
     .where(and(eq(orders.id, id), ne(orders.paymentStatus, paymentStatus)))
-    .returning({ customerEmail: orders.customerEmail, invoiceNumber: orders.invoiceNumber })
+    .returning({ customerEmail: orders.customerEmail, invoiceNumber: orders.invoiceNumber, locale: orders.locale })
   return row ?? null
 }
 

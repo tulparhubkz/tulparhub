@@ -108,6 +108,7 @@ export default function CartPage() {
       const result = await submitOrder({
         kind:     'order',
         b2b,
+        locale,
         name:     contactName,
         phone:    contactPhone,
         email:    contactEmail,

@@ -147,6 +147,32 @@ describe('createOrder — server-side re-pricing', () => {
   })
 })
 
+describe('createOrder — buyer locale (#126)', () => {
+  const part = { id: 'main:A1', oem: null, name: 'Деталь', price: 1_000, priceB2b: null }
+  const insertedOrder = () =>
+    h.inserted.find((i) => i.table === ordersTable)?.values as { locale: string }
+  const item = { id: 'main:A1', name: 'Деталь', qty: 1, price: 1 }
+
+  it('persists the locale the buyer checked out in', async () => {
+    h.selectQueue.push([part])
+    await createOrder({ name: 'И', phone: '+77001234567', locale: 'kz', items: [item] })
+    expect(insertedOrder().locale).toBe('kz')
+  })
+
+  it('defaults to RU when no locale is supplied', async () => {
+    h.selectQueue.push([part])
+    await createOrder({ name: 'И', phone: '+77001234567', items: [item] })
+    expect(insertedOrder().locale).toBe('ru')
+  })
+
+  it('clamps an unsupported locale back to RU', async () => {
+    h.selectQueue.push([part])
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await createOrder({ name: 'И', phone: '+77001234567', locale: 'fr' as any, items: [item] })
+    expect(insertedOrder().locale).toBe('ru')
+  })
+})
+
 describe('createOrder — delivery cost in the total', () => {
   const part = { id: 'main:A1', oem: null, name: 'Деталь', price: 10_000, priceB2b: null }
   const insertedOrder = () =>
