@@ -769,9 +769,11 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .ci-name { font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 3px; }
 .ci-fits { font-size: 11px; color: var(--ink-2); margin-bottom: 4px; }
 .ci-stock { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #1a7c3e; }
+.ci-maxhint { font-size: 11px; color: var(--ink-2); margin-top: 4px; }
 .stock-dot.ok { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
 .ci-qty { display: flex; align-items: center; border: 1.5px solid var(--line-2); border-radius: var(--radius-lg); overflow: hidden; }
 .ci-qty button { width: 28px; height: 32px; background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--ink); }
+.ci-qty button:disabled { opacity: 0.4; cursor: not-allowed; }
 .ci-qty input { width: 36px; text-align: center; border: none; background: none; font-size: 13px; font-weight: 600; color: var(--ink); font-family: inherit; }
 .ci-price { text-align: right; min-width: 90px; }
 .ci-price b { display: block; font-size: 14px; font-weight: 700; color: var(--ink); }

@@ -26,6 +26,7 @@ const ru = {
   'cart.sec.items': 'Товары',
   'cart.saveCart': 'Сохранить корзину',
   'cart.perPc': '/ шт',
+  'cart.maxStock': 'Максимум на складе: {n} шт',
   'cart.upsell.pre': 'До бесплатной доставки осталось ',
   'cart.upsell.post': '. Часто докладывают: ремкомплект, фильтры, ремни.',
   // Cart — delivery
@@ -239,6 +240,7 @@ const kz: Record<K, string> = {
   'cart.sec.items': 'Тауарлар',
   'cart.saveCart': 'Себетті сақтау',
   'cart.perPc': '/ дана',
+  'cart.maxStock': 'Қоймада ең көбі: {n} дана',
   'cart.upsell.pre': 'Тегін жеткізуге дейін ',
   'cart.upsell.post': '. Жиі қосады: жөндеу жинағы, сүзгілер, белдіктер.',
   'cart.sec.delivery': 'Жеткізу',
@@ -438,6 +440,7 @@ const en: Record<K, string> = {
   'cart.sec.items': 'Items',
   'cart.saveCart': 'Save cart',
   'cart.perPc': '/ pc',
+  'cart.maxStock': 'Max in stock: {n} pcs',
   'cart.upsell.pre': 'Free delivery in just ',
   'cart.upsell.post': ' more. Customers often add: repair kits, filters, belts.',
   'cart.sec.delivery': 'Delivery',

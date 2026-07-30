@@ -10,10 +10,10 @@ import { Crumbs } from '@/components/ui/Crumbs'
 import { Placeholder } from '@/components/ui/Placeholder'
 import { ToastHost, type ToastItem } from '@/components/ui/Toast'
 import { useCart } from '@/store/cart'
-import { fmtKZT } from '@/lib/utils'
+import { fmtKZT, totalStock } from '@/lib/utils'
 import { useT } from '@/lib/i18n'
 import { isValidPhone, isValidEmail, phoneInputValue, formatPhoneInput } from '@/lib/validation'
-import { deliveryCost } from '@/lib/services/delivery'
+import { deliveryCost, FREE_COURIER_THRESHOLD } from '@/lib/services/delivery'
 import { submitOrder } from '@/app/actions'
 import { reachGoal, ecommerce, partProduct, setVisitParams } from '@/lib/analytics'
 
@@ -201,7 +201,13 @@ export default function CartPage() {
                 <h3>1. {t('cart.sec.items')}</h3>
               </div>
               <div className="cart-items">
-                {items.map((item) => (
+                {items.map((item) => {
+                  // Available stock caps the stepper. 0 = «под заказ» (backorder,
+                  // see Stock.tsx) — those stay uncapped. The server re-checks
+                  // against the DB, so this is a UX guard, not the source of truth.
+                  const max = totalStock(item.stock ?? {})
+                  const atMax = max > 0 && item.qty >= max
+                  return (
                   <div key={item.id} className="cart-item">
                     <div className="ci-thumb"><Placeholder label={item.img ?? undefined} ratio="1" /></div>
                     <div className="ci-meta">
@@ -209,11 +215,16 @@ export default function CartPage() {
                       <div className="ci-name">{item.name}</div>
                       <div className="ci-fits">{item.brand} · {item.type}</div>
                       <div className="ci-stock"><span className="stock-dot ok" /> {item.eta}</div>
+                      {atMax && <div className="ci-maxhint">{t('cart.maxStock', { n: max })}</div>}
                     </div>
                     <div className="ci-qty">
                       <button onClick={() => setQty(item.id, Math.max(0, item.qty - 1))}><Ico name="minus" size={12} /></button>
                       <input value={item.qty} readOnly />
-                      <button onClick={() => setQty(item.id, item.qty + 1)}><Ico name="plus" size={12} /></button>
+                      <button
+                        disabled={atMax}
+                        title={atMax ? t('cart.maxStock', { n: max }) : undefined}
+                        onClick={() => setQty(item.id, max > 0 ? Math.min(max, item.qty + 1) : item.qty + 1)}
+                      ><Ico name="plus" size={12} /></button>
                     </div>
                     <div className="ci-price">
                       <b>{fmtKZT(unitPrice(item) * item.qty)}</b>
@@ -221,11 +232,12 @@ export default function CartPage() {
                     </div>
                     <button className="ci-remove" onClick={() => setQty(item.id, 0)}><Ico name="close" size={14} /></button>
                   </div>
-                ))}
+                  )
+                })}
               </div>
               <div className="cart-upsell">
                 <Ico name="info" size={14} />
-                <span>{t('cart.upsell.pre')}<b>{Math.max(0, 30000 - subtotal).toLocaleString('ru-RU')} ₸</b>{t('cart.upsell.post')}</span>
+                <span>{t('cart.upsell.pre')}<b>{Math.max(0, FREE_COURIER_THRESHOLD - subtotal).toLocaleString('ru-RU')} ₸</b>{t('cart.upsell.post')}</span>
               </div>
             </div>
 
@@ -234,10 +246,10 @@ export default function CartPage() {
               <h3>2. {t('cart.sec.delivery')}</h3>
               <div className="cart-options">
                 {([
-                  { id: 'pickup',  icon: 'pin',   label: 'cart.del.pickup.label', sub: 'cart.del.pickup.sub', price: 0 },
-                  { id: 'courier', icon: 'truck',  label: 'cart.del.courier.label', sub: 'cart.del.courier.sub', price: subtotal >= 30000 ? 0 : 2500 },
-                  { id: 'sdek',    icon: 'bolt',   label: 'cart.del.sdek.label', sub: 'cart.del.sdek.sub', price: 4800 },
-                  { id: 'freight', icon: 'bag',    label: 'cart.del.freight.label', sub: 'cart.del.freight.sub', price: null },
+                  { id: 'pickup',  icon: 'pin',   label: 'cart.del.pickup.label', sub: 'cart.del.pickup.sub', price: deliveryCost('pickup', subtotal) },
+                  { id: 'courier', icon: 'truck',  label: 'cart.del.courier.label', sub: 'cart.del.courier.sub', price: deliveryCost('courier', subtotal) },
+                  { id: 'sdek',    icon: 'bolt',   label: 'cart.del.sdek.label', sub: 'cart.del.sdek.sub', price: deliveryCost('sdek', subtotal) },
+                  { id: 'freight', icon: 'bag',    label: 'cart.del.freight.label', sub: 'cart.del.freight.sub', price: deliveryCost('freight', subtotal) },
                 ] as const).map((o) => (
                   <label key={o.id} className={`cart-opt ${delivery === o.id ? 'on' : ''}`}>
                     <input type="radio" checked={delivery === o.id} onChange={() => setDelivery(o.id)} />
