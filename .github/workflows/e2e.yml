@@ -1,0 +1,44 @@
+name: E2E
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      # Dummy — auth is exercised only as "signed out" in the smoke.
+      AUTH_SECRET: e2e-smoke-dummy-secret
+      AUTH_TRUST_HOST: 'true'
+    steps:
+      - name: Check DB secret
+        id: db
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::DATABASE_URL secret is not set — e2e smoke skipped."
+          fi
+      - uses: actions/checkout@v4
+        if: steps.db.outputs.skip != 'true'
+      - uses: actions/setup-node@v4
+        if: steps.db.outputs.skip != 'true'
+        with:
+          node-version: 20
+          cache: yarn
+      - run: yarn install --frozen-lockfile
+        if: steps.db.outputs.skip != 'true'
+      - run: yarn playwright install --with-deps chromium
+        if: steps.db.outputs.skip != 'true'
+      - run: yarn build
+        if: steps.db.outputs.skip != 'true'
+      - run: yarn e2e
+        if: steps.db.outputs.skip != 'true'
+      - uses: actions/upload-artifact@v4
+        if: failure() && steps.db.outputs.skip != 'true'
+        with:
+          name: playwright-traces
+          path: test-results/
+          retention-days: 7

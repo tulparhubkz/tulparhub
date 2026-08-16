@@ -12,3 +12,6 @@ backups/
 /data/
 example_database.csv
 *.csv
+# Playwright
+/test-results/
+/playwright-report/
