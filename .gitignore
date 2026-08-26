@@ -1,8 +1,8 @@
 node_modules/
 .next/
-.env.local
-.env
-.env.*.local
+# Every .env variant carries secrets except the committed example.
+.env*
+!.env.example
 *.log
 .DS_Store
 package-lock.json
